@@ -4,11 +4,19 @@ import sys
 import codecs
 import re
 import datetime
+import json
 import wikipedia
 from bs4 import BeautifulSoup
 
+def jsonFromPage(title):
+	"""Takes the title of a timeline page on Wikipedia and
+	outputs it to a json file
+	"""
+	filename = "".join(c for c in title if re.match(r'\w', c))
+	with open(filename + '.json', 'w') as f:
+		f.write(json.dumps(extractTimeline(wikipedia.page(title))))
 
-def timelinePageToStructuredData(page):
+def extractTimeline(page):
 	"""Takes a timeline page from Wikipedia and turns it
 	into ... something?
 
@@ -20,19 +28,24 @@ def timelinePageToStructuredData(page):
 
 	# heading keeps track of the headings for the current context
 	heading = []
+	ignoreSection = False
 	for el in article.children:
 		if el.name == 'h2':
 			heading = [el.find(class_='mw-headline').text]
-		elif el.name == 'h3':
+			ignoreSection = heading[0] == 'See also'
+		elif el.name == 'h3' and not ignoreSection:
 			heading = heading[0:1]
 			heading.append(el.find(class_='mw-headline').text)
 		# for now, assume that timelines always require bullet points
-		elif el.name == 'ul':
+		elif el.name == 'ul' and not ignoreSection:
 			for li in el.children:
 				if li.name == 'li':
-					data = findDate(li.text)
+					# hack for getting the Html
+					data = findDate("".join(unicode(x) for x in li.contents))
 					if data:
-						structuredData.append(data)
+						(date, content) = data
+						structuredData.append((date, content, importanceString(content)))
+
 	return structuredData
 
 def findDate(s):
@@ -80,8 +93,25 @@ def findDate(s):
 
 	return (date, content)
 
-def importance(s):
+def importanceString(s):
 	"""Given a content string for a timeline item, returns the importance score
 	"""
 
-	
+	imp = 0
+	# get all the links
+	for a in BeautifulSoup(s).find_all('a'):
+		if a['href'].startswith('/wiki/'):
+			imp += importancePage(wikipedia.page(a['title'], auto_suggest=False))
+
+	return imp
+
+def importancePage(p):
+	"""Given a wikipedia.WikipediaPage, returns the importance score
+	"""
+	return len(p.content)
+	#return (p.backlinkCount(), len(p.content), p.revCount())
+
+# TODO: add a relevance metric so that an entry like
+# 	1815 - [[William Prout]] [[hypothesizes]] that all matter is built up from [[hydrogen]], adumbrating the [[proton]]
+# in the timeline of particle physics doesn't get importance points
+# for "hypothesizes", as this doesn't have much to do with particle physics
