@@ -1,0 +1,37 @@
+body {
+	font-family: Georgia;
+}
+
+.timeline-holder{
+	background-color: #DDDDDD;
+	height: 500px;
+	width: 800px;
+	position: relative;
+}
+
+	.date-strip {
+		height: 20px;
+		width: 100%;
+		background-color: #AAAAAA;
+		position: absolute;
+		bottom: 0;
+	}
+
+	.event-marker {
+		width: 3px;
+		background-color: #333333;
+		position: absolute;
+		bottom: 0;
+
+		height: 100px;
+		left: 200px;
+	}
+
+	.event-text {
+		font-size: 10px;
+		width: 180px;
+		position: absolute;
+
+		top: 400px;
+		left: 205px;
+	}

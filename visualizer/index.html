@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Ananke</title>
+	<link rel="stylesheet" type="text/css" href="ananke.css" />
+</head>
+
+<body>
+	<h1>Hello there</h1>
+
+	<div class="timeline-holder">
+		uhhh wow
+
+		<div class="date-strip">
+			1835
+			1912
+			1954
+			1987
+		</div>
+
+		<div id="events-holder">
+<!-- 		<div>
+			<div class="event-marker">
+			</div>
+
+			<div class="event-text">
+				William Prout hypothesizes that all matter is built up from hydrogen, adumbrating the proton;
+			</div>
+		</div> -->
+		</div>
+	</div>
+
+
+	<script type="text/javascript" src="js/lib/jquery-1.10.2.js"></script>
+	<script type="text/javascript" src="js/lib/underscore.js"></script>
+	<script type="text/javascript" src="js/lib/backbone.js"></script>
+	<script type="text/javascript" src="js/ananke.js"></script>
+
+	<script type="text/template" id="event-template">
+		<div class="event-marker"></div>
+		<div class="event-text"><%- content %></div>
+	</script>
+</body>
+
+</html>
