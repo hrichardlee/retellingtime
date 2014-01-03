@@ -44,7 +44,7 @@ def extractTimeline(page):
 					data = findDate("".join(unicode(x) for x in li.contents))
 					if data:
 						(date, content) = data
-						structuredData.append((date, content, importanceString(content)))
+						structuredData.append({'date': date, 'content': content, 'importance': importanceString(content)})
 
 	return structuredData
 
@@ -98,12 +98,14 @@ def importanceString(s):
 	"""
 
 	imp = 0
+	n = 0
 	# get all the links
 	for a in BeautifulSoup(s).find_all('a'):
 		if a['href'].startswith('/wiki/'):
 			imp += importancePage(wikipedia.page(a['title'], auto_suggest=False))
+			n += 1
 
-	return imp
+	return float(imp) / float(n)
 
 def importancePage(p):
 	"""Given a wikipedia.WikipediaPage, returns the importance score
