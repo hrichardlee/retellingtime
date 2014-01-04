@@ -2,7 +2,18 @@ body {
 	font-family: Georgia;
 }
 
-.timeline-holder{
+.invisible {
+	visibility: hidden;
+}
+
+#text-tester {
+	position: absolute;
+	visibility: hidden;
+	height: auto;
+	width: 180px; /*this must be the same as .event-marker*/
+}
+
+.timeline-holder {
 	background-color: #DDDDDD;
 	height: 500px;
 	width: 800px;
@@ -22,16 +33,11 @@ body {
 		background-color: #333333;
 		position: absolute;
 		bottom: 0;
-
-		height: 100px;
-		left: 200px;
 	}
 
 	.event-text {
 		font-size: 10px;
 		width: 180px;
 		position: absolute;
-
-		top: 400px;
-		left: 205px;
+		margin-top: 5px;
 	}

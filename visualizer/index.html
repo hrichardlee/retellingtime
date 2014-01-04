@@ -10,6 +10,7 @@
 	<h1>Hello there</h1>
 
 	<div class="timeline-holder">
+		<div id="text-tester">derp derp derp</div>
 		uhhh wow
 
 		<div class="date-strip">
@@ -39,7 +40,7 @@
 
 	<script type="text/template" id="event-template">
 		<div class="event-marker"></div>
-		<div class="event-text"><%- content %></div>
+		<div class="event-text"><span class="date"><%= date %></span><%= content %></div>
 	</script>
 </body>
 
