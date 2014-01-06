@@ -85,14 +85,67 @@ $(function(){
 	// Requires collection to be sorted from future to past
 	var TimelineView = Backbone.View.extend({
 		el: $("#events-holder"),
+		setDependentChain: function (block, prevChainBlock) {
+			var blockIndex = block.options.blockIndex;
+			// set dependentChain
+			if (blockIndex == 0) {
+				block.options.dependentChain = {};
+				block.options.dependentChain[block.options.chainIndex] = {lo: blockIndex, hi: blockIndex};
+			} else if (prevChainBlock) {
+				block.options.dependentChain = $.extend(true, prevChainBlock.options.dependentChain);
+				block.options.dependentChain[block.options.chainIndex] = {lo: blockIndex, hi: blockIndex};
+			} else {
+				// by default the block just needs to add one more block to the current range's hi
+				var prevDependentChain = block.options.chain[blockIndex - 1].options.dependentChain;
+				block.options.dependentChain = $.extend(true, {}, prevDependentChain);
+				block.options.dependentChain[block.options.chainIndex].hi = blockIndex;
+			}
+		},
+		// params should be {topOfBelowBlock, prevChainBlock}
+		// returns params {topOfBelowBlock and prevChainBlock}, but appropriately for calling with the next block
+		placeBlock: function (block, params) {
+			var topOfBelowBlock = params.topOfBelowBlock;
+			var prevChainBlock = params.prevChainBlock;
+			var height = block.textHeight();
+			var bottom = topOfBelowBlock;
+
+			this.setDependentChain(block);
+
+			// penultimatePrevChainBlock ends up being the block that the next block in the current chain needs to check for overlap
+			var penultimatePrevChainBlock = prevChainBlock;
+			// check for overlaps
+			while (prevChainBlock.options.bottom < bottom + height
+				&& prevChainBlock.right() > block.options.dateX) {
+				// the while conditions plus this if condition guarantee overlap
+				if (prevChainBlock.top() > bottom) {
+					bottom = prevChainBlock.top();
+					// this case requires adding a new chain to the dependentChain
+					this.setDependentChain(block, prevChainBlock);
+				}
+
+				if (prevChainBlock.options.blockIndex + 1 >= prevChainBlock.options.chain.length) {
+					break;
+				} else {
+					// advance to the next block in the previous chain
+					penultimatePrevChainBlock = prevChainBlock;
+					prevChainBlock = prevChainBlock.options.chain[prevChainBlock.options.blockIndex + 1];
+				}
+			}
+
+			block.place(bottom);
+
+			return {topOfBelowBlock: bottom + height, prevChainBlock: penultimatePrevChainBlock}
+		},
 		render: function() {
-			var i, j; // loop variables
+			var i, j;
 			var evs = this.collection;
 
+			// get dates
 			var dateMin = evs.at(evs.length- 1).attributes["date"];
 			var dateMax = evs.at(0).attributes["date"];
 			var dateRange = dateMax - dateMin;
 
+			// create views and add to the DOM as invisible (required for knowing heights)
 			var views = evs.map(function(ev) {
 				var view = new EventView({
 					model: ev,
@@ -103,87 +156,47 @@ $(function(){
 				return view;
 			}, this);
 
+			// create view chains
 			var viewChains = [];
-			var viewChain = [views[0]];
-			viewChains.push(viewChain);
-			for (i = 1; i < views.length; i++) {
-				if (views[i].options.dateX + C.EVENTWIDTH > viewChain[0].options.dateX) { // add to the previous chain
-					viewChain.push(views[i]);
-				} else { // create a new chain
+			var viewChain;
+			for (i = 0; i < views.length; i++) {
+				if (i == 0 ||
+					views[i].options.dateX + C.EVENTWIDTH < viewChain[0].options.dateX) { // create a new chain
 					viewChain = [views[i]];
 					viewChains.push(viewChain);
+				} else { // add to the existing chain
+					viewChain.push(views[i]);
 				}
+				views[i].options.chain = viewChain;
+				views[i].options.chainIndex = viewChains.length - 1;
+				views[i].options.blockIndex = viewChain.length - 1;
 			}
 
-			var currViewChain = viewChains[viewChains.length - 1];
+			// layout the left-most chain
+			var leftMostChain = viewChains[viewChains.length - 1];
 			var currY = 0;
-			for (j = 0; j < currViewChain.length; j++) {
-				currViewChain[j].place(currY);
-				currY += currViewChain[j].textHeight();
+			for (j = 0; j < leftMostChain.length; j++) {
+				leftMostChain[j].place(currY);
+				currY += leftMostChain[j].textHeight();
+
+				//TODO deal with this chain going over
 			}
-			var prevViewChain;
-			var currHeight;
-			var prevViewChainBlockIndex;
-			var prevViewChainBlock;
+
 			for (i = viewChains.length - 2; i >= 0; i--) {
-				currY = 0;
-				currViewChain = viewChains[i];
-				prevViewChain = viewChains[i + 1];
-				prevViewChainBlockIndex = 0;
-				prevViewChainBlock = prevViewChain[prevViewChainBlockIndex];
+				var currViewChain = viewChains[i];
+				var params = {topOfBelowBlock: 0, prevChainBlock: viewChains[i + 1][0]};
 				for (j = 0; j < currViewChain.length; j++)  {
-					currHeight = currViewChain[j].textHeight();
-					
-					if (j == 0) {
-						currViewChain[j].options.dependentChain = {};
-						currViewChain[j].options.dependentChain[i] = {lo: j, hi: j};
-					} else {
-						// by default the block just needs to add one more block to the current range's hi
-						var prevDependentChain = currViewChain[j - 1].options.dependentChain;
-						currViewChain[j].options.dependentChain = $.extend(true, {}, prevDependentChain);
-						currViewChain[j].options.dependentChain[i].hi = j;
-					}
-					
-
-					// check for overlaps
-					while (prevViewChainBlock.options.bottom < currY + currHeight) {	
-						if (prevViewChainBlock.top() > currY) {
-							if (prevViewChainBlock.right() > currViewChain[j].options.dateX) {
-								currY = prevViewChainBlock.top();
-
-								// this case requires adding a new viewchain to the dependentChain
-								currViewChain[j].options.dependentChain = $.extend(true, prevViewChainBlock.options.dependentChain);
-								currViewChain[j].options.dependentChain[i] = {lo: j, hi: j};
-							} else {
-								break; // nothing else can possibly overlap, because all remaining elements in prevViewChainBlock will be to the left
-							}
-						}
-
-						prevViewChainBlockIndex += 1;
-						if (prevViewChainBlockIndex >= prevViewChain.length) { break; }
-						prevViewChainBlock = prevViewChain[prevViewChainBlockIndex];
-					}
+					params = this.placeBlock(currViewChain[j], params);
 
 					// check for vertical height
-					if (currY + currHeight > C.TIMELINEHEIGHT) {
-						// not implemented
-					}
-
-					currViewChain[j].place(currY);
-					currY += currHeight;
-
-					prevViewChainBlockIndex = prevViewChainBlockIndex > 0 ? prevViewChainBlockIndex - 1 : 0; // this should be finessed;
-					prevViewChainBlock = prevViewChain[prevViewChainBlockIndex]
-				}
-			}
-
-			for (i = 0; i < viewChains.length; i++) {
-				for (j = 0; j < viewChains[i].length; j++) {
-					if (!viewChains[i][j].options.hide) {
-						viewChains[i][j].show();
+					if (params.topOfBelowBlock > C.TIMELINEHEIGHT)
+						// deal with this
 					}
 				}
 			}
+
+			// show all the elements
+			_.each(views, function(v) { v.show(); })
 		}
 	});
 
