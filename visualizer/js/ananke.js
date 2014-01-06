@@ -20,12 +20,13 @@ $(function(){
 		model: Event
 	});
 
-	// Requires: model; Optionally: options.place
+	// Requires: model, options.dateX, options.importance (supplied by model)
 	var EventView = Backbone.View.extend({
 		tagName: "div",
 		template: _.template($("#event-template").html()),
 		initialize: function(options) {
 			this.options = options || {};
+			this.options.importance = this.model.attributes["importance"];
 		},
 		render: function() {
 			this.$el.html(this.template(this.model.toJSON()));
@@ -38,66 +39,149 @@ $(function(){
 		},
 		// must be called after adding to the DOM
 		textHeight: function() {
-			return this.text ? this.text.outerHeight() : null;
+			if (!this._textHeight && this.text)
+				this._textHeight = this.text.outerHeight();
+			return this._textHeight;
+		},
+		top: function() {
+			return this.textHeight() + this.options.bottom;
+		},
+		right: function() {
+			return this.options.dateX + C.EVENTWIDTH;
 		},
 		// must be called after adding to the DOM
-		placeAndShow: function(place) {
-			this.text.css("left", (place.left + C.EVENTMARKEROFFSET) + "px");
-			this.marker.css("left", place.left + "px");
-			this.text.css("bottom", (place.bottom + C.DATESTRIPOFFSET) + "px");
-			this.marker.css("height", (place.bottom + C.DATESTRIPOFFSET - C.MARKEREXTRALEADING + this.textHeight()) + "px");
+		place: function(bottom) {
+			this.text.css("left", (this.options.dateX + C.EVENTMARKEROFFSET) + "px");
+			this.marker.css("left", this.options.dateX + "px");
+			this.text.css("bottom", (bottom + C.DATESTRIPOFFSET) + "px");
+			this.marker.css("height", (bottom + C.DATESTRIPOFFSET - C.MARKEREXTRALEADING + this.textHeight()) + "px");
 
-			this.$el.removeClass("invisible")
+			this.options.bottom = bottom;
+
+			return this;
 		},
-		importance: function() {
-			return this.model.attributes["importance"];
+		show: function() {
+			this.$el.removeClass("invisible");
 		}
 	});
 
 	/* Rendering strategy
-	 * Some notes:
-	 *  Each block is defined by {pos: {left, right, bottom, top}, importance}
-	 *  A block chain is a sequence of blocks where each block's layout depends on the block
-	 *  A block is placed at ground level (bottom = 0) unless it overlaps a block to its right,
-	 *  in which case it is placed above it.
-	 * Get all block chains
-	 * If a block chain is taller than the allowed vertical height
-	 *  remove the least important block and recalculate block chains
-	 * Repeat until no block chain is taller than the allowed vertical height
+	 * Layout all the blocks:
+	 *   Horizontal position for blocks is predetermined
+	 *   Place the right-most block at ground level
+	 *   For each subsequent block, place it at ground level
+	 *     If it overlaps a ground-level block, move it up until it has no overlaps
+	 *     This block is considered part of the block chain defined by the ground-level block
+	 * At this point, all overlaps will be between floating blocks or between a ground-level block
+	 *   on the left and a floating block to the right
+	 * Now, for each block chain, starting from the left
+	 *   For each block in the block chain, if there is an overlapping block to the left
+	 *   move the block (and all blocks above it in the block chain) up until that block
+	 *   clears the block chain to the left
+	 *   For each block chain, remove the least important block until the block chain is
+	 *   lower than the maximum vertical height
 	 */
 
-	// Requires collection
+	// Requires collection to be sorted from future to past
 	var TimelineView = Backbone.View.extend({
 		el: $("#events-holder"),
 		render: function() {
+			var i, j; // loop variables
 			var evs = this.collection;
 
 			var dateMin = evs.at(evs.length- 1).attributes["date"];
 			var dateMax = evs.at(0).attributes["date"];
 			var dateRange = dateMax - dateMin;
 
-			// at the beginning of each iteration of the loop,
-			// (prevX, prevY) is the upper left corner of the item rendered in the previous iteration
-			var prevX = C.TIMELINEWIDTH;
-			var prevY = 0;
-			for (var i = 0; i < evs.length; i++) {
+			var views = evs.map(function(ev) {
 				var view = new EventView({
-					model: evs.at(i)
+					model: ev,
+					dateX: (ev.attributes["date"] - dateMin) / dateRange * C.TIMELINEWIDTH,
+					hide: false
 				});
+				this.$el.append(view.render().$el);
+				return view;
+			}, this);
 
-				// x coordinate for the date marker
-				var dateX = (view.model.attributes["date"] - dateMin) / dateRange * C.TIMELINEWIDTH;
-				var eventEl = view.render().$el;
-				this.$el.append(eventEl);
+			var viewChains = [];
+			var viewChain = [views[0]];
+			viewChains.push(viewChain);
+			for (i = 1; i < views.length; i++) {
+				if (views[i].options.dateX + C.EVENTWIDTH > viewChain[0].options.dateX) { // add to the previous chain
+					viewChain.push(views[i]);
+				} else { // create a new chain
+					viewChain = [views[i]];
+					viewChains.push(viewChain);
+				}
+			}
 
-				if (dateX + C.EVENTWIDTH < prevX) {
-					view.placeAndShow({left: dateX, bottom: 0});
-					prevX = dateX;
-					prevY = $(".event-text", view.$el).outerHeight();
-				} else {
-					view.placeAndShow({left: dateX, bottom: prevY});
-					prevX = dateX;
-					prevY += $(".event-text", view.$el).outerHeight();
+			var currViewChain = viewChains[viewChains.length - 1];
+			var currY = 0;
+			for (j = 0; j < currViewChain.length; j++) {
+				currViewChain[j].place(currY);
+				currY += currViewChain[j].textHeight();
+			}
+			var prevViewChain;
+			var currHeight;
+			var prevViewChainBlockIndex;
+			var prevViewChainBlock;
+			for (i = viewChains.length - 2; i >= 0; i--) {
+				currY = 0;
+				currViewChain = viewChains[i];
+				prevViewChain = viewChains[i + 1];
+				prevViewChainBlockIndex = 0;
+				prevViewChainBlock = prevViewChain[prevViewChainBlockIndex];
+				for (j = 0; j < currViewChain.length; j++)  {
+					currHeight = currViewChain[j].textHeight();
+					
+					if (j == 0) {
+						currViewChain[j].options.dependentChain = {};
+						currViewChain[j].options.dependentChain[i] = {lo: j, hi: j};
+					} else {
+						// by default the block just needs to add one more block to the current range's hi
+						var prevDependentChain = currViewChain[j - 1].options.dependentChain;
+						currViewChain[j].options.dependentChain = $.extend(true, {}, prevDependentChain);
+						currViewChain[j].options.dependentChain[i].hi = j;
+					}
+					
+
+					// check for overlaps
+					while (prevViewChainBlock.options.bottom < currY + currHeight) {	
+						if (prevViewChainBlock.top() > currY) {
+							if (prevViewChainBlock.right() > currViewChain[j].options.dateX) {
+								currY = prevViewChainBlock.top();
+
+								// this case requires adding a new viewchain to the dependentChain
+								currViewChain[j].options.dependentChain = $.extend(true, prevViewChainBlock.options.dependentChain);
+								currViewChain[j].options.dependentChain[i] = {lo: j, hi: j};
+							} else {
+								break; // nothing else can possibly overlap, because all remaining elements in prevViewChainBlock will be to the left
+							}
+						}
+
+						prevViewChainBlockIndex += 1;
+						if (prevViewChainBlockIndex >= prevViewChain.length) { break; }
+						prevViewChainBlock = prevViewChain[prevViewChainBlockIndex];
+					}
+
+					// check for vertical height
+					if (currY + currHeight > C.TIMELINEHEIGHT) {
+						// not implemented
+					}
+
+					currViewChain[j].place(currY);
+					currY += currHeight;
+
+					prevViewChainBlockIndex = prevViewChainBlockIndex > 0 ? prevViewChainBlockIndex - 1 : 0; // this should be finessed;
+					prevViewChainBlock = prevViewChain[prevViewChainBlockIndex]
+				}
+			}
+
+			for (i = 0; i < viewChains.length; i++) {
+				for (j = 0; j < viewChains[i].length; j++) {
+					if (!viewChains[i][j].options.hide) {
+						viewChains[i][j].show();
+					}
 				}
 			}
 		}

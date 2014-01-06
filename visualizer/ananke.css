@@ -14,7 +14,7 @@ body {
 }
 
 .timeline-holder {
-	background-color: #DDDDDD;
+	background-color: rgb(200, 200, 200);
 	height: 500px;
 	width: 800px;
 	position: relative;
@@ -40,4 +40,5 @@ body {
 		width: 180px;
 		position: absolute;
 		margin-top: 5px;
+		background-color: rgba(200, 200, 200, 0.9);
 	}
