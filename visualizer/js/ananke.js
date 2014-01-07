@@ -20,7 +20,8 @@ $(function(){
 		model: Event
 	});
 
-	// Requires: model, options.dateX, options.importance (supplied by model)
+	// Requires: model, options.importance (supplied by model)
+	// options.dateX, options.hide, options.chain, options.chainIndex, options.blockIndex
 	var EventView = Backbone.View.extend({
 		tagName: "div",
 		template: _.template($("#event-template").html()),
@@ -35,6 +36,7 @@ $(function(){
 			this.marker = $(".event-marker", this.$el);
 
 			this.$el.addClass("invisible");
+			this._textHeight = undefined;
 			return this;
 		},
 		// must be called after adding to the DOM
@@ -61,35 +63,43 @@ $(function(){
 			return this;
 		},
 		show: function() {
+			this.options.hide = false;
 			this.$el.removeClass("invisible");
 		}
 	});
 
 	/* Rendering strategy
-	 * Layout all the blocks:
-	 *   Horizontal position for blocks is predetermined
-	 *   Place the right-most block at ground level
-	 *   For each subsequent block, place it at ground level
-	 *     If it overlaps a ground-level block, move it up until it has no overlaps
-	 *     This block is considered part of the block chain defined by the ground-level block
-	 * At this point, all overlaps will be between floating blocks or between a ground-level block
-	 *   on the left and a floating block to the right
-	 * Now, for each block chain, starting from the left
-	 *   For each block in the block chain, if there is an overlapping block to the left
-	 *   move the block (and all blocks above it in the block chain) up until that block
-	 *   clears the block chain to the left
-	 *   For each block chain, remove the least important block until the block chain is
-	 *   lower than the maximum vertical height
+		1. Layout all the blocks:
+			a. Horizontal position for blocks is predetermined
+			b. Place the right-most block at ground level
+			c. For each subsequent block, place it at ground level
+				If it overlaps a ground-level block, move it up until it has no overlaps
+				This block is considered part of the block chain defined by the ground-level block
+		2. Now, for each block chain, starting from the left
+			a. For each block in the block chain, if there is an overlapping block to the left
+				move the block (and all blocks above it in the block chain) up until that block
+				clears the block chain to the left
+			b. The block depends on the block immediately below it, whether it is part of the same
+				block chain or whether it is part of the previous block chain. The chain of dependent
+				blocks (terminating at a ground block) is the dependent chain for that block
+			c. If a block exceeds the vertical height, take the a set of the least important blocks
+				in its dependent chain that are not already hidden such that these blocks are at least
+				as tall as the excess height, and hide these blocks.
+			d. Repeat starting from 2.a. with the block immediately above the hidden block that is
+				most to the left and bottom
 	 */
 
 	// Requires collection to be sorted from future to past
 	var TimelineView = Backbone.View.extend({
 		el: $("#events-holder"),
+		// If just a block is passed in, the dependent chain is extended from the block
+		// just below it. If a prevChainBlock is passed in, the dependent chain is extended
+		// from that block 
 		setDependentChain: function (block, prevChainBlock) {
 			var blockIndex = block.options.blockIndex;
 			// set dependentChain
 			if (blockIndex == 0) {
-				block.options.dependentChain = {};
+				block.options.dependentChain = {leftMostChainIndex: block.options.chainIndex};
 				block.options.dependentChain[block.options.chainIndex] = {lo: blockIndex, hi: blockIndex};
 			} else if (prevChainBlock) {
 				block.options.dependentChain = $.extend(true, prevChainBlock.options.dependentChain);
@@ -100,6 +110,39 @@ $(function(){
 				block.options.dependentChain = $.extend(true, {}, prevDependentChain);
 				block.options.dependentChain[block.options.chainIndex].hi = blockIndex;
 			}
+		},
+		// hides the least important blocks in dependentChain until the
+		// height of the blocks removed equals or exceeds verticalHeight
+		hideDependentBlocks: function (dependentChain, chains, verticalHeight) {
+			var i = dependentChain.leftMostChainIndex;
+			var blocks = [];
+			while (dependentChain[i]) {
+				blocks = blocks.concat(
+					chains[i].slice(dependentChain[i].lo, dependentChain[i].hi + 1));
+				i -= 1;
+			}
+			blocks = _.filter(blocks, function (b) { return !b.options.hide; });
+			// should use a priority queue hahaha
+			blocks.sort(function(a, b) { return a.options.importance - b.options.importance; });
+			i = 0;
+			var removedHeight = 0;
+			var leftMostChain = null;
+			var lowestBlock = null;
+			while (removedHeight < verticalHeight) {
+				blocks[i].options.hide = true;
+				removedHeight += blocks[i].textHeight();
+				if (leftMostChain == null
+					|| blocks[i].options.chainIndex > leftMostChain) {
+					leftMostChain = blocks[i].options.chainIndex; 
+				}
+				if (lowestBlock == null
+					|| (blocks[i].options.chainIndex == leftMostChain
+						&& blocks[i].options.blockIndex < lowestBlock)) {
+					lowestBlock = blocks[i].options.blockIndex;
+				}
+				i += 1;
+			}
+			return {chainIndex: leftMostChain, blockIndex: lowestBlock}
 		},
 		// params should be {topOfBelowBlock, prevChainBlock}
 		// returns params {topOfBelowBlock and prevChainBlock}, but appropriately for calling with the next block
@@ -137,7 +180,7 @@ $(function(){
 			return {topOfBelowBlock: bottom + height, prevChainBlock: penultimatePrevChainBlock}
 		},
 		render: function() {
-			var i, j;
+			var i, j, k;
 			var evs = this.collection;
 
 			// get dates
@@ -182,21 +225,44 @@ $(function(){
 				//TODO deal with this chain going over
 			}
 
-			for (i = viewChains.length - 2; i >= 0; i--) {
-				var currViewChain = viewChains[i];
-				var params = {topOfBelowBlock: 0, prevChainBlock: viewChains[i + 1][0]};
-				for (j = 0; j < currViewChain.length; j++)  {
-					params = this.placeBlock(currViewChain[j], params);
-
-					// check for vertical height
-					if (params.topOfBelowBlock > C.TIMELINEHEIGHT)
-						// deal with this
-					}
+			// layout remaining chains
+			i = viewChains.length - 2;
+			var reset = null;
+			while (i >= 0 || reset) {
+				var params = {};
+				if (reset) {
+					i = reset.chainIndex;
+					j = reset.blockIndex + 1;
+					params.topOfBelowBlock = viewChains[i][reset.blockIndex].options.bottom; // we know j > 0
+					reset = null;
+				} else {
+					j = 0;
+					params.topOfBelowBlock = 0;
 				}
+				var currViewChain = viewChains[i];
+				params.prevChainBlock = viewChains[i + 1][0];
+
+				while (j < currViewChain.length
+					&& !reset)  {
+					if (!currViewChain[j].options.hide) {
+						params = this.placeBlock(currViewChain[j], params);
+
+						// check for vertical height
+						if (params.topOfBelowBlock > C.TIMELINEHEIGHT) {
+							// remove blocks and relayout
+							var reset = this.hideDependentBlocks(
+								currViewChain[j].options.dependentChain,
+								viewChains,
+								params.topOfBelowBlock - C.TIMELINEHEIGHT);
+						}
+					}
+					j++;
+				}
+				i--;
 			}
 
 			// show all the elements
-			_.each(views, function(v) { v.show(); })
+			_.each(views, function(v) { if (!v.options.hide) { v.show(); } })
 		}
 	});
 
