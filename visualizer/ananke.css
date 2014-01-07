@@ -39,6 +39,6 @@ body {
 		font-size: 10px;
 		width: 180px;
 		position: absolute;
-		margin-top: 5px;
+		padding-top: 4px;
 		background-color: rgba(200, 200, 200, 0.9);
 	}
