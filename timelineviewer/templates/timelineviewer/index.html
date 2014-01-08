@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html>
+{% extends "timelineviewer/base.html" %}
 
-<head>
-	<title>Ananke</title>
-	<link rel="stylesheet" type="text/css" href="ananke.css" />
-</head>
+{% load staticfiles %}
 
-<body>
+{% block content %}
 	<h1>Hello there</h1>
 
 	<div class="timeline-holder">
@@ -33,15 +29,13 @@
 	</div>
 
 
-	<script type="text/javascript" src="js/lib/jquery-1.10.2.js"></script>
-	<script type="text/javascript" src="js/lib/underscore.js"></script>
-	<script type="text/javascript" src="js/lib/backbone.js"></script>
-	<script type="text/javascript" src="js/ananke.js"></script>
+	<script type="text/javascript" src="{% static 'timelineviewer/js/lib/jquery-1.10.2.js' %}"></script>
+	<script type="text/javascript" src="{% static 'timelineviewer/js/lib/underscore.js' %}"></script>
+	<script type="text/javascript" src="{% static 'timelineviewer/js/lib/backbone.js' %}"></script>
+	<script type="text/javascript" src="{% static 'timelineviewer/js/viewer.js' %}"></script>
 
 	<script type="text/template" id="event-template">
 		<div class="event-marker"></div>
 		<div class="event-text"><span class="date"><%= date %></span> <%= content %></div>
 	</script>
-</body>
-
-</html>
+{% endblock %}

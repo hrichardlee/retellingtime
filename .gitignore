@@ -11,7 +11,7 @@ build/
 develop-eggs/
 dist/
 eggs/
-lib/
+# lib/ # commented out for js libs
 lib64/
 parts/
 sdist/

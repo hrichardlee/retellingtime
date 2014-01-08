@@ -12,9 +12,7 @@ def jsonFromPage(title):
 	"""Takes the title of a timeline page on Wikipedia and
 	outputs it to a json file
 	"""
-	filename = "".join(c for c in title if re.match(r'\w', c))
-	with open(filename + '.json', 'w') as f:
-		f.write(json.dumps(extractTimeline(wikipedia.page(title))))
+	return json.dumps(extractTimeline(wikipedia.page(title)))
 
 def extractTimeline(page):
 	"""Takes a timeline page from Wikipedia and turns it
@@ -71,7 +69,7 @@ def findDate(s):
 
 	# just the year
 	if date is None:
-		m = re.search('^(\d{1,4})\?? ?(-|–|—|to) ?(\d{1,4})\??', s)
+		m = re.search('^(\d{1,4})\?? ?(-|ΓÇô|ΓÇö|to) ?(\d{1,4})\??', s)
 		if m:
 			rem = s[m.end():]
 			date = (int(m.groups()[0]), int(m.groups()[2]))
@@ -88,7 +86,7 @@ def findDate(s):
 
 	# strip out any transition characters between the date and the content
 	# c stands for circa and is ignored for now
-	m2 = re.search(u'^[c\s\-–—:\.]+', rem)
+	m2 = re.search(u'^[c\s\-ΓÇôΓÇö:\.]+', rem)
 	content = rem[m2.end():]
 
 	return (date, content)

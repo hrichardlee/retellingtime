@@ -1,0 +1,11 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{% block title %}{% endblock %}</title>
+	<link rel="stylesheet" type="text/css" href="{% static 'timelineviewer/css/viewer.css' %}" />
+</head>
+<body>
+	{% block content %}{% endblock %}
+</body>
+</html>
