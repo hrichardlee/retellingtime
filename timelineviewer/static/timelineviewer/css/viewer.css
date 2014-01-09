@@ -6,21 +6,14 @@ body {
 	visibility: hidden;
 }
 
-#text-tester {
-	position: absolute;
-	visibility: hidden;
-	height: auto;
-	width: 180px; /*this must be the same as .event-marker*/
-}
-
-.timeline-holder {
+#events-and-datestrip {
 	background-color: rgb(200, 200, 200);
 	height: 500px;
 	width: 800px;
 	position: relative;
 }
 
-	.date-strip {
+	.datestrip {
 		height: 20px;
 		width: 100%;
 		background-color: #AAAAAA;

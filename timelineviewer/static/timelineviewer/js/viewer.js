@@ -89,8 +89,8 @@ $(function(){
 	 */
 
 	// Requires collection to be sorted from future to past
-	var TimelineView = Backbone.View.extend({
-		el: $("#events-holder"),
+	var EventsView = Backbone.View.extend({
+		el: $("#events-and-datestrip"),
 		// If just a block is passed in, the dependent chain is extended from the block
 		// just below it. If a prevChainBlock is passed in, the dependent chain is extended
 		// from that block 
@@ -226,6 +226,8 @@ $(function(){
 			var dateMax = evs.at(0).attributes["date"];
 			var dateRange = dateMax - dateMin;
 
+			var eventsHolder = $("#events", this.$el);
+
 			// create views and add to the DOM as invisible (required for knowing heights)
 			var views = evs.map(function(ev) {
 				var view = new EventView({
@@ -233,7 +235,7 @@ $(function(){
 					dateX: (ev.attributes["date"] - dateMin) / dateRange * C.TIMELINEWIDTH,
 					hide: false
 				});
-				this.$el.append(view.render().$el);
+				eventsHolder.append(view.render().$el);
 				return view;
 			}, this);
 
@@ -260,9 +262,19 @@ $(function(){
 		}
 	});
 
-	$.get("/timelinedata/test1", function(data) {
-		var events = new Events(data);
-		var timeline = new TimelineView({collection: events});
-		timeline.render();
-	});
+	var TimelineView = Backbone.View.extend({
+		el: $("#timeline-holder"),
+		events: {
+			"click #searchButton" : "search"
+		},
+		search: function(x) {
+			$.get("/timelinedata/" + $("#query").val(), function(data) {
+				var events = new Events(data);
+				var timeline = new EventsView({collection: events});
+				timeline.render();
+			});
+		}
+	})
+
+	var x = new TimelineView();
 })
