@@ -6,9 +6,8 @@ import re
 import datetime
 import json
 import wikipedia
+import itertools
 from bs4 import BeautifulSoup
-
-import pdb
 
 
 def wpPageToJson(title):
@@ -17,7 +16,10 @@ def wpPageToJson(title):
 	"""
 	article = BeautifulSoup(wikipedia.page(title).html())
 
-	return json.dumps(stringBlocksToEvents(htmlToStringBlocks(article)))
+	events = stringBlocksToEvents(htmlToStringBlocks(article))
+	addImportanceToEvents(events)
+
+	return json.dumps(events)
 
 
 def htmlToStringBlocks(html, 
@@ -166,25 +168,42 @@ def findDate(string):
 	return (date, content)
 
 
-def importanceString(s):
-	"""Given a content string for a timeline item, returns the importance score
+def addImportanceToEvents(events):
+	"""Given a list of events as produced by stringBlocksToEvents, adds the
+	importance of each event so that events are now {date, content,
+	importance: float}. Modifies events in place!
 	"""
+	linksLists = [
+		[a["title"] for a in BeautifulSoup(event["content"]).find_all('a')
+			if a['href'].startswith('/wiki/')]
+		for event in events]
+	counts = (len(l) for l in linksLists)
+	# flatten and get importances
+	importances = bulkImportance(itertools.chain.from_iterable(linksLists))
+	importanceLists = groupListByCount(importances, counts)
+	for event, importance in zip(events, (float(sum(importanceList))/len(importanceList) for importanceList in importanceLists)):
+		event["importance"] = importance
 
-	imp = 0
-	n = 0
-	# get all the links
-	for a in BeautifulSoup(s).find_all('a'):
-		if a['href'].startswith('/wiki/'):
-			imp += importancePage(wikipedia.page(a['title'], auto_suggest=False))
-			n += 1
 
-	return float(imp) / float(n)
+def groupListByConstant(l, n):
+	length = len(l)
+	for i in range(0, length, n):
+		yield l[i:min(i+n, length)]
 
 
-def importancePage(p):
-	"""Given a wikipedia.WikipediaPage, returns the importance score
+def groupListByCount(l, counts):
+	i = 0
+	for count in counts:
+		yield l[i:i + count]
+		i += count
+
+
+def bulkImportance(links):
+	"""Given a list of Wikipedia page titles, returns a list of importance scores
 	"""
-	return len(p.content)
+	revSizes = map(lambda ls: wikipedia.batchRevSize(ls),
+		groupListByConstant(list(links), wikipedia.BATCH_LIMIT))
+	return list(itertools.chain.from_iterable(revSizes))
 	#return (p.backlinkCount(), len(p.content), p.revCount())
 
 # TODO: add a relevance metric as a multiplier for the importance
