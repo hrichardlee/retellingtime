@@ -8,57 +8,119 @@ import json
 import wikipedia
 from bs4 import BeautifulSoup
 
+import pdb
+
 def jsonFromPage(title):
 	"""Takes the title of a timeline page on Wikipedia and
 	outputs it to a json file
 	"""
 	return json.dumps(extractTimeline(wikipedia.page(title)))
 
+def getStringBlocks(html, 
+	blockElements = set(["address", "article", "aside", "blockquote", "dd", "div", "dl", "p", "ol", "ul", "li"]),
+	headerElements = set(["h2", "h3"])):
+	"""Given an html element, returns a list of list of strings. Each section, demarcated
+	by a headerElement is a list of strings. Each block element in html is a string.
+	Empty lines are not retained.
+	"""
+
+	def closeStringBlock(sb, s):
+		s = s.strip()
+		if s:
+			sb.append(s)
+
+	def closeStringBlocks(sbs, sb, s):
+		closeStringBlock(sb, s)
+		if sb:
+			sbs.append(sb)
+
+	stringBlocks = []
+	currStringBlock = []
+	currString = ""
+	for el in html.children:
+		if el.name in headerElements:
+			closeStringBlocks(stringBlocks, currStringBlock, currString)
+			currStringBlock = []
+		elif el.name in blockElements:
+			closeStringBlock(currStringBlock, currString)
+			currString = ""
+			# assumes no header elements in child elements
+			# TODO deal with headers better, and incorporate information
+			childStringBlocks = getStringBlocks(el)
+			if childStringBlocks:
+				currStringBlock += childStringBlocks[0]
+		else:
+			currString += unicode(el)
+
+	closeStringBlocks(stringBlocks, currStringBlock, currString)
+
+	return stringBlocks
+
+
+def stringsToEvents(stringBlocks):
+	"""Given a set of sets of strings, returns a list of timeline events.
+	Expects that all strings are non-empty"""
+
+	currEvent = {}
+	events = []
+
+	lineBreak = "<br />"
+
+	for stringBlock in stringBlocks:
+		for string in stringBlock:
+			extract = findDate(string)
+			if extract:
+				if currEvent:
+					events.append(currEvent)
+				currEvent = {"date": extract[0], "content": extract[1]}
+			else:
+				if currEvent:
+					currEvent["content"] += lineBreak + string
+	return events
+
+
 def extractTimeline(page):
 	"""Takes a timeline page from Wikipedia and turns it
 	into ... something?
 
 	page must be a wikipedia.WikipediaPage
-	"""
+	""" 
 
-	structuredData = []
 	article = BeautifulSoup(page.html())
 
-	# heading keeps track of the headings for the current context
-	heading = []
-	ignoreSection = False
-	for el in article.children:
-		if el.name == 'h2':
-			heading = [el.find(class_='mw-headline').text]
-			ignoreSection = heading[0] == 'See also'
-		elif el.name == 'h3' and not ignoreSection:
-			heading = heading[0:1]
-			heading.append(el.find(class_='mw-headline').text)
-		# for now, assume that timelines always require bullet points
-		elif el.name == 'ul' and not ignoreSection:
-			for li in el.children:
-				if li.name == 'li':
-					# hack for getting the Html
-					data = findDate("".join(unicode(x) for x in li.contents))
-					if data:
-						(date, content) = data
-						structuredData.append({'date': date, 'content': content, 'importance': importanceString(content)})
+	return stringsToEvents(getStringBlocks(article))
 
-	return structuredData
+def getFirstPart(soup, remainder = []):
+	"""Given an html string, returns (firstPart, remainder) where firstPart is the 
+	"""
+	try:
+		if soup.contents:
+			(firstPart, rem) = getFirstPart(soup.contents[0], soup.contents[1:])
+			return (firstPart, rem + "".join(unicode(s) for s in remainder))
+		else:
+			return ("", "".join(unicode(s) for s in remainder))
+	except AttributeError:
+		return (soup, "".join(unicode(s) for s in remainder))
 
-def findDate(s):
-	"""Takes a string, and returns (date, content) as a tuple.
+def findDate(string):
+	"""Takes an html string, and returns (date, content) as a tuple.
 	For now, date is an int that represents the year. Negative numbers are B.C. and positive are A.D. years
 	"""
 
-	date = None
+	soup = BeautifulSoup(string)
+	(s, remainder) = getFirstPart(soup)
 
-	# strip out initial irrelevant characters
-	# TODO should probably replace with stripping all non-word/digit chars
-	s = s.strip()
+	# strip out all non-letter/digit characters from the beginning
+	m = re.search('^[^\d\w]+', s)
+	if m:
+		s = s[m.end():]
+	if not s:
+		return None
 
 	# find a date and store it in date
 	# TODO should probably stop ignoring question marks and circa (c)
+
+	date = None
 
 	# B.C. dates
 	if date is None:
@@ -87,7 +149,7 @@ def findDate(s):
 	# strip out any transition characters between the date and the content
 	# c stands for circa and is ignored for now
 	m2 = re.search(u'^[c\s\-ΓÇôΓÇö:\.]+', rem)
-	content = rem[m2.end():]
+	content = rem[m2.end():] + remainder
 
 	return (date, content)
 
