@@ -9,5 +9,5 @@ def index(request, page_title):
 		return HttpResponse(open("timelinedata/timelineofparticlephysics.json"), content_type = "application/json")
 	else:
 		return HttpResponse(wikipediaprocess.wpPageToJson(
-			page_title, True), #request.GET.get("separate", "no") == "yes"),
+			page_title, request.GET.get("separate", "no") == "yes"),
 			content_type = "application/json")

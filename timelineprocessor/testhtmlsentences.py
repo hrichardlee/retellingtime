@@ -6,28 +6,70 @@ import wikipediaprocess
 import unittest
 import pdb
 from pprint import pprint
+from htmlsplitter import HtmlSplitter
 
-# hello there <p><b>1890 <a>Stop sign</a></b>blah</p>blah
-# hello there 1890 Stop signblahblah
-class TestHtmlSent(unittest.TestCase):
+
+class TestHtmlSent2(unittest.TestCase):
 	def testOne(self):
-		data = '<p><b>1890 <a href="/wiki/Stop_sign" title="Stop sign">Stop signs are here. And then we will fight.</a></b></p>'
-		htmlSpans = wikipediaprocess.getHtmlSpans(data)
-		pprint(htmlSpans)
-		self.assertEqual(6, wikipediaprocess.adjustIndex(0, htmlSpans))
-		self.assertEqual(9, wikipediaprocess.adjustIndex(3, htmlSpans))
-		self.assertEqual(10, wikipediaprocess.adjustIndex(4, htmlSpans))
-		self.assertEqual(55, wikipediaprocess.adjustIndex(5, htmlSpans))
-		self.assertEqual(56, wikipediaprocess.adjustIndex(6, htmlSpans))
-		pprint(wikipediaprocess.separate(data))
-	def testTwo(self):
-		data = 'hello ther. <p><b>1890 <a>Stop sign</a></b>blah</p>blah.'
-		htmlSpans = wikipediaprocess.getHtmlSpans(data)
-		pprint(htmlSpans)
-		self.assertEqual(0, wikipediaprocess.adjustIndex(0, htmlSpans))
-		self.assertEqual(3, wikipediaprocess.adjustIndex(3, htmlSpans))
-		self.assertEqual(43, wikipediaprocess.adjustIndex(26, htmlSpans))
-		self.assertEqual(44, wikipediaprocess.adjustIndex(27, htmlSpans))
-		self.assertEqual(51, wikipediaprocess.adjustIndex(30, htmlSpans))
-		self.assertEqual(54, wikipediaprocess.adjustIndex(33, htmlSpans))
-		pprint(wikipediaprocess.separate(data))
+		data = '0abc4<p><b><a>14defg21</a></b>30hijk37</p>42mnop49'
+		#       0---4---------5-----12--------13----20----21----28
+		# soup = BeautifulSoup(data)
+		# pdb.set_trace()
+		splitter = HtmlSplitter(data)
+		top_level_ranges = splitter._top_level_ranges
+		self.assertEqual(
+			[r["range"] for r in top_level_ranges],
+			[(0, 5), (5, 21), (21, 29)])
+		self.assertEqual(
+			[r["range"] for r in splitter._get_applicable_ranges(
+				top_level_ranges,
+				0, 5)],
+			[(0, 5)])
+		self.assertEqual(
+			[r["range"] for r in splitter._get_applicable_ranges(
+				top_level_ranges,
+				22, 29)],
+			[(21, 29)])
+		self.assertEqual(
+			[r["range"] for r in splitter._get_applicable_ranges(
+				top_level_ranges,
+				3, 7)],
+			[(0, 5), (5, 21)])
+
+		self.assertEqual(unicode(splitter.get_span(0, 5)),
+			u"0abc4")
+		self.assertEqual(unicode(splitter.get_span(5, 8)),
+			u"<p><b><a>14d</a></b></p>")
+		self.assertEqual(unicode(splitter.get_span(0, 9)),
+			u"0abc4<p><b><a>14de</a></b></p>")
+		self.assertEqual(unicode(splitter.get_span(2, 24)),
+			u"bc4<p><b><a>14defg21</a></b>30hijk37</p>42m")
+
+		splitter = HtmlSplitter("abcdefghijkl")
+		self.assertEqual(unicode(splitter.get_span(2, 5)),
+			u"cde")
+		self.assertEqual(unicode(splitter.get_span(5, 12)),
+			u"fghijkl")
+		self.assertEqual(unicode(splitter.get_span(5, 13)),
+			u"fghijkl")
+
+
+		splitter = HtmlSplitter('<p class="blah">abcdefghijkl</p>')
+		self.assertEqual(unicode(splitter.get_span(2, 5)),
+			u'<p class="blah">cde</p>')
+		self.assertEqual(unicode(splitter.get_span(5, 12)),
+			u'<p class="blah">fghijkl</p>')
+
+
+		splitter = HtmlSplitter('<p class="blah">abc<br/>def</p>ghi<br/>jkl<br/>')
+
+		top_level_ranges = splitter._top_level_ranges
+		self.assertEqual(
+			[r["range"] for r in top_level_ranges],
+			[(0, 6), (6, 9), (9, 9), (9, 12), (12, 12)])
+		self.assertEqual(unicode(splitter.get_span(2, 5)),
+			u'<p class="blah">c<br/>de</p>')
+		self.assertEqual(unicode(splitter.get_span(3, 4)),
+			u'<p class="blah">d</p>')
+		self.assertEqual(unicode(splitter.get_span(5, 12)),
+			u'<p class="blah">f</p>ghi<br/>jkl')

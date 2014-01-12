@@ -10,6 +10,8 @@ import json
 from pprint import pprint
 import cProfile
 
+import pdb
+
 class TestFindDate(unittest.TestCase):
 	def setUp(self):
 		self.nolayer = '1890 <a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a>'

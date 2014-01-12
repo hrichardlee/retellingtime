@@ -9,6 +9,8 @@ import wikipedia
 import itertools
 import nltk.data
 from bs4 import BeautifulSoup
+import bs4
+from htmlsplitter import HtmlSplitter
 
 import pdb
 
@@ -29,49 +31,14 @@ def wpPageToJson(title, separate = False):
 
 	return json.dumps(events)
 
-#soup = BeautifulSoup(html)
-
-def getHtmlSpans(htmlString):	
-	def cumSum(l):
-		total = 0
-		for x in l:
-			total += x
-			yield total
-
-	tagspans = []
-	for m in re.finditer("<[^>]*>", htmlString):
-		l = m.end() - m.start()
-		if tagspans and tagspans[-1][1] == m.start():
-			tagspans[-1] = (tagspans[-1][0], m.end())
-		else:
-			tagspans.append(m.span())
-
-	textSpanLengths = [start - end for (_, end), (start, _) in zip([(0, 0)] + tagspans, tagspans)]
-	offsets = [end for _, end in tagspans]
-	if textSpanLengths[0] != 0:
-		textSpanLengths = [0] + textSpanLengths
-		offsets = [0] + offsets
-	return (list(cumSum(textSpanLengths)), offsets)
-
-def adjustIndex(index, htmlSpans):
-	(poses, offsets) = htmlSpans
-	temp = list(itertools.takewhile(lambda pos: index >= pos, poses))
-	posIndex = len(temp) - 1
-	# pdb.set_trace()
-	return offsets[posIndex] + (index - poses[posIndex])
-
-def separate(htmlString):
-	textString = BeautifulSoup(htmlString).get_text()
-	htmlSpans = getHtmlSpans(htmlString)
-
-	return [htmlString[adjustIndex(start, htmlSpans): adjustIndex(end, htmlSpans)] \
-		for start, end in sentenceSplitter.span_tokenize(textString)]
-
 
 def separateEvents(events):
 	newEvents = []
 	for e in events:
-		for s in separate(e["content"]):
+		htmlsplitter = HtmlSplitter(e["content"])
+		separated = (htmlsplitter.get_span(start, end) \
+			for start, end in sentenceSplitter.span_tokenize(htmlsplitter.text_string))
+		for s in separated:
 			newEvents.append({"date": e["date"], "content": s})
 	return newEvents
 
