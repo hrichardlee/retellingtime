@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 import wikipedia
-from testdata import *
+from testwikidata import *
 import wikipediaprocess
 import copy
 from bs4 import BeautifulSoup
@@ -83,11 +83,17 @@ class TestAddImportanceToEvents(unittest.TestCase):
 		pprint(x)
 
 
+class TestSeparate(unittest.TestCase):
+	def testOne(self):
+		pprint(wikipediaprocess.separateEvents(combinedEvents))
+
+
 class TestwpPageToJson(unittest.TestCase):
 	def testParticlePhysics(self):
 		pprint(wikipediaprocess.wpPageToJson("timeline of particle physics"))
 	def testModernHistory(self):
 		pprint(wikipediaprocess.wpPageToJson("Timeline_of_modern_history"))
+	@unittest.skip("skipping perf test")
 	def testTimeModernHistory(self):
 		cProfile.runctx('wikipediaprocess.wpPageToJson("Timeline_of_modern_history")', globals(), locals())
 

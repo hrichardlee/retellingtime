@@ -7,19 +7,73 @@ import datetime
 import json
 import wikipedia
 import itertools
+import nltk.data
 from bs4 import BeautifulSoup
 
+import pdb
 
-def wpPageToJson(title):
+# requires running the nltk downloader
+sentenceSplitter = nltk.data.load("tokenizers/punkt/english.pickle")
+
+
+def wpPageToJson(title, separate = False):
 	"""Takes the title of a timeline page on Wikipedia and outputs it to a
 	json file
 	"""
 	article = BeautifulSoup(wikipedia.page(title).html())
 
 	events = stringBlocksToEvents(htmlToStringBlocks(article))
+	if separate:
+		events = separateEvents(events)
 	addImportanceToEvents(events)
 
 	return json.dumps(events)
+
+#soup = BeautifulSoup(html)
+
+def getHtmlSpans(htmlString):	
+	def cumSum(l):
+		total = 0
+		for x in l:
+			total += x
+			yield total
+
+	tagspans = []
+	for m in re.finditer("<[^>]*>", htmlString):
+		l = m.end() - m.start()
+		if tagspans and tagspans[-1][1] == m.start():
+			tagspans[-1] = (tagspans[-1][0], m.end())
+		else:
+			tagspans.append(m.span())
+
+	textSpanLengths = [start - end for (_, end), (start, _) in zip([(0, 0)] + tagspans, tagspans)]
+	offsets = [end for _, end in tagspans]
+	if textSpanLengths[0] != 0:
+		textSpanLengths = [0] + textSpanLengths
+		offsets = [0] + offsets
+	return (list(cumSum(textSpanLengths)), offsets)
+
+def adjustIndex(index, htmlSpans):
+	(poses, offsets) = htmlSpans
+	temp = list(itertools.takewhile(lambda pos: index >= pos, poses))
+	posIndex = len(temp) - 1
+	# pdb.set_trace()
+	return offsets[posIndex] + (index - poses[posIndex])
+
+def separate(htmlString):
+	textString = BeautifulSoup(htmlString).get_text()
+	htmlSpans = getHtmlSpans(htmlString)
+
+	return [htmlString[adjustIndex(start, htmlSpans): adjustIndex(end, htmlSpans)] \
+		for start, end in sentenceSplitter.span_tokenize(textString)]
+
+
+def separateEvents(events):
+	newEvents = []
+	for e in events:
+		for s in separate(e["content"]):
+			newEvents.append({"date": e["date"], "content": s})
+	return newEvents
 
 
 def htmlToStringBlocks(html, 
@@ -181,7 +235,7 @@ def addImportanceToEvents(events):
 	# flatten and get importances
 	importances = bulkImportance(itertools.chain.from_iterable(linksLists))
 	importanceLists = groupListByCount(importances, counts)
-	for event, importance in zip(events, (float(sum(importanceList))/len(importanceList) for importanceList in importanceLists)):
+	for event, importance in zip(events, (float(sum(importanceList))/len(importanceList) if len(importanceList) > 0 else 0 for importanceList in importanceLists)):
 		event["importance"] = importance
 
 
