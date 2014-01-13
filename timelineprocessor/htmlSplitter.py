@@ -127,13 +127,13 @@ class HtmlSplitter:
 		"""
 
 		# we need to copy so that we don't destroy self._top_level_ranges
-		top_level_ranges = [copy.deepcopy(r) \
-		 for r in self._get_applicable_ranges(self._top_level_ranges, start, end)]
+		# converting to a string and reparsing is much faster than doing a deepcopy
+		top_level_ranges = [{"el": BeautifulSoup(unicode(r["el"])), "range": r["range"]}
+			for r in self._get_applicable_ranges(self._top_level_ranges, start, end)]
 
 		# create a new top-level soup so that we can modify elements in place
 		result = BeautifulSoup()
 		for r in top_level_ranges:
-			r["el"] = r["el"].extract()
 			result.append(r["el"])
 
 		if len(top_level_ranges) == 1:

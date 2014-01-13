@@ -21,83 +21,92 @@ class TestFindDate(unittest.TestCase):
 		self.remainder = '<a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a>'
 		self.remainderthreelayers = '<a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a>blergh'
 
-	def testOne(self):
+	def test_html_parsing(self):
 		(x, y) = wikipediaprocess.getFirstTextNode(BeautifulSoup(self.onelayer))
 		self.assertEqual(x, '1890 ')
 		self.assertEqual(y, self.remainder)
-		(x, y) = wikipediaprocess.findDate(self.onelayer)
+		(x, y) = wikipediaprocess._find_date(self.onelayer)
 		self.assertEqual(x, 1890)
 		self.assertEqual(y, self.remainder)
-	def testTwo(self):
+
 		(x, y) = wikipediaprocess.getFirstTextNode(BeautifulSoup(self.nolayer))
 		self.assertEqual(x, '1890 ')
 		self.assertEqual(y, self.remainder)
-		(x, y) = wikipediaprocess.findDate(self.nolayer)
+		(x, y) = wikipediaprocess._find_date(self.nolayer)
 		self.assertEqual(x, 1890)
 		self.assertEqual(y, self.remainder)
-	def testThree(self):
+
 		(x, y) = wikipediaprocess.getFirstTextNode(BeautifulSoup(self.twolayers))
 		self.assertEqual(x, '1890 ')
 		self.assertEqual(y, self.remainder)
-		(x, y) = wikipediaprocess.findDate(self.twolayers)
+		(x, y) = wikipediaprocess._find_date(self.twolayers)
 		self.assertEqual(x, 1890)
 		self.assertEqual(y, self.remainder)
-	def testFour(self):
+
 		(x, y) = wikipediaprocess.getFirstTextNode(BeautifulSoup(self.threelayers))
 		self.assertEqual(x, '1890 ')
 		self.assertEqual(y, self.remainderthreelayers)
-		(x, y) = wikipediaprocess.findDate(self.threelayers)
+		(x, y) = wikipediaprocess._find_date(self.threelayers)
 		self.assertEqual(x, 1890)
 		self.assertEqual(y, self.remainderthreelayers)
 
-class TesthtmlToStringBlocks(unittest.TestCase):
-	def testOne(self):
+class TestHtmlToStringBlocks(unittest.TestCase):
+	def test_one(self):
 		html = BeautifulSoup(htmlone)
-		strings = wikipediaprocess.htmlToStringBlocks(html)
+		strings = wikipediaprocess._html_to_string_blocks(html)
 		self.assertEqual(strings, stringblocksone)
 
-	def testTwo(self):
+	def test_two(self):
 		html = BeautifulSoup(htmltwo)
-		strings = wikipediaprocess.htmlToStringBlocks(html)
+		strings = wikipediaprocess._html_to_string_blocks(html)
 		self.assertEqual(strings, stringblockstwo)
 
 class TestStringBlocksToEvents(unittest.TestCase):
 	def p(self, data):
 		pprint([str(x["date"]) + ":::" + x["content"][:60] for x in data])
 	def testOne(self):
-		self.p(wikipediaprocess.stringBlocksToEvents(stringblocksone))
+		self.p(wikipediaprocess._string_blocks_to_events(stringblocksone))
 	def testTwo(self):
 		article = BeautifulSoup(html_particlephysics)
-		self.p(wikipediaprocess.stringBlocksToEvents(wikipediaprocess.htmlToStringBlocks(article)))
+		self.p(wikipediaprocess._string_blocks_to_events(wikipediaprocess._html_to_string_blocks(article)))
 	def testThree(self):
 		article = BeautifulSoup(html_modernhist)
-		self.p(wikipediaprocess.stringBlocksToEvents(wikipediaprocess.htmlToStringBlocks(article)))
+		self.p(wikipediaprocess._string_blocks_to_events(wikipediaprocess._html_to_string_blocks(article)))
 
 
 class TestAddImportanceToEvents(unittest.TestCase):
-	def testGroupListByCount(self):
-		pprint(list(wikipediaprocess.groupListByCount([1, 2, 3, 4, 5, 6, 7], [2, 3, 0, 1])))
-	def testBulkImportance(self):
-		pprint(wikipediaprocess.bulkImportance(pageTitles))
+	def test_group_list_by_count(self):
+		pprint(list(wikipediaprocess._group_list_by_count([1, 2, 3, 4, 5, 6, 7], [2, 3, 0, 1])))
+	def test_bulk_importance(self):
+		pprint(wikipediaprocess._bulk_importance(pageTitles))
 	def testOne(self):
 		x = copy.deepcopy(events)
-		wikipediaprocess.addImportanceToEvents(x)
+		wikipediaprocess._add_importance_to_events(x)
 		pprint(x)
 
 
 class TestSeparate(unittest.TestCase):
 	def testOne(self):
-		pprint(wikipediaprocess.separateEvents(combinedEvents))
+		pprint(wikipediaprocess._separate_events(combinedEvents))
 
 
-class TestwpPageToJson(unittest.TestCase):
-	def testParticlePhysics(self):
-		pprint(wikipediaprocess.wpPageToJson("timeline of particle physics"))
-	def testModernHistory(self):
-		pprint(wikipediaprocess.wpPageToJson("Timeline_of_modern_history"))
-	@unittest.skip("skipping perf test")
+class TestWpPageToJson(unittest.TestCase):
+	def test_particle_physics(self):
+		pprint(wikipediaprocess.wp_page_to_json("timeline of particle physics"))
+	def test_modern_hist(self):
+		pprint(wikipediaprocess.wp_page_to_json("Timeline_of_modern_history"))
+	def test_modern_hist_sep(self):
+		pprint(wikipediaprocess.wp_page_to_json("Timeline_of_modern_history", separate = True))
+	def test_ancient_hist(self):
+		pprint(wikipediaprocess.wp_page_to_json("Timeline_of_ancient_history"))
+
+
+@unittest.skip("skipping perf tests")
+class TestPerf(unittest.TestCase):
 	def testTimeModernHistory(self):
-		cProfile.runctx('wikipediaprocess.wpPageToJson("Timeline_of_modern_history")', globals(), locals())
+		cProfile.runctx('wikipediaprocess.wp_page_to_json("Timeline_of_modern_history")', globals(), locals())
+	def testTimeModernHistorySeparate(self):
+		cProfile.runctx('wikipediaprocess.wp_page_to_json("Timeline_of_modern_history", separate = True)', globals(), locals())
 
 if __name__ == '__main__':
 	unittest.main()

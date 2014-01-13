@@ -12,40 +12,40 @@ from bs4 import BeautifulSoup
 import bs4
 from htmlsplitter import HtmlSplitter
 
-import pdb
 
-# requires running the nltk downloader
-sentenceSplitter = nltk.data.load("tokenizers/punkt/english.pickle")
-
-
-def wpPageToJson(title, separate = False):
+def wp_page_to_json(title, separate = False):
 	"""Takes the title of a timeline page on Wikipedia and outputs it to a
 	json file
 	"""
 	article = BeautifulSoup(wikipedia.page(title).html())
 
-	events = stringBlocksToEvents(htmlToStringBlocks(article))
+	events = _string_blocks_to_events(_html_to_string_blocks(article))
 	if separate:
-		events = separateEvents(events)
-	addImportanceToEvents(events)
+		events = _separate_events(events)
+	_add_importance_to_events(events)
+	events.reverse()
 
 	return json.dumps(events)
 
 
-def separateEvents(events):
-	newEvents = []
+# requires running the nltk downloader
+_sentence_splitter = nltk.data.load("tokenizers/punkt/english.pickle")
+
+def _separate_events(events):
+	new_events = []
 	for e in events:
 		htmlsplitter = HtmlSplitter(e["content"])
 		separated = (htmlsplitter.get_span(start, end) \
-			for start, end in sentenceSplitter.span_tokenize(htmlsplitter.text_string))
+			for start, end in _sentence_splitter.span_tokenize(htmlsplitter.text_string))
 		for s in separated:
-			newEvents.append({"date": e["date"], "content": s})
-	return newEvents
+			# not sure whether to go for interface consistency or not having to reparse
+			new_events.append({"date": e["date"], "content": unicode(s)})
+	return new_events
 
 
-def htmlToStringBlocks(html, 
-	blockElements = set(["address", "article", "aside", "blockquote", "section", "dd", "div", "dl", "p", "ol", "ul", "li"]),
-	headerElements = ["h2", "h3"]):
+def _html_to_string_blocks(html, 
+	block_elements = set(["address", "article", "aside", "blockquote", "section", "dd", "div", "dl", "p", "ol", "ul", "li"]),
+	header_elements = ["h2", "h3"]):
 	"""Given an html element as a BeautifulSoup, returns a list of string
 	blocks. Each string block represents a section in the html demarcated by a
 	header element. Each string block is {heading, lines}. Lines is a list of
@@ -54,68 +54,68 @@ def htmlToStringBlocks(html,
 	current section. Empty lines are not retained.
 	"""
 
-	def closeString(sb, s):
+	def close_string(sb, s):
 		s = s.strip()
 		if s:
 			sb["lines"].append(s)
 
-	def closeStringBlock(sbs, sb, s):
-		closeString(sb, s)
+	def close_string_blocks(sbs, sb, s):
+		close_string(sb, s)
 		if sb["lines"]:
 			sbs.append(sb)
 
-	stringBlocks = []
-	currHeading = [""]
-	currStringBlock = {"lines": [], "heading": currHeading}
-	currString = ""
+	string_blocks = []
+	curr_heading = [""]
+	curr_string_block = {"lines": [], "heading": curr_heading}
+	curr_string = ""
 	for el in html.children:
-		if el.name in headerElements:
+		if el.name in header_elements:
 			# close the previous block
-			closeStringBlock(stringBlocks, currStringBlock, currString)
+			close_string_blocks(string_blocks, curr_string_block, curr_string)
 
-			headingIndex = headerElements.index(el.name)
-			currHeading = currHeading[:headingIndex]
-			if len(currHeading) < headingIndex:
-				currHeading += [""] * (headingIndex - len(currHeading)) 
+			heading_index = header_elements.index(el.name)
+			curr_heading = curr_heading[:heading_index]
+			if len(curr_heading) < heading_index:
+				curr_heading += [""] * (heading_index - len(curr_heading)) 
 			# heading is usually under mw-headline, but sometimes is not
-			currHeading.append(el.find(class_='mw-headline').text if el.find(class_='mw-headline') else el.get_text())
-			currStringBlock = {"lines": [], "heading": currHeading}
-		elif el.name in blockElements:
-			closeString(currStringBlock, currString)
-			currString = ""
+			curr_heading.append(el.find(class_='mw-headline').text if el.find(class_='mw-headline') else el.get_text())
+			curr_string_block = {"lines": [], "heading": curr_heading}
+		elif el.name in block_elements:
+			close_string(curr_string_block, curr_string)
+			curr_string = ""
 			# assumes no header elements under block elements
-			childStringBlocks = htmlToStringBlocks(el)
-			if childStringBlocks:
-				currStringBlock["lines"] += childStringBlocks[0]["lines"]
+			child_string_blocks = _html_to_string_blocks(el)
+			if child_string_blocks:
+				curr_string_block["lines"] += child_string_blocks[0]["lines"]
 		else:
-			currString += unicode(el)
+			curr_string += unicode(el)
 
-	closeStringBlock(stringBlocks, currStringBlock, currString)
+	close_string_blocks(string_blocks, curr_string_block, curr_string)
 
-	return stringBlocks
+	return string_blocks
 
 
-def stringBlocksToEvents(stringBlocks, lineBreak = "<br />",
-	ignoreSections = set(["", "Contents", "See also", "References"])):
-	"""Given a set of string blocks (as produced by htmlToStringBlocks,
+def _string_blocks_to_events(string_blocks, line_break = "<br />",
+	ignore_sections = set(["", "Contents", "See also", "References"])):
+	"""Given a set of string blocks (as produced by _html_to_string_blocks,
 	expects that all strings are non-empty), returns a list of timeline
 	events. A timeline event is {date: number, content: string}
 	"""
 
-	currEvent = {}
+	curr_event = {}
 	events = []
 
-	for stringBlock in stringBlocks:
-		if stringBlock["heading"][0] not in ignoreSections:
-			for string in stringBlock["lines"]:
-				extract = findDate(string)
+	for string_block in string_blocks:
+		if string_block["heading"][0] not in ignore_sections:
+			for string in string_block["lines"]:
+				extract = _find_date(string)
 				if extract:
-					if currEvent:
-						events.append(currEvent)
-					currEvent = {"date": extract[0], "content": extract[1]}
+					if curr_event:
+						events.append(curr_event)
+					curr_event = {"date": extract[0], "content": extract[1]}
 				else:
-					if currEvent:
-						currEvent["content"] += lineBreak + string
+					if curr_event:
+						curr_event["content"] += line_break + string
 	return events
 
 
@@ -134,7 +134,7 @@ def getFirstTextNode(soup, remainder = []):
 		return (soup, "".join(unicode(s) for s in remainder))
 
 
-def findDate(string):
+def _find_date(string):
 	"""Takes a string that contains html, and returns (date, content) as a
 	tuple. For now, date is an int that represents the year. Negative numbers
 	are B.C. and positive are A.D. years
@@ -189,42 +189,46 @@ def findDate(string):
 	return (date, content)
 
 
-def addImportanceToEvents(events):
-	"""Given a list of events as produced by stringBlocksToEvents, adds the
+def _add_importance_to_events(events):
+	"""Given a list of events as produced by _string_blocks_to_events, adds the
 	importance of each event so that events are now {date, content,
 	importance: float}. Modifies events in place!
 	"""
-	linksLists = [
+
+	links_lists = [
 		[a["title"] for a in BeautifulSoup(event["content"]).find_all('a')
 			if a['href'].startswith('/wiki/')]
 		for event in events]
-	counts = (len(l) for l in linksLists)
+	counts = (len(l) for l in links_lists)
 	# flatten and get importances
-	importances = bulkImportance(itertools.chain.from_iterable(linksLists))
-	importanceLists = groupListByCount(importances, counts)
-	for event, importance in zip(events, (float(sum(importanceList))/len(importanceList) if len(importanceList) > 0 else 0 for importanceList in importanceLists)):
+	importances = _bulk_importance(itertools.chain.from_iterable(links_lists))
+	importance_lists = _group_list_by_count(importances, counts)
+	average_importances = \
+		(float(sum(importanceList))/len(importanceList) if len(importanceList) > 0 else 0 \
+			for importanceList in importance_lists)
+	for event, importance in zip(events, average_importances):
 		event["importance"] = importance
 
 
-def groupListByConstant(l, n):
+def _group_list_by_constant(l, n):
 	length = len(l)
 	for i in range(0, length, n):
 		yield l[i:min(i+n, length)]
 
 
-def groupListByCount(l, counts):
+def _group_list_by_count(l, counts):
 	i = 0
 	for count in counts:
 		yield l[i:i + count]
 		i += count
 
 
-def bulkImportance(links):
+def _bulk_importance(links):
 	"""Given a list of Wikipedia page titles, returns a list of importance scores
 	"""
-	revSizes = map(lambda ls: wikipedia.batchRevSize(ls),
-		groupListByConstant(list(links), wikipedia.BATCH_LIMIT))
-	return list(itertools.chain.from_iterable(revSizes))
+	rev_sizes = map(lambda ls: wikipedia.batchRevSize(ls),
+		_group_list_by_constant(list(links), wikipedia.BATCH_LIMIT))
+	return list(itertools.chain.from_iterable(rev_sizes))
 	#return (p.backlinkCount(), len(p.content), p.revCount())
 
 # TODO: add a relevance metric as a multiplier for the importance

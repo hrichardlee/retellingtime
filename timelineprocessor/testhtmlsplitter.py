@@ -9,13 +9,13 @@ from pprint import pprint
 from htmlsplitter import HtmlSplitter
 
 
-class TestHtmlSent2(unittest.TestCase):
-	def testOne(self):
-		data = '0abc4<p><b><a>14defg21</a></b>30hijk37</p>42mnop49'
-		#       0---4---------5-----12--------13----20----21----28
-		# soup = BeautifulSoup(data)
-		# pdb.set_trace()
-		splitter = HtmlSplitter(data)
+class TestHtmlSplitter(unittest.TestCase):
+	def setUp(self):
+		self.data = '0abc4<p><b><a>14defg21</a></b>30hijk37</p>42mnop49'
+		#            0---4---------5-----12--------13----20----21----28
+
+	def test_ranges(self):
+		splitter = HtmlSplitter(self.data)
 		top_level_ranges = splitter._top_level_ranges
 		self.assertEqual(
 			[r["range"] for r in top_level_ranges],
@@ -36,6 +36,9 @@ class TestHtmlSent2(unittest.TestCase):
 				3, 7)],
 			[(0, 5), (5, 21)])
 
+	def test_span1(self):
+		splitter = HtmlSplitter(self.data)
+
 		self.assertEqual(unicode(splitter.get_span(0, 5)),
 			u"0abc4")
 		self.assertEqual(unicode(splitter.get_span(5, 8)),
@@ -45,6 +48,7 @@ class TestHtmlSent2(unittest.TestCase):
 		self.assertEqual(unicode(splitter.get_span(2, 24)),
 			u"bc4<p><b><a>14defg21</a></b>30hijk37</p>42m")
 
+	def test_span2(self):
 		splitter = HtmlSplitter("abcdefghijkl")
 		self.assertEqual(unicode(splitter.get_span(2, 5)),
 			u"cde")
@@ -53,7 +57,7 @@ class TestHtmlSent2(unittest.TestCase):
 		self.assertEqual(unicode(splitter.get_span(5, 13)),
 			u"fghijkl")
 
-
+	def test_span3(self):
 		splitter = HtmlSplitter('<p class="blah">abcdefghijkl</p>')
 		self.assertEqual(unicode(splitter.get_span(2, 5)),
 			u'<p class="blah">cde</p>')
@@ -61,6 +65,7 @@ class TestHtmlSent2(unittest.TestCase):
 			u'<p class="blah">fghijkl</p>')
 
 
+	def test_span4(self):
 		splitter = HtmlSplitter('<p class="blah">abc<br/>def</p>ghi<br/>jkl<br/>')
 
 		top_level_ranges = splitter._top_level_ranges
