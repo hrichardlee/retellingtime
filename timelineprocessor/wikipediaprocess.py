@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 import sys
+import argparse
 import codecs
 import re
 import datetime
@@ -12,6 +13,8 @@ from bs4 import BeautifulSoup
 import bs4
 from htmlsplitter import HtmlSplitter
 from parsedate import parse_date_html
+
+import pdb
 
 
 def wp_page_to_json(title, separate = False):
@@ -117,6 +120,9 @@ def _string_blocks_to_events(string_blocks, line_break = "<br />",
 				else:
 					if curr_event:
 						curr_event["content"] += line_break + string
+	if curr_event:
+		events.append(curr_event)
+
 	return events
 
 
@@ -163,3 +169,17 @@ def _bulk_importance(links):
 	#return (p.backlinkCount(), len(p.content), p.revCount())
 
 # TODO: add a relevance metric as a multiplier for the importance
+
+def main():
+	parser = argparse.ArgumentParser(description="Writes a json file that represents extracted timeline data")
+	parser.add_argument('titles', metavar='titles', type=str, nargs='+', help='The titles of the Wikipedia pages to process')
+	parser.add_argument('--separate', action='store_true', help='Separate blocks of text')
+
+	args = parser.parse_args()
+
+	for t in args.titles:
+		with open("".join([c for c in t if c.isalpha() or c.isdigit() or c==' ']).rstrip() + ".json", "w") as f:
+			f.write(wp_page_to_json(t, args.separate).encode('utf-8'))
+
+if __name__ == "__main__":
+	main()
