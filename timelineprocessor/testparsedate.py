@@ -25,6 +25,15 @@ class TestParseDate(unittest.TestCase):
 		self.assertEqual(parse_date_html(u"12 -   34 bc blah"), (TimelineDate(-12, False, -34, False), "blah"))
 		self.assertEqual(parse_date_html(u"lkjdr3f"), None)
 
+	def test_yearsago(self):
+		pprint(parse_date_html("12,345 years ago ago"))
+		pprint(parse_date_html("13,600 Ma"))
+		pprint(parse_date_html("13,600-13,500 Ma"))
+		pprint(parse_date_html("c. 0.79 Ma"))
+		pprint(parse_date_html("15 ±0.3 Ma"))
+		pprint(parse_date_html(".24 Ma"))
+		
+
 	def test_html_parsing(self):
 		h1 = '1890 <a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a>'
 		r1 = '<a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a>'
