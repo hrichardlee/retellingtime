@@ -11,7 +11,7 @@ class TimelineDate:
 	"""Represents either a year or a range of years. simple_year returns the
 	best single number approximation of the time of the event
 	"""
-	
+
 	def __init__(self, start_year,
 		start_year_approx = False, end_year = None, end_year_approx = False):
 
@@ -38,6 +38,8 @@ class TimelineDate:
 			(self.start_year, self.start_year_approx, self.end_year, self.end_year_approx)
 
 
+_date_regex = re.compile(ur'^(to|years|yrs|ago|[\dbcead\.\?\-–— ])+')
+
 def parse_date_text(text):
 	"""Parses a date from some text, returns (TimelineDate, index) where
 	text[:index] is the text determined to be the date. If no date can be
@@ -52,7 +54,8 @@ def parse_date_text(text):
 		YAD -> YNE osp AD | YNQ osp AD | YNE | YNQ
 
 		YNE -> n | n n | n n n | n n n n | n n n n n
-		YNQ -> YNE q | ca osp YNE
+		YNQ -> YNE q | CA osp YNE
+		CA -> c a | c
 		YN -> YNE | YNQ
 
 		BC -> b c | b c e
@@ -61,25 +64,28 @@ def parse_date_text(text):
 		TO -> osp dash osp | sp to sp
 		R -> YBC TO YBC | YN TO YBC | YBC TO YAD | YAD TO YAD
 
-		b -> 'b' | 'b' x | 'B' | 'B' x
-		c -> 'c' | 'c' x | 'C' | 'C' x
-		e -> 'e' | 'e' x | 'E' | 'E' x
-		a -> 'a' | 'a' x | 'A' | 'A' x
-		d -> 'd' | 'd' x | 'D' | 'D' x
+		b -> 'b' | 'b' x
+		c -> 'c' | 'c' x
+		e -> 'e' | 'e' x
+		a -> 'a' | 'a' x
+		d -> 'd' | 'd' x
 		x -> '.'
 
 		q -> '?'
 		dash -> '-' | '–' | '—'
-		to -> 't' 'o' | 'T' 'O'
+		to -> 't' 'o'
 		n -> '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
 		sp -> sp ' ' | ' '
 		osp -> sp | 
-		ca -> c a | c
+		years -> 'y' 'e' 'a' 'r' 's' | 'y' 'r' 's' | 'y' 'r' 's' x
+		ago -> 'a' 'g' 'o'
 		""")
 	date_parser = BottomUpChartParser(date_grammar)
 
-	date_chars = set(u"bceadtoBCEADTO0123456789.?-–— ")
-	date_text = "".join(itertools.takewhile(lambda c: c in date_chars, text))
+	date_text = text.lower()
+	m = _date_regex.search(date_text)
+	if not m: return None
+	date_text = m.group().strip()
 	parse = None
 
 	while True:
@@ -89,11 +95,10 @@ def parse_date_text(text):
 		else:
 			# this is a pretty big hack. Really need the parser to expand the
 			# matches as far as possible and return that
-			last_space = date_text.rfind(' ')
-			if last_space == -1:
-				return None
-			else:
-				date_text = date_text[:date_text.rfind(' ')].strip()
+			if len(date_text) <= 1: return None
+			m = _date_regex.search(date_text[:-2])
+			if not m: return None
+			date_text = m.group().strip()
 	
 	# these are all very closely tied to date_grammar
 	def yne(yne):
