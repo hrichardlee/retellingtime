@@ -12,43 +12,6 @@ import cProfile
 
 import pdb
 
-class TestFindDate(unittest.TestCase):
-	def setUp(self):
-		self.nolayer = '1890 <a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a>'
-		self.onelayer = '<b>1890 <a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a></b>'
-		self.twolayers = '<p><b>1890 <a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a></b></p>'
-		self.threelayers = '<p><b>1890 <a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a></b>blergh</p>'
-		self.remainder = '<a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a>'
-		self.remainderthreelayers = '<a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a>blergh'
-
-	def test_html_parsing(self):
-		(x, y) = wikipediaprocess.getFirstTextNode(BeautifulSoup(self.onelayer))
-		self.assertEqual(x, '1890 ')
-		self.assertEqual(y, self.remainder)
-		(x, y) = wikipediaprocess._find_date(self.onelayer)
-		self.assertEqual(x, 1890)
-		self.assertEqual(y, self.remainder)
-
-		(x, y) = wikipediaprocess.getFirstTextNode(BeautifulSoup(self.nolayer))
-		self.assertEqual(x, '1890 ')
-		self.assertEqual(y, self.remainder)
-		(x, y) = wikipediaprocess._find_date(self.nolayer)
-		self.assertEqual(x, 1890)
-		self.assertEqual(y, self.remainder)
-
-		(x, y) = wikipediaprocess.getFirstTextNode(BeautifulSoup(self.twolayers))
-		self.assertEqual(x, '1890 ')
-		self.assertEqual(y, self.remainder)
-		(x, y) = wikipediaprocess._find_date(self.twolayers)
-		self.assertEqual(x, 1890)
-		self.assertEqual(y, self.remainder)
-
-		(x, y) = wikipediaprocess.getFirstTextNode(BeautifulSoup(self.threelayers))
-		self.assertEqual(x, '1890 ')
-		self.assertEqual(y, self.remainderthreelayers)
-		(x, y) = wikipediaprocess._find_date(self.threelayers)
-		self.assertEqual(x, 1890)
-		self.assertEqual(y, self.remainderthreelayers)
 
 class TestHtmlToStringBlocks(unittest.TestCase):
 	def test_one(self):

@@ -166,4 +166,4 @@ class HtmlSplitter:
 					inner_start, inner_end),
 				end = inner_end)
 
-		return result
+		return unicode(result)

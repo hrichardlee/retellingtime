@@ -11,6 +11,7 @@ import nltk.data
 from bs4 import BeautifulSoup
 import bs4
 from htmlsplitter import HtmlSplitter
+from parsedate import parse_date_html
 
 
 def wp_page_to_json(title, separate = False):
@@ -108,85 +109,15 @@ def _string_blocks_to_events(string_blocks, line_break = "<br />",
 	for string_block in string_blocks:
 		if string_block["heading"][0] not in ignore_sections:
 			for string in string_block["lines"]:
-				extract = _find_date(string)
+				extract = parse_date_html(string)
 				if extract:
 					if curr_event:
 						events.append(curr_event)
-					curr_event = {"date": extract[0], "content": extract[1]}
+					curr_event = {"date": extract[0].simple_year, "content": extract[1]}
 				else:
 					if curr_event:
 						curr_event["content"] += line_break + string
 	return events
-
-
-def getFirstTextNode(soup, remainder = []):
-	"""Given an html BeautifulSoup, returns (firstPart, remainder) where
-	firstPart is the first text node and remainder is everything after that
-	first text node
-	"""
-	try:
-		if soup.contents:
-			(firstPart, innerRem) = getFirstTextNode(soup.contents[0], soup.contents[1:])
-			return (firstPart, innerRem + "".join(unicode(s) for s in remainder))
-		else:
-			return ("", "".join(unicode(s) for s in remainder))
-	except AttributeError:
-		return (soup, "".join(unicode(s) for s in remainder))
-
-
-def _find_date(string):
-	"""Takes a string that contains html, and returns (date, content) as a
-	tuple. For now, date is an int that represents the year. Negative numbers
-	are B.C. and positive are A.D. years
-	"""
-
-	soup = BeautifulSoup(string)
-	(s, remainder) = getFirstTextNode(soup)
-
-	# strip out all non-letter/digit characters from the beginning
-	m = re.search('^[^\d\w]+', s)
-	if m:
-		s = s[m.end():]
-	if not s:
-		return None
-
-	# find a date and store it in date
-	# TODO should probably stop ignoring question marks and circa (c)
-
-	date = None
-
-	# B.C. dates
-	if date is None:
-		m = re.search('^(\d{1,6}) [bB]\.?[cC]\.?', s)
-		if m:
-			rem = s[m.end():]
-			date = (0 - int(m.groups()[0]))
-
-	# just the year
-	if date is None:
-		m = re.search('^(\d{1,4})\?? ?(-|ΓÇô|ΓÇö|to) ?(\d{1,4})\??', s)
-		if m:
-			rem = s[m.end():]
-			date = (int(m.groups()[0]), int(m.groups()[2]))
-
-	# year range
-	if date is None:
-		m = re.search('^\d{1,4}\??', s)
-		if m:
-			rem = s[m.end():]
-			date = int(m.group())
-
-	if date is None:
-		return None
-
-	# strip out any transition characters between the date and the content
-	m2 = re.search(u'^[\s\-–—:\.]+', rem)
-	if m2:
-		content = rem[m2.end():] + remainder
-	else:
-		content = rem + remainder
-
-	return (date, content)
 
 
 def _add_importance_to_events(events):
