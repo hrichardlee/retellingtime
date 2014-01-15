@@ -64,6 +64,10 @@ $(function(){
 		show: function() {
 			this.options.hide = false;
 			this.$el.removeClass("invisible");
+		},
+		hide: function() {
+			this.options.hide = true;
+			this.$el.addClass("invisible");
 		}
 	});
 
@@ -105,7 +109,13 @@ $(function(){
 				block.options.dependentChain[block.options.chainIndex] = {lo: blockIndex, hi: blockIndex};
 			} else {
 				// by default the block just needs to add one more block to the current range's hi
-				var prevDependentChain = block.options.chain[blockIndex - 1].options.dependentChain;
+				var i = blockIndex - 1;
+				while (block.options.chain[i].options.hide && i > 0) i--;
+				if (i < 0) {						
+					block.options.dependentChain = {leftMostChainIndex: block.options.chainIndex};
+					block.options.dependentChain[block.options.chainIndex] = {lo: blockIndex, hi: blockIndex};
+				}
+				var prevDependentChain = block.options.chain[i].options.dependentChain;
 				block.options.dependentChain = $.extend(true, {}, prevDependentChain);
 				block.options.dependentChain[block.options.chainIndex].hi = blockIndex;
 			}
@@ -128,7 +138,8 @@ $(function(){
 			var leftMostChain = null;
 			var lowestBlock = null;
 			while (removedHeight < verticalHeight) {
-				blocks[i].options.hide = true;
+				// blocks[i].options.hide = true;
+				blocks[i].hide();
 				removedHeight += blocks[i].textHeight();
 				if (leftMostChain == null
 					|| blocks[i].options.chainIndex > leftMostChain) {
@@ -166,16 +177,18 @@ $(function(){
 					this.setDependentChain(block, prevChainBlock);
 				}
 
-				if (prevChainBlock.options.blockIndex + 1 >= prevChainBlock.options.chain.length) {
-					break;
-				} else {
-					// advance to the next block in the previous chain
-					penultimatePrevChainBlock = prevChainBlock;
-					prevChainBlock = prevChainBlock.options.chain[prevChainBlock.options.blockIndex + 1];
-				}
+				// advance to the next block in the previous chain
+				penultimatePrevChainBlock = prevChainBlock;
+				var i = prevChainBlock.options.blockIndex + 1;
+				while (i < prevChainBlock.options.chain.length
+					&& prevChainBlock.options.chain[i].options.hide) i++;
+				if (i >= prevChainBlock.options.chain.length) break;
+				prevChainBlock = prevChainBlock.options.chain[i];
 			}
 
 			block.place(bottom);
+
+			block.show();
 
 			return {topOfBelowBlock: bottom + height, prevChainBlock: penultimatePrevChainBlock}
 		},
