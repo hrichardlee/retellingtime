@@ -23,10 +23,23 @@ class TestParseDate(unittest.TestCase):
 		self.assertEqual(parse_date_html("12 a.d. - 34 AD - blah"), (TimelineDate(12, False, 34, False), "blah"))
 		self.assertEqual(parse_date_html(u"12   to   34:: blah"), (TimelineDate(12, False, 34, False), "blah"))
 		self.assertEqual(parse_date_html(u"12? bc—34 A.D    blah"), (TimelineDate(-12, True, 34, False), "blah"))
-		self.assertEqual(parse_date_html(u"12 bc –c. 34 bc blah"), (TimelineDate(-12, False, -34, True), "blah"))
-		self.assertEqual(parse_date_html(u"12 -   34 bc blah"), (TimelineDate(-12, False, -34, False), "blah"))
+		self.assertEqual(parse_date_html(u"86 bc –c. 34 bc blah"), (TimelineDate(-86, False, -34, True), "blah"))
+		self.assertEqual(parse_date_html(u"86 -   34 bc blah"), (TimelineDate(-86, False, -34, False), "blah"))
 		self.assertEqual(parse_date_html(u"lkjdr3f"), None)
-		self.assertEqual(parse_date_html(u"900–929")[0].simple_year, 914)
+		self.assertEqual(parse_date_html(u"900–929")[0].simple_year, 900)
+
+	def test_periods(self):
+		self.assertEqual(parse_date_html(u"2nd century b.c."), (TimelineDate(-200, False, -100, False), ""))
+		self.assertEqual(parse_date_html(u"3rd century a.d."), (TimelineDate(200, False, 300, False), ""))
+		self.assertEqual(parse_date_html(u"c. 2nd millenium b.c."), (TimelineDate(-2000, True, -1000, True), ""))
+		self.assertEqual(parse_date_html(u"16th century"), (TimelineDate(1500, False, 1600, False), ""))
+		self.assertEqual(parse_date_html(u"22nd century"), (TimelineDate(2100, False, 2200, False), ""))
+		self.assertEqual(parse_date_html(u"c. 2nd millenium"), (TimelineDate(1000, True, 2000, True), ""))
+		self.assertEqual(parse_date_html(u"8th to 19th century"), (TimelineDate(700, False, 1900, False), ""))
+		self.assertEqual(parse_date_html(u"8th century to 19th century"), (TimelineDate(700, False, 1900, False), ""))
+		self.assertEqual(parse_date_html(u"8th century B.C. to 19th century A.D."), (TimelineDate(-800, False, 1900, False), ""))
+		self.assertEqual(parse_date_html(u"12th to 3rd century b.c."), (TimelineDate(-1200, False, -200, False), ""))
+		self.assertEqual(parse_date_html(u"12th century b.c. to 3rd century b.c."), (TimelineDate(-1200, False, -200, False), ""))
 
 	def test_yearsago(self):
 		self.assertEqual(parse_date_html("12,345 years ago ago"), (TimelineDate(-12345), "ago"))
