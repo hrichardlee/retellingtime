@@ -23,7 +23,8 @@ class TimelineDate:
 		self.end_year_approx = end_year_approx
 
 		if end_year:
-			self.simple_year = (end_year - start_year) / 2 + start_year
+			# self.simple_year = (end_year - start_year) / 2 + start_year
+			self.simple_year = start_year
 		else:
 			self.simple_year = start_year
 
@@ -70,7 +71,7 @@ def parse_date_text(text):
 
 		NUM -> NUME | NUMQ
 		NUME -> NUMLEADGROUP NUMGROUPS
-		NUMQ -> CA osp NUME
+		NUMQ -> CA osp NUME | NUME q
 		NUMLEADGROUP -> n | n n | n n n
 		NUMGROUP -> NUMGROUPSEP n n n
 		NUMGROUPSEP -> comma |
@@ -81,14 +82,14 @@ def parse_date_text(text):
 
 		DEC -> DECE | DECQ | DECQQ
 		DECE -> NUME x NUME | NUME
-		DECQ -> CA osp DECE
+		DECQ -> CA osp DECE | DECE q
 		DECQQ -> DECE osp pm osp DECE
 
 
 		DATE -> R | YBC | YAD
 		
-		YBC -> YNE osp BC | YNQ osp BC
-		YAD -> YNE osp AD | YNQ osp AD | YNE | YNQ
+		YBC -> DEC osp BC
+		YAD -> DEC osp AD | DEC
 
 		YNE -> n | n n | n n n | n n n n | n n n n n
 		YNQ -> YNE q | CA osp YNE
@@ -146,18 +147,11 @@ def parse_date_text(text):
 	def ynq(ynq):
 		return [yne(n) for n in ynq if n.node == "YNE"][0]
 	def yn(yn):
-		"""Returns (year, approx?)"""
 		if yn[0].node == "YNE": return TimelineDate(yne(yn[0]), False)
 		elif yn[0].node == "YNQ": return TimelineDate(ynq(yn[0]), True)
 	def year(year):
-		"""Assumes year is YBC or YAD. Returns (year, approx?) where BC years
-		are negative"""
-		if year[0].node == "YNE": (num, approx) = (yne(year[0]), False)
-		elif year[0].node == "YNQ": (num, approx) = (ynq(year[0]), True)
-
-		if year.node == "YBC": num = -num
-
-		return TimelineDate(num, approx)
+		if year.node == "YBC": return -dec(year[0])
+		elif year.node == "YAD": return dec(year[0])
 	def r(r):
 		if r[0].node == "YN": first = -yn(r[0])
 		else: first = year(r[0])
@@ -165,7 +159,7 @@ def parse_date_text(text):
 	def date(date):
 		if date[0].node == "R":
 			return r(date[0])
-		else:
+		elif date[0].node == "YAD" or date[0].node == "YBC":
 			return year(date[0])
 	def numetostring(nume):
 		return "".join(l for l in nume.leaves() if l.isdigit())
@@ -173,7 +167,9 @@ def parse_date_text(text):
 		if num[0].node == "NUME":
 			return TimelineDate(int(numetostring(num[0])), False)
 		elif num[0].node == "NUMQ":
-			return TimelineDate(int(numetostring(num[0][2])), True)
+			return TimelineDate(
+				[int(numetostring(n)) for n in num[0] if n.node == "NUME"][0],
+				True)
 	def dece(dece):
 		if len(dece) == 1: return int(numetostring(dece[0]))
 		else: return float(numetostring(dece[0]) + "." + numetostring(dece[2]))
@@ -181,19 +177,19 @@ def parse_date_text(text):
 		if dec[0].node == "DECE":
 			return TimelineDate(dece(dec[0]), False)
 		elif dec[0].node == "DECQ":
-			return TimelineDate(dece(dec[0][2]), True)
+			return TimelineDate([dece(n) for n in dec[0] if n.node == "DECE"][0], True)
 		elif dec[0].node == "DECQQ":
 			return TimelineDate(dece(dec[0][0]), dece(dec[0][4]))
 	def yearsago(yearsago):
 		# not currently adjusting for the 2014 years since 0 A.D....
 		if yearsago[0].node == "YAS":
-			return num(yearsago[0][0])
+			return -num(yearsago[0][0])
 		elif yearsago[0].node == "YAR":
-			return TimelineDate.span_from_years(num(yearsago[0][0]), num(yearsago[0][2]))
+			return TimelineDate.span_from_years(-num(yearsago[0][0]), -num(yearsago[0][2]))
 		elif yearsago[0].node == "MAS":
-			return dec(yearsago[0][0]) * 1000000
+			return -dec(yearsago[0][0]) * 1000000
 		elif yearsago[0].node == "MAR":
-			return TimelineDate.span_from_years(dec(yearsago[0][0]), dec(yearsago[0][2])) * 1000000
+			return TimelineDate.span_from_years(-dec(yearsago[0][0]), -dec(yearsago[0][2])) * 1000000
 
 
 	# pdb.set_trace()
