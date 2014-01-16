@@ -23,7 +23,7 @@ class TimelineDate:
 		self.end_year_approx = end_year_approx
 
 		if end_year:
-			self.simple_year = (end_year - start_year) / 2
+			self.simple_year = (end_year - start_year) / 2 + start_year
 		else:
 			self.simple_year = start_year
 

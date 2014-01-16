@@ -24,6 +24,7 @@ class TestParseDate(unittest.TestCase):
 		self.assertEqual(parse_date_html(u"12 bc –c. 34 bc blah"), (TimelineDate(-12, False, -34, True), "blah"))
 		self.assertEqual(parse_date_html(u"12 -   34 bc blah"), (TimelineDate(-12, False, -34, False), "blah"))
 		self.assertEqual(parse_date_html(u"lkjdr3f"), None)
+		self.assertEqual(parse_date_html(u"900–929")[0].simple_year, 914)
 
 	def test_yearsago(self):
 		pprint(parse_date_html("12,345 years ago ago"))

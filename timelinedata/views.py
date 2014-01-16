@@ -9,6 +9,10 @@ def index(request, page_title):
 		return HttpResponse(open("timelinedata/timeline of particle physics.json"), content_type = "application/json")
 	elif (page_title == "test2"):
 		return HttpResponse(open("timelinedata/timeline of modern history.json"), content_type = "application/json")
+	elif (page_title == "test3"):
+		return HttpResponse(open("timelinedata/timeline of solar astronomy.json"), content_type = "application/json")
+	elif (page_title == "test4"):
+		return HttpResponse(open("timelinedata/timeline of mathematics.json"), content_type = "application/json")
 	else:
 		return HttpResponse(wikipediaprocess.wp_page_to_json(
 			page_title, request.GET.get("separate", "no") == "yes"),
