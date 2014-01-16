@@ -68,6 +68,22 @@ $(function(){
 		hide: function() {
 			this.options.hide = true;
 			this.$el.addClass("invisible");
+
+			if (this.options.nextBlock)
+				this.options.nextBlock.options.prevBlock = this.options.prevBlock;
+			if (this.options.prevBlock)
+				this.options.prevBlock.options.nextBlock = this.options.nextBlock;
+			else
+				this.options.chain.firstBlock = this.options.nextBlock;
+			if (this.options.dependentBlock) {
+				this.options.dependentBlock.options.dependingBlocks.remove(this);
+				this.options.dependingBlocks.each(function (b) {
+					this.options.dependentBlock.options.dependingBlocks.add(b);
+				}, this);
+			}
+			this.options.dependingBlocks.each(function (b) {
+				b.options.dependentBlock = this.options.dependentBlock;
+			}, this)
 		}
 	});
 
@@ -95,138 +111,149 @@ $(function(){
 	// Requires collection to be sorted from future to past
 	var EventsView = Backbone.View.extend({
 		el: $("#events-and-datestrip"),
-		// If just a block is passed in, the dependent chain is extended from the block
-		// just below it. If a prevChainBlock is passed in, the dependent chain is extended
-		// from that block 
-		setDependentChain: function (block, prevChainBlock) {
-			var blockIndex = block.options.blockIndex;
-			// set dependentChain
-			if (blockIndex == 0) {
-				block.options.dependentChain = {leftMostChainIndex: block.options.chainIndex};
-				block.options.dependentChain[block.options.chainIndex] = {lo: blockIndex, hi: blockIndex};
-			} else if (prevChainBlock) {
-				block.options.dependentChain = $.extend(true, prevChainBlock.options.dependentChain); // true for deep copy
-				block.options.dependentChain[block.options.chainIndex] = {lo: blockIndex, hi: blockIndex};
-			} else {
-				// by default the block just needs to add one more block to the current range's hi
-				var i = blockIndex - 1;
-				while (block.options.chain[i].options.hide && i > 0) i--;
-				if (i < 0) {						
-					block.options.dependentChain = {leftMostChainIndex: block.options.chainIndex};
-					block.options.dependentChain[block.options.chainIndex] = {lo: blockIndex, hi: blockIndex};
-				}
-				var prevDependentChain = block.options.chain[i].options.dependentChain;
-				block.options.dependentChain = $.extend(true, {}, prevDependentChain);
-				block.options.dependentChain[block.options.chainIndex].hi = blockIndex;
-			}
-		},
-		// hides the least important blocks in dependentChain until the
-		// height of the blocks removed equals or exceeds verticalHeight
-		hideDependentBlocks: function (dependentChain, chains, verticalHeight) {
-			var i = dependentChain.leftMostChainIndex;
+		// hides the least important blocks in the dependentBlock chain of
+		// block until height of the blocks removed equals or exceeds
+		// verticalHeight. If the lowest (left-most then bottom-most) block is
+		// not the original block passed in, that block will be returned.
+		// Otherwise, null is returned.
+		hideDependentBlocks: function (block, verticalHeight) {
 			var blocks = [];
-			while (dependentChain[i]) {
-				blocks = blocks.concat(
-					chains[i].slice(dependentChain[i].lo, dependentChain[i].hi + 1));
-				i -= 1;
+			var origBlock = block;
+			var i = 0;
+			var lowestBlock = null;
+			while (block) {
+				blocks.push({block: block, i: i});
+				block = block.options.dependentBlock;
+				i++;
 			}
-			blocks = _.filter(blocks, function (b) { return !b.options.hide; });
 			// should use a priority queue hahaha
-			blocks.sort(function(a, b) { return a.options.importance - b.options.importance; });
+			blocks.sort(function(a, b) { return a.block.options.importance - b.block.options.importance; });
 			i = 0;
 			var removedHeight = 0;
 			var leftMostChain = null;
 			var lowestBlock = null;
 			while (removedHeight < verticalHeight) {
-				// blocks[i].options.hide = true;
-				blocks[i].hide();
-				removedHeight += blocks[i].textHeight();
-				if (leftMostChain == null
-					|| blocks[i].options.chainIndex > leftMostChain) {
-					leftMostChain = blocks[i].options.chainIndex; 
+				blocks[i].block.hide();
+				removedHeight += blocks[i].block.textHeight();
+				if (!lowestBlock || lowestBlock.i < blocks[i].i) {
+					lowestBlock = blocks[i];
 				}
-				if (lowestBlock == null
-					|| (blocks[i].options.chainIndex == leftMostChain
-						&& blocks[i].options.blockIndex < lowestBlock)) {
-					lowestBlock = blocks[i].options.blockIndex;
-				}
-				i += 1;
+				i++;
 			}
-			return {chainIndex: leftMostChain, blockIndex: lowestBlock}
+			// relies on EventView.hide not removing the nextBlock pointer
+			if (lowestBlock.block.cid != origBlock.cid) {
+				if (lowestBlock.block.options.prevBlock) {
+					this.layoutDependentChains(lowestBlock.block.options.prevBlock);
+				} else {
+					this.layoutDependentChainBlock(lowestBlock.block.options.chain.firstBlock)
+				}
+				
+				if (origBlock.top() > C.TIMELINEHEIGHT) {
+					this.hideDependentBlocks(origBlock, origBlock.top() - C.TIMELINEHEIGHT);
+				}
+			}
 		},
-		// params should be {topOfBelowBlock, prevChainBlock}. prevChainBlock may be null
-		// returns params {topOfBelowBlock and prevChainBlock}, but appropriately for calling with the next block
-		placeBlock: function (block, params) {
-			var topOfBelowBlock = params.topOfBelowBlock;
-			var prevChainBlock = params.prevChainBlock;
-			var height = block.textHeight();
-			var bottom = topOfBelowBlock;
+		// params should be {topOfBelowBlock, prevChainBlock}. prevChainBlock
+		// may be null. returns params {topOfBelowBlock and prevChainBlock},
+		// but appropriately for calling with the next block
+		placeBlock: function (block, prevChainBlock) {
+			var bottom = block.options.prevBlock ? block.options.prevBlock.top() : 0;
 
-			this.setDependentChain(block);
+			if (block.options.dependentBlock) block.options.dependentBlock.options.dependingBlocks.remove(block);
+			block.options.dependentBlock = block.options.prevBlock;
+			if (block.options.dependentBlock) block.options.dependentBlock.options.dependingBlocks.add(block);
 
 			// penultimatePrevChainBlock ends up being the block that the next block in the current chain needs to check for overlap
 			var penultimatePrevChainBlock = prevChainBlock;
 			// check for overlaps
 			while (prevChainBlock
-				&& prevChainBlock.options.bottom < bottom + height
+				&& prevChainBlock.options.bottom < bottom + block.textHeight()
 				&& prevChainBlock.right() > block.options.dateX) {
 				// the while conditions plus this if condition guarantee overlap
 				if (prevChainBlock.top() > bottom) {
 					bottom = prevChainBlock.top();
 					// this case requires adding a new chain to the dependentChain
-					this.setDependentChain(block, prevChainBlock);
+					if (block.options.dependentBlock) block.options.dependentBlock.options.dependingBlocks.remove(block);
+					block.options.dependentBlock = prevChainBlock;
+					block.options.dependentBlock.options.dependingBlocks.add(block);
 				}
 
 				// advance to the next block in the previous chain
 				penultimatePrevChainBlock = prevChainBlock;
-				var i = prevChainBlock.options.blockIndex + 1;
-				while (i < prevChainBlock.options.chain.length
-					&& prevChainBlock.options.chain[i].options.hide) i++;
-				if (i >= prevChainBlock.options.chain.length) break;
-				prevChainBlock = prevChainBlock.options.chain[i];
+				prevChainBlock = prevChainBlock.options.nextBlock;
 			}
 
 			block.place(bottom);
-
 			block.show();
 
-			return {topOfBelowBlock: bottom + height, prevChainBlock: penultimatePrevChainBlock}
+			return penultimatePrevChainBlock;
 		},
-		layoutViewChains: function(chains) {
-			var i, j;
+		// Given a block, does not reposition it, and calls
+		// layoutDependentChainBlock on the dependingBlocks. Each chain
+		// coresponding to a dependingBlock is allowed to finish execution. If
+		// all chains return true, then true is returned. If at least one
+		// chain returns false, then false is returned.
+		layoutDependentChains: function (block) {	
+			var nextBlocks = [];
+			block.options.dependingBlocks.each(function (b) {
+				nextBlocks.push(b);
+			}, this);
+			nextBlocks.sort(function (a, b) { return b.options.chainIndex - a.options.chainIndex; })
+			var success = true;
+			_.each(nextBlocks, function (b) {
+				success = success && this.layoutDependentChainBlock(b);
+			}, this);
+			return success;
+		},
+		// Given a block, repositions that block and then walks the
+		// dependingBlocks chain (starting with the left-most if there is a
+		// choice) until all of the blocks have been laid out. In most cases,
+		// this should result in each block being moved downward. There are
+		// three possibilities for the result of this function:
+		// 1. In the process of laying out the dependingBlocks, a block is
+		//    positioned above the maximum vertical height of the timeline.
+		// 2. In the process of laying out the dependingBlocks, a block is
+		//    about to be repositioned, but it turns out it cannot be moved
+		//    successfully
+		// 3. All blocks in the dependingBlocks chain are repositioned
+		//    successfully
+		// 
+		// In cases 1 and 2, this function will return false, and in case 3
+		// will return true
+		layoutDependentChainBlock: function (block) {
+			var prevBottom = block.options.bottom;
+			// todo, be better at holding onto prevChainBlock
+			this.placeBlock(block,
+				block.options.prevChain
+					? block.options.prevChain.firstBlock
+					: null);
 
-			// layout remaining chains
-			i = chains.length - 1;
+			if (block.options.bottom >= prevBottom
+				|| block.top() > C.TIMELINEHEIGHT) {
+				return false;
+			} else {
+				return this.layoutDependentChains(block);
+			}
+		},
+		layoutViewChains: function(chains, views) {
+			var viewCids = _.map(views, function(v){return v.cid;});
+
+			var i = chains.length - 1;
 			var reset = null;
 			while (i >= 0 || reset) {
-				var params = {};
-				if (reset) {
-					i = reset.chainIndex;
-					j = reset.blockIndex + 1;
-					params.topOfBelowBlock = chains[i][reset.blockIndex].options.bottom; // we know j > 0
-					reset = null;
-				} else {
-					j = 0;
-					params.topOfBelowBlock = 0;
-				}
-				var currChain = chains[i];
-				params.prevChainBlock = i + 1 < chains.length ? chains[i + 1][0] : null;
+				var block = chains[i].firstBlock;
+				var prevChainBlock = block.options.prevChain
+					? block.options.prevChain.firstBlock
+					: null;
+				while (block) {
+					prevChainBlock = this.placeBlock(block, prevChainBlock);
 
-				while (j < currChain.length
-					&& !reset)  {
-					if (!currChain[j].options.hide) {
-						params = this.placeBlock(currChain[j], params);
-
-						// check for vertical height
-						if (params.topOfBelowBlock > C.TIMELINEHEIGHT) {
-							// remove blocks and relayout
-							var reset = this.hideDependentBlocks(
-								currChain[j].options.dependentChain,
-								chains,
-								params.topOfBelowBlock - C.TIMELINEHEIGHT);
-						}
+					// if vertical height is too high, remove blocks and relayout
+					if (block.top() > C.TIMELINEHEIGHT) {
+						this.hideDependentBlocks(block, block.top() - C.TIMELINEHEIGHT);
 					}
-					j++;
+					
+					block = block.options.nextBlock;
 				}
 				i--;
 			}
@@ -246,29 +273,72 @@ $(function(){
 				var view = new EventView({
 					model: ev,
 					dateX: (ev.attributes["date"] - dateMin) / dateRange * C.TIMELINEWIDTH,
-					hide: false
+					hide: false,
+					dependingBlocks: new Set(function (b) { return b.cid; })
 				});
 				eventsHolder.append(view.render().$el);
 				return view;
 			}, this);
 
-			// create view chains
+			// create view chains. Each chains[i] is a block that should be
+			// rendered at the base of the timeline. The chain is doubly-
+			// linked through chains[i].options.nextBlock and prevBlock
 			var chains = [];
-			var chain;
+			var prevBlock = null;
 			for (var i = 0; i < views.length; i++) {
 				if (i == 0 ||
-					views[i].right() < chain[0].options.dateX) { // create a new chain
-					chain = [views[i]];
-					chains.push(chain);
+					views[i].right() < chains[chains.length - 1].firstBlock.options.dateX) { // create a new chain
+					chains.push({firstBlock: views[i]});
+					views[i].options.prevBlock = null;
 				} else { // add to the existing chain
-					chain.push(views[i]);
+					views[i].options.prevBlock = prevBlock;
+					if (prevBlock) prevBlock.options.nextBlock = views[i];
 				}
-				views[i].options.chain = chain;
-				views[i].options.chainIndex = chains.length - 1;
-				views[i].options.blockIndex = chain.length - 1;
+				
+				prevBlock = views[i];
+				views[i].options.nextBlock = null;
 			}
 
-			this.layoutViewChains(chains);
+			// set prevChain (prevChain refers to the chain to the left, which
+			// has a higher index)
+			for (var i = 0; i < chains.length - 1; i++) {
+				var b = chains[i].firstBlock;
+				while (b) {
+					b.options.prevChain = chains[i + 1]; 
+					b = b.options.nextBlock;
+				}
+			}
+
+			// set the chainIndex
+			for (var i = 0; i < chains.length; i++) {
+				var b = chains[i].firstBlock;
+				while (b) {
+					b.options.chainIndex = i;
+					b.options.chain = chains[i];
+					b = b.options.nextBlock;
+				}
+			}
+
+			for (var i = 0; i < chains.length; i++) {
+				var b = chains[i].firstBlock;
+				var totalHeight = 0;
+				var chainBlocks = []
+				while (b) {
+					totalHeight += b.textHeight();
+					chainBlocks.push(b);
+					b = b.options.nextBlock;
+				}
+				chainBlocks.sort(function (a,b) { return a.options.importance - b.options.importance; });
+				var j = 0;
+				var removedHeight = 0;
+				while (removedHeight < totalHeight - C.TIMELINEHEIGHT) {
+					chainBlocks[j].hide();
+					removedHeight += chainBlocks[j].textHeight();
+					j++;
+				}
+			}
+
+			this.layoutViewChains(chains, views);
 
 			// show all the elements
 			_.each(views, function(v) { if (!v.options.hide) { v.show(); } })
