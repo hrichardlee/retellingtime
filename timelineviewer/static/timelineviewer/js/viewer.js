@@ -111,6 +111,41 @@ $(function(){
 	// Requires collection to be sorted from future to past
 	var EventsView = Backbone.View.extend({
 		el: $("#events-and-datestrip"),
+		// params should be {topOfBelowBlock, prevChainBlock}. prevChainBlock
+		// may be null. returns params {topOfBelowBlock and prevChainBlock},
+		// but appropriately for calling with the next block
+		placeBlock: function (block, prevChainBlock) {
+			var bottom = block.options.prevBlock ? block.options.prevBlock.top() : 0;
+
+			if (block.options.dependentBlock) block.options.dependentBlock.options.dependingBlocks.remove(block);
+			block.options.dependentBlock = block.options.prevBlock;
+			if (block.options.dependentBlock) block.options.dependentBlock.options.dependingBlocks.add(block);
+
+			// penultimatePrevChainBlock ends up being the block that the next block in the current chain needs to check for overlap
+			var penultimatePrevChainBlock = prevChainBlock;
+			// check for overlaps
+			while (prevChainBlock
+				&& prevChainBlock.options.bottom < bottom + block.textHeight()
+				&& prevChainBlock.right() > block.options.dateX) {
+				// the while conditions plus this if condition guarantee overlap
+				if (prevChainBlock.top() > bottom) {
+					bottom = prevChainBlock.top();
+					// this case requires adding a new chain to the dependentChain
+					if (block.options.dependentBlock) block.options.dependentBlock.options.dependingBlocks.remove(block);
+					block.options.dependentBlock = prevChainBlock;
+					block.options.dependentBlock.options.dependingBlocks.add(block);
+				}
+
+				// advance to the next block in the previous chain
+				penultimatePrevChainBlock = prevChainBlock;
+				prevChainBlock = prevChainBlock.options.nextBlock;
+			}
+
+			block.place(bottom);
+			block.show();
+
+			return penultimatePrevChainBlock;
+		},
 		// hides the least important blocks in the dependentBlock chain of
 		// block until height of the blocks removed equals or exceeds
 		// verticalHeight. If the lowest (left-most then bottom-most) block is
@@ -152,41 +187,6 @@ $(function(){
 					this.hideDependentBlocks(origBlock, origBlock.top() - C.TIMELINEHEIGHT);
 				}
 			}
-		},
-		// params should be {topOfBelowBlock, prevChainBlock}. prevChainBlock
-		// may be null. returns params {topOfBelowBlock and prevChainBlock},
-		// but appropriately for calling with the next block
-		placeBlock: function (block, prevChainBlock) {
-			var bottom = block.options.prevBlock ? block.options.prevBlock.top() : 0;
-
-			if (block.options.dependentBlock) block.options.dependentBlock.options.dependingBlocks.remove(block);
-			block.options.dependentBlock = block.options.prevBlock;
-			if (block.options.dependentBlock) block.options.dependentBlock.options.dependingBlocks.add(block);
-
-			// penultimatePrevChainBlock ends up being the block that the next block in the current chain needs to check for overlap
-			var penultimatePrevChainBlock = prevChainBlock;
-			// check for overlaps
-			while (prevChainBlock
-				&& prevChainBlock.options.bottom < bottom + block.textHeight()
-				&& prevChainBlock.right() > block.options.dateX) {
-				// the while conditions plus this if condition guarantee overlap
-				if (prevChainBlock.top() > bottom) {
-					bottom = prevChainBlock.top();
-					// this case requires adding a new chain to the dependentChain
-					if (block.options.dependentBlock) block.options.dependentBlock.options.dependingBlocks.remove(block);
-					block.options.dependentBlock = prevChainBlock;
-					block.options.dependentBlock.options.dependingBlocks.add(block);
-				}
-
-				// advance to the next block in the previous chain
-				penultimatePrevChainBlock = prevChainBlock;
-				prevChainBlock = prevChainBlock.options.nextBlock;
-			}
-
-			block.place(bottom);
-			block.show();
-
-			return penultimatePrevChainBlock;
 		},
 		// Given a block, does not reposition it, and calls
 		// layoutDependentChainBlock on the dependingBlocks. Each chain
