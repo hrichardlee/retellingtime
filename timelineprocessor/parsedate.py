@@ -76,7 +76,7 @@ class TimelineDate:
 			(self.start_year, self.start_year_approx, self.end_year, self.end_year_approx)
 
 
-_date_regex = re.compile(ur'^(millenium|th|st|nd|rd|century|ma|to|years|yrs|ago|[\dbcead,±\.\?\-–— ])+')
+_date_regex = re.compile(ur'^(millenium|millennium|th|st|nd|rd|century|ma|to|years|yrs|ago|[\dbcead,±\.\?\-–— ])+')
 
 def parse_date_text(text):
 	"""Parses a date from some text, returns (TimelineDate, index) where
@@ -148,7 +148,7 @@ def parse_date_text(text):
 		pm -> '±'
 		th -> 't' 'h' | 's' 't' | 'n' 'd' | 'r' 'd'
 		century -> 'c' 'e' 'n' 't' 'u' 'r' 'y'
-		millenium -> 'm' 'i' 'l' 'l' 'e' 'n' 'i' 'u' 'm'
+		millenium -> 'm' 'i' 'l' 'l' 'e' 'n' 'i' 'u' 'm' | 'm' 'i' 'l' 'l' 'e' 'n' 'n' 'i' 'u' 'm'
 		""")
 	date_parser = BottomUpChartParser(date_grammar)
 

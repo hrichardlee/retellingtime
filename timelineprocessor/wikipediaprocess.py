@@ -49,7 +49,7 @@ def _separate_events(events):
 
 def _html_to_string_blocks(html, 
 	block_elements = set(["address", "article", "aside", "blockquote", "section", "dd", "div", "dl", "p", "ol", "ul", "li"]),
-	header_elements = ["h2", "h3"]):
+	header_elements = ["h2", "h3", "h4", "h5", "h6"]):
 	"""Given an html element as a BeautifulSoup, returns a list of string
 	blocks. Each string block represents a section in the html demarcated by a
 	header element. Each string block is {heading, lines}. Lines is a list of
