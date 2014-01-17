@@ -7,11 +7,14 @@ requirejs.config({
 	shim: {
 		underscore: {
 			exports: '_'
+		},
+		d3: {
+			exports: 'd3'
 		}
 	}
 });
 
-requirejs(['jquery', 'underscore', 'viewer/tlevents', 'viewer/consts'], function ($, _, tlevents, C) {
+requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], function ($, _, d3, tlevents, C) {
 	$(function(){
 		$('#query').keypress(function (e) {
 			if (e.which == 13) {
@@ -25,7 +28,7 @@ requirejs(['jquery', 'underscore', 'viewer/tlevents', 'viewer/consts'], function
 
 					var eventTemplate = _.template($("#event-template").html());
 					// This is a one-time task
-					var eventsHolder = $("#events", this.$el);
+					var eventsHolder = $("#events-holder", this.$el);
 					var events = _.map(data, function(ev) {
 						return new tlevents.Event(ev, eventsHolder, eventTemplate);
 					}, this);
@@ -35,6 +38,10 @@ requirejs(['jquery', 'underscore', 'viewer/tlevents', 'viewer/consts'], function
 					_.each(events, function (e) { e.setLeft((e.date - dateMin) / dateRange * C.TIMELINEWIDTH); } );
 
 					var scopedEvents = tlevents.setBottoms(events);
+
+
+					// Now render!
+					d3.select('body').append('svg');
 				});
 				return false;
 			}

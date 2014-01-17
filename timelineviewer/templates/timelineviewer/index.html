@@ -7,15 +7,7 @@
 
 	<div id="timeline-holder">
 		<p><input id="query" type="text" /><input id="searchButton" type="button" value="Go" /></p>
-		<div id="events-and-datestrip">
-			<div id="events">
-			</div>
-			<div class="datestrip">
-				1835
-				1912
-				1954
-				1987
-			</div>
+		<div id="events-holder" class="invisible" >
 		</div>
 	</div>
 
@@ -24,7 +16,6 @@
 		src="{% static 'timelineviewer/js/require.js' %}"></script>
 
 	<script type="text/template" id="event-template">
-		<div class="event-marker"></div>
 		<div class="event-text"><span class="date"><%= date %></span> <%= content %></div>
 	</script>
 {% endblock %}
