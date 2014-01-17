@@ -66,3 +66,7 @@ class TestParseDate(unittest.TestCase):
 		self.assertEqual(parse_date_html(h2), (TimelineDate(1890, False), r2))
 		self.assertEqual(parse_date_html(h3), (TimelineDate(1890, False), r3))
 		self.assertEqual(parse_date_html(h4), (TimelineDate(1890, False), r4))
+
+	def test_real_life(self):
+		d1 = """<li>613 BC, July – A <a href="/wiki/Comet" title="Comet">Comet</a>, possibly <a href="/wiki/Comet_Halley" title="Comet Halley" class="mw-redirect">Comet Halley</a>, is recorded in <a href="/wiki/Spring_and_Autumn_Annals" title="Spring and Autumn Annals">Spring and Autumn Annals</a> by the Chinese</li>"""
+		self.assertEqual(parse_date_html(d1)[0], TimelineDate(-613))

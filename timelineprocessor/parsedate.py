@@ -166,7 +166,7 @@ def parse_date_text(text):
 			# this is a pretty big hack. Really need the parser to expand the
 			# matches as far as possible and return that
 			if len(date_text) <= 1: return None
-			m = _date_regex.search(date_text[:-2])
+			m = _date_regex.search(date_text[:-1])
 			if not m: return None
 			date_text = m.group().strip()
 	
