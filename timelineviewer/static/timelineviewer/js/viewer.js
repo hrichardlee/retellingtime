@@ -256,6 +256,67 @@ $(function(){
 				i--;
 			}
 		},
+		makeViewChains: function (views) {
+			// create view chains. Each chains[i] is a block that should be
+			// rendered at the base of the timeline. The chain is doubly-
+			// linked through chains[i].options.nextBlock and prevBlock
+			var chains = [];
+			var prevBlock = null;
+			for (var i = 0; i < views.length; i++) {
+				if (i == 0 ||
+					views[i].right() < chains[chains.length - 1].firstBlock.options.dateX) { // create a new chain
+					chains.push({firstBlock: views[i]});
+					views[i].options.prevBlock = null;
+				} else { // add to the existing chain
+					views[i].options.prevBlock = prevBlock;
+					if (prevBlock) prevBlock.options.nextBlock = views[i];
+				}
+				
+				prevBlock = views[i];
+				views[i].options.nextBlock = null;
+			}
+
+			// set prevChain (prevChain refers to the chain to the left, which
+			// has a higher index), chainIndex, and chain
+			for (var i = 0; i < chains.length; i++) {
+				var b = chains[i].firstBlock;
+				while (b) {
+					b.options.chainIndex = i;
+					b.options.chain = chains[i];
+					b.options.prevChain = i + 1 >= chains.length ? null : chains[i + 1]; 
+					b = b.options.nextBlock;
+				}
+			}
+
+			var hidden = false;
+
+			// hide elements so that each chain is short enough to fit on the timeline
+			for (var i = 0; i < chains.length; i++) {
+				var b = chains[i].firstBlock;
+				var totalHeight = 0;
+				var chainBlocks = []
+				while (b) {
+					totalHeight += b.textHeight();
+					chainBlocks.push(b);
+					b = b.options.nextBlock;
+				}
+				chainBlocks.sort(function (a,b) { return a.options.importance - b.options.importance; });
+				var j = 0;
+				var removedHeight = 0;
+				while (removedHeight < totalHeight - C.TIMELINEHEIGHT) {
+					chainBlocks[j].hide();
+					hidden = true;
+					removedHeight += chainBlocks[j].textHeight();
+					j++;
+				}
+			}
+
+			if (hidden) {
+				return this.makeViewChains(_.filter(views, function (v) { return !v.options.hide; }));
+			} else {
+				return chains;
+			}
+		},
 		render: function() {
 			var evs = this.collection;
 
@@ -278,63 +339,7 @@ $(function(){
 				return view;
 			}, this);
 
-			// create view chains. Each chains[i] is a block that should be
-			// rendered at the base of the timeline. The chain is doubly-
-			// linked through chains[i].options.nextBlock and prevBlock
-			var chains = [];
-			var prevBlock = null;
-			for (var i = 0; i < views.length; i++) {
-				if (i == 0 ||
-					views[i].right() < chains[chains.length - 1].firstBlock.options.dateX) { // create a new chain
-					chains.push({firstBlock: views[i]});
-					views[i].options.prevBlock = null;
-				} else { // add to the existing chain
-					views[i].options.prevBlock = prevBlock;
-					if (prevBlock) prevBlock.options.nextBlock = views[i];
-				}
-				
-				prevBlock = views[i];
-				views[i].options.nextBlock = null;
-			}
-
-			// set prevChain (prevChain refers to the chain to the left, which
-			// has a higher index)
-			for (var i = 0; i < chains.length - 1; i++) {
-				var b = chains[i].firstBlock;
-				while (b) {
-					b.options.prevChain = chains[i + 1]; 
-					b = b.options.nextBlock;
-				}
-			}
-
-			// set the chainIndex
-			for (var i = 0; i < chains.length; i++) {
-				var b = chains[i].firstBlock;
-				while (b) {
-					b.options.chainIndex = i;
-					b.options.chain = chains[i];
-					b = b.options.nextBlock;
-				}
-			}
-
-			for (var i = 0; i < chains.length; i++) {
-				var b = chains[i].firstBlock;
-				var totalHeight = 0;
-				var chainBlocks = []
-				while (b) {
-					totalHeight += b.textHeight();
-					chainBlocks.push(b);
-					b = b.options.nextBlock;
-				}
-				chainBlocks.sort(function (a,b) { return a.options.importance - b.options.importance; });
-				var j = 0;
-				var removedHeight = 0;
-				while (removedHeight < totalHeight - C.TIMELINEHEIGHT) {
-					chainBlocks[j].hide();
-					removedHeight += chainBlocks[j].textHeight();
-					j++;
-				}
-			}
+			var chains = this.makeViewChains(views)
 
 			this.layoutViewChains(chains);
 
