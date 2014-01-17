@@ -235,9 +235,7 @@ $(function(){
 				return this.layoutDependentChains(block);
 			}
 		},
-		layoutViewChains: function(chains, views) {
-			var viewCids = _.map(views, function(v){return v.cid;});
-
+		layoutViewChains: function(chains) {
 			var i = chains.length - 1;
 			var reset = null;
 			while (i >= 0 || reset) {
@@ -338,7 +336,7 @@ $(function(){
 				}
 			}
 
-			this.layoutViewChains(chains, views);
+			this.layoutViewChains(chains);
 
 			// show all the elements
 			_.each(views, function(v) { if (!v.options.hide) { v.show(); } })
