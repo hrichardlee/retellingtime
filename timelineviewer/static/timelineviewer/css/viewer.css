@@ -18,7 +18,8 @@ body {
 	font-size: 10px;
 	width: 180px;
 	padding-top: 4px;
-	position: absolute;
+	padding-left: 4px;
+	/*position: absolute;*/
 	top: 0;
-	/*background-color: rgba(200, 200, 200, 0.9);*/
+	background-color: rgba(200, 200, 200, 0.9);
 }

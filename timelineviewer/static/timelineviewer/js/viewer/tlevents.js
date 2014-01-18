@@ -51,7 +51,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 			i++;
 		}
 		// relies on EventView.hide not removing the nextBlock pointer
-		if (lowestBlock.block.cid != origBlock.cid) {
+		if (lowestBlock.block.id() != origBlock.id()) {
 			if (lowestBlock.block.prevBlock) {
 				layoutDependentChains(lowestBlock.block.prevBlock);
 			} else {
@@ -234,6 +234,8 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 		var baseObject = {
 			setBottom: function (b) { this.bottom = b; this.top = b + this.height; },
 			setLeft: function (l) { this.left = l; this.right = l + C.EVENTWIDTH; },
+			html: function () { return this.$el.html(); },
+			id: function () { return this.date + this.content; },
 			hide: function () {
 				this.hidden = true;
 
@@ -259,7 +261,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 			this.content = eventData.content;
 			this.importance = eventData.importance;
 			this.hidden = false;
-			this.dependingBlocks = new Set(function (e) { return e.date + e.content; });
+			this.dependingBlocks = new Set(function (e) { return e.id(); });
 
 			this.$el = $('<div></div').html(template(eventData));
 			$containerEl.append(this.$el);
@@ -274,7 +276,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 	function setBottoms(evs) {
 		var chains = makeViewChains(evs)
 		layoutViewChains(chains);
-		return _.filter(evs, function (e) { return !evs.hidden; });
+		return _.filter(evs, function (e) { return !e.hidden; });
 	}
 
 	return { Event: Event, setBottoms: setBottoms};
