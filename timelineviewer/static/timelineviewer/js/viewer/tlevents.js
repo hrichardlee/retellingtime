@@ -52,8 +52,8 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 		}
 		// relies on EventView.hide not removing the nextBlock pointer
 		if (lowestBlock.block.id() != origBlock.id()) {
-			if (lowestBlock.block.prevBlock) {
-				layoutDependentChains(lowestBlock.block.prevBlock);
+			if (lowestBlock.block.dependentBlock) {
+				layoutDependentChains(lowestBlock.block.dependentBlock);
 			} else {
 				layoutDependentChainBlock(lowestBlock.block.chain.firstBlock)
 			}
@@ -76,7 +76,8 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 		nextBlocks.sort(function (a, b) { return b.chainIndex - a.chainIndex; })
 		var success = true;
 		_.each(nextBlocks, function (b) {
-			success = success && layoutDependentChainBlock(b);
+			var x = layoutDependentChainBlock(b);
+			success = x && success;
 		}, this);
 		return success;
 	}
