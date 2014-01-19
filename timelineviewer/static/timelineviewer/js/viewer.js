@@ -63,7 +63,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 	}
 
 	function doRender() {
-		console.log("render started")
+		console.debug("render started")
 		// now render
 		_.each(events, function (e) {
 			e.reset();
@@ -75,8 +75,28 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 		var groups = render.focus.selectAll('g')
 			.data(scopedEvents, function (e) { return e.id(); });
 
+		// only update:
+		groups
+			.style("opacity", "1") // kind of a hack, transitions don't always finish cleanly
+			.transition()
+			.ease("linear")
+			.attr("transform", function (d) {
+				return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
+			})
+			.selectAll("rect")
+			.attr("height", function (d) { return d.bottom + d.height - C.MARKEREXTRAHEIGHT; })
+
+		// only enter
 		var groupsenter = groups.enter()
-		  .append("g")
+			.append("g")
+
+		groupsenter
+			.attr("transform", function (d) {
+				return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
+			})
+			.style("opacity", "0")
+			.transition()
+			.style("opacity", "1")
 
 		groupsenter.append("foreignObject")
 			.attr("height", function (d) {return d.height; })
@@ -84,18 +104,14 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 			.append("xhtml:div")
 			.html(function (d) { return d.html(); })
 		groupsenter.append("rect")
-		  .attr("width", 2)
-		  .attr("y", C.MARKEREXTRAHEIGHT)
-		groups
-			// .transition()
-		  .attr("transform", function (d) {
-		  	return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
-			})
-		  .selectAll("rect")
-		  .attr("height", function (d) { return d.bottom + d.height - C.MARKEREXTRAHEIGHT; })
-		 groups.exit().remove()
+			.attr("width", 2)
+			.attr("y", C.MARKEREXTRAHEIGHT)
+			.attr("height", function (d) { return d.bottom + d.height - C.MARKEREXTRAHEIGHT; })
+		
+		// only removed elements
+		groups.exit().transition().style("opacity", "0").remove();
 
-		console.log("render finished")
+		console.debug("render finished")
 	}
 
 	function foo() {
