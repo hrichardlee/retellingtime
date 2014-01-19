@@ -16,9 +16,75 @@ requirejs.config({
 
 requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], function ($, _, d3, tlevents, C) {
 	var render = null;
-	function bar() {
+	function initializeRender(events) {
+		render = {};
 
+		render.events = events;
 
+		// create scales
+		render.x = d3.scale.linear().range([0, C.TIMELINEWIDTH]);
+		render.x2 = d3.scale.linear().range([0, C.TIMELINEWIDTH]);
+		// render.xAxis = d3.svg.axis().scale(x).orient("bottom"),
+		// render.xAxis2 = d3.svg.axis().scale(x2).orient("bottom");
+
+		render.x.domain([events[(events.length- 1)].date, events[0].date]);
+				
+		render.x2.domain(render.x.domain());
+
+		// initialize svg and such
+		var svg = d3.select("body").append("svg")
+		    .attr("width", C.TOTALTIMELINEWIDTH)
+		    .attr("height", C.TOTALTIMELINEHEIGHT);
+
+		svg.append("defs").append("clipPath")
+		    .attr("id", "clip")
+
+		// what happens if zoomed before data is loaded
+		var zoom = d3.behavior.zoom()
+			.on("zoom", doRender);
+
+		render.focus = svg.append("g")
+			.call(zoom);
+
+		render.focus.append("rect")
+			.attr("height", C.TOTALTIMELINEHEIGHT)
+			.attr("width", C.TOTALTIMELINEWIDTH)
+			.classed("background", true)
+
+		zoom.x(render.x);
+
+// render.context = svg.append("g")
+//     .attr("transform", "translate(" + 0 + "," + 510 + ")");
+		// .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+	}
+
+	function doRender() {
+		// now render
+		_.each(events, function (e) { e.setLeft(render.x(e.date)); e.hidden = false; } );
+
+		var scopedEvents = tlevents.setBottoms(events);
+
+		var groups = render.focus.selectAll('g')
+			.data(scopedEvents, function (e) { return e.id(); });
+
+		var groupsenter = groups.enter()
+		  .append("g")
+
+		groupsenter.append("foreignObject")
+			.attr("height", function (d) {return d.height; })
+			.attr("width", C.EVENTWIDTH)
+			.append("xhtml:div")
+			.html(function (d) { return d.html(); })
+		groupsenter.append("rect")
+		  .attr("width", 2)
+		  .attr("y", C.MARKEREXTRAHEIGHT)
+		groups
+		  .attr("transform", function (d) {
+		  	return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
+			})
+		  .selectAll("rect")
+		  .attr("height", function (d) { return d.bottom + d.height - C.MARKEREXTRAHEIGHT; })
+		 groups.exit().remove()
 	}
 
 	function foo() {
@@ -31,50 +97,8 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 				return new tlevents.Event(ev, eventsHolder, eventTemplate);
 			}, this);
 
-			render = {};
-
-			// create scales
-			render.x = d3.scale.linear().range([0, C.TIMELINEWIDTH]);
-			render.x2 = d3.scale.linear().range([0, C.TIMELINEWIDTH]);
-			// render.xAxis = d3.svg.axis().scale(x).orient("bottom"),
-			// render.xAxis2 = d3.svg.axis().scale(x2).orient("bottom");
-
-			render.x.domain([data[(data.length- 1)].date, data[0].date]);
-			render.x2.domain(render.x.domain());
-
-			// initialize svg and such
-			var svg = d3.select("body").append("svg")
-			    .attr("width", C.TOTALTIMELINEWIDTH)
-			    .attr("height", C.TOTALTIMELINEHEIGHT);
-
-			svg.append("defs").append("clipPath")
-			    .attr("id", "clip")
-
-			render.focus = svg.append("g")
-			    // .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-
-			// now render
-			_.each(events, function (e) { e.setLeft(render.x(e.date)); } );
-
-			var scopedEvents = tlevents.setBottoms(events);
-
-			var groups = render.focus.selectAll('g')
-				.data(scopedEvents);
-			groups.enter()
-			  .append("g")
-			  .attr("transform", function (d) {
-			  	return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
-				})
-			  .append("rect")
-			  .attr("width", 2)
-			  .attr("height", function (d) { return d.bottom + d.height - C.MARKEREXTRAHEIGHT; })
-			  .attr("y", C.MARKEREXTRAHEIGHT)
-			groups.append("foreignObject")
-				.attr("height", function (d) {return d.height; })
-				.attr("width", C.EVENTWIDTH)
-				.append("xhtml:div")
-				.html(function (d) { return d.html(); })
+			initializeRender(events);
+			doRender();
 		});
 	}
 
@@ -83,6 +107,9 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 			if (e.which == 13) {
 				foo();
 				return false;
+			} else if (String.fromCharCode(e.which) == '`') {
+				render.x.domain([1940, 1960]);
+				doRender();
 			}
 		})
 	})
