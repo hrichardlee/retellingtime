@@ -1,6 +1,6 @@
 define([], function () {
 	var C = {};
-	C.TOTALTIMELINEHEIGHT = 500;
+	C.TOTALTIMELINEHEIGHT = 200;
 	// leave space for the datestrip and the margin
 	C.TIMELINEHEIGHT = C.TOTALTIMELINEHEIGHT;
 	C.TOTALTIMELINEWIDTH = 800;

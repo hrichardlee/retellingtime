@@ -21,12 +21,11 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 	 */
 
 
-	// hides the least important blocks in the dependentBlock chain of
-	// block until height of the blocks removed equals or exceeds
-	// verticalHeight. If the lowest (left-most then bottom-most) block is
-	// not the original block passed in, that block will be returned.
-	// Otherwise, null is returned.
+	// hides the least important blocks in the dependentBlock chain of block
+	// until height of the blocks removed equals or exceeds verticalHeight.
+	// Not guaranteed to actually move the block down
 	function hideDependentBlocks(block, verticalHeight) {
+		console.log("hideDependentBlocks: " + block.content)
 		var blocks = [];
 		var origBlock = block;
 		var i = 0;
@@ -55,31 +54,59 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 			if (lowestBlock.block.dependentBlock) {
 				layoutDependentChains(lowestBlock.block.dependentBlock);
 			} else {
-				layoutDependentChainBlock(lowestBlock.block.chain.firstBlock)
-			}
-			
-			if (origBlock.top > C.TIMELINEHEIGHT) {
-				hideDependentBlocks(origBlock, origBlock.top - C.TIMELINEHEIGHT);
+				layoutDependentChains(lowestBlock.block.chain.firstBlock)
 			}
 		}
+
+		console.log("done with hideDependentBlocks")
 	}
 	// Given a block, does not reposition it, and calls
 	// layoutDependentChainBlock on the dependingBlocks. Each chain
 	// coresponding to a dependingBlock is allowed to finish execution. If
 	// all chains return true, then true is returned. If at least one
 	// chain returns false, then false is returned.
-	function layoutDependentChains(block) {	
-		var nextBlocks = [];
-		block.dependingBlocks.each(function (b) {
-			nextBlocks.push(b);
-		}, this);
-		nextBlocks.sort(function (a, b) { return b.chainIndex - a.chainIndex; })
-		var success = true;
-		_.each(nextBlocks, function (b) {
-			var x = layoutDependentChainBlock(b);
-			success = x && success;
-		}, this);
-		return success;
+	function layoutDependentChains(startingBlock) {
+		console.log("Dependent chains " + startingBlock.content.slice(0, 20))
+
+		var revisit = [startingBlock]
+
+		while (revisit.length > 0) {
+			var block = revisit[0];
+			revisit = revisit.slice(1, revisit.length)
+
+			var localRevisit = [];
+
+			while (block) {
+				var prevBottom = block.bottom;
+				// todo, be better at holding onto prevChainBlock
+				placeBlock(block,
+					block.prevChain ? block.prevChain.firstBlock
+									: null);
+
+				if ((block.bottom >= prevBottom
+					|| block.top > C.TIMELINEHEIGHT)
+					&& block.id() != startingBlock.id()) {
+					break;
+				} else {
+					var nextBlocks = [];
+					block.dependingBlocks.each(function (b) {
+						nextBlocks.push(b);
+					}, this);
+					nextBlocks.sort(function (a, b) { return b.chainIndex - a.chainIndex; })
+					if (nextBlocks.length > 0) {
+						block = nextBlocks[0];
+						// only has an effect if nextBlocks.length > 1
+						localRevisit = localRevisit.concat(nextBlocks.slice(1, nextBlocks.length))
+					} else {
+						block = null;
+					}
+				}
+			}
+
+			revisit = localRevisit.concat(revisit);
+		}
+
+		console.log("Dependent chains finished")
 	}
 	// Given a block, repositions that block and then walks the
 	// dependingBlocks chain (starting with the left-most if there is a
@@ -96,21 +123,6 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 	// 
 	// In cases 1 and 2, this function will return false, and in case 3
 	// will return true
-	function layoutDependentChainBlock(block) {
-		var prevBottom = block.bottom;
-		// todo, be better at holding onto prevChainBlock
-		placeBlock(block,
-			block.prevChain
-				? block.prevChain.firstBlock
-				: null);
-
-		if (block.bottom >= prevBottom
-			|| block.top > C.TIMELINEHEIGHT) {
-			return false;
-		} else {
-			return layoutDependentChains(block);
-		}
-	}
 
 
 	// prevChainBlock may be null. returns prevChainBlock appropriately for
@@ -151,6 +163,8 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 		var i = chains.length - 1;
 		var reset = null;
 		while (i >= 0 || reset) {
+			console.log("layoutViewChains i=" + i)
+
 			var block = chains[i].firstBlock;
 			var prevChainBlock = block.prevChain
 				? block.prevChain.firstBlock
@@ -159,16 +173,25 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 				prevChainBlock = placeBlock(block, prevChainBlock);
 
 				// if vertical height is too high, remove blocks and relayout
-				if (block.top > C.TIMELINEHEIGHT) {
+				while (block.top > C.TIMELINEHEIGHT && !block.hidden) {
 					hideDependentBlocks(block, block.top - C.TIMELINEHEIGHT);
 				}
 				block = block.nextBlock;
 			}
+			console.log("layoutViewChains i=" + i + " done")
+
 			i--;
 		}
+
+		console.log("layoutViewChains done")
 	}
 
 	function makeViewChains (events) {
+		// first hide all events taller than the timeline
+		_.map(events, function (e) {
+			if (e.height >= C.TIMELINEHEIGHT) e.hide();
+		})
+
 		// create view chains. Each chains[i] is a block that should be
 		// rendered at the base of the timeline. The chain is doubly-
 		// linked through chains[i].nextBlock and prevBlock
@@ -237,6 +260,17 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 			setLeft: function (l) { this.left = l; this.right = l + C.EVENTWIDTH; },
 			html: function () { return this.$el.html(); },
 			id: function () { return this.date + this.content; },
+			reset: function () {
+				this.hidden = false;
+				this.dependingBlocks = new Set(function (e) { return e.id(); });
+				this.dependentBlock = null;
+				this.nextBlock = null;
+				this.prevBlock = null;
+				this.chainIndex = null;
+				this.chain = null;
+				this.prevChain = null;
+				
+			},
 			hide: function () {
 				this.hidden = true;
 
@@ -261,9 +295,9 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 			this.date = eventData.date;
 			this.content = eventData.content;
 			this.importance = eventData.importance;
-			this.hidden = false;
-			this.dependingBlocks = new Set(function (e) { return e.id(); });
 
+			this.reset();
+			
 			this.$el = $('<div></div').html(template(eventData));
 			$containerEl.append(this.$el);
 			this.height = $('.event-text', this.$el).outerHeight(true); // true includes margins

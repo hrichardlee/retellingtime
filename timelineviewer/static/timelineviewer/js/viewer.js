@@ -19,6 +19,10 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 	function initializeRender(events) {
 		render = {};
 
+		render.currRender = $.Deferred();
+		render.currRender.resolve();
+		render.nextRender = null;
+
 		render.events = events;
 
 		// create scales
@@ -59,8 +63,12 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 	}
 
 	function doRender() {
+		console.log("render started")
 		// now render
-		_.each(events, function (e) { e.setLeft(render.x(e.date)); e.hidden = false; } );
+		_.each(events, function (e) {
+			e.reset();
+			e.setLeft(render.x(e.date));
+		} );
 
 		var scopedEvents = tlevents.setBottoms(events);
 
@@ -79,12 +87,15 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 		  .attr("width", 2)
 		  .attr("y", C.MARKEREXTRAHEIGHT)
 		groups
+			// .transition()
 		  .attr("transform", function (d) {
 		  	return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
 			})
 		  .selectAll("rect")
 		  .attr("height", function (d) { return d.bottom + d.height - C.MARKEREXTRAHEIGHT; })
 		 groups.exit().remove()
+
+		console.log("render finished")
 	}
 
 	function foo() {
