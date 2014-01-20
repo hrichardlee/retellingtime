@@ -14,6 +14,10 @@ body {
 	visibility: hidden;
 }
 
+.absolute {
+	position: absolute;
+}
+
 .event-text {
 	font-size: 10px;
 	width: 180px;
