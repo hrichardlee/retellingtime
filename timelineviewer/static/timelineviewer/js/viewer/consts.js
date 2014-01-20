@@ -11,5 +11,11 @@ define([], function () {
 	// make the marker shorter to compensate for event-text margin and leading in text and padding
 	C.MARKEREXTRAHEIGHT = 4 + 4;
 
+	C.TRANSITIONDURATION = 150;
+
+	C.PANMARGIN = 50;
+	C.ZOOMMIN = 0.5; // lower number means you can zoom out more
+	C.ZOOMMAXFACTOR = 0.4; // higher number means that you can zoom in more
+
 	return C;
 });
