@@ -27,3 +27,19 @@ body {
 .background {
 	fill: white;
 }
+
+svg {
+	font-size: 10px;
+}
+
+.axis path,
+.axis line {
+	fill: none;
+	stroke: #000;
+	shape-rendering: crispEdges;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+}
