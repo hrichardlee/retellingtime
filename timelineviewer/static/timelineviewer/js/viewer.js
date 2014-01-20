@@ -84,7 +84,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 		// get max zoom, set zoom
 		var minDist = null;
 		for (var i = 0; i < events.length - 1; i++) {
-			var dist = events[i].date - events[i+1].date;
+			var dist = Math.abs(events[i].date - events[i+1].date);
 			if ((!minDist || dist < minDist) && dist != 0) minDist = dist;
 		}
 		var zoomMax = minDist

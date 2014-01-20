@@ -278,7 +278,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 					this.nextBlock.prevBlock = this.prevBlock;
 				if (this.prevBlock)
 					this.prevBlock.nextBlock = this.nextBlock;
-				else
+				else if (this.chain)
 					this.chain.firstBlock = this.nextBlock;
 				if (this.dependentBlock) {
 					this.dependentBlock.dependingBlocks.remove(this);
