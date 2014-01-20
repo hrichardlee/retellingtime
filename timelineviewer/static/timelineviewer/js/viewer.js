@@ -85,10 +85,12 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 		var minDist = null;
 		for (var i = 0; i < events.length - 1; i++) {
 			var dist = events[i].date - events[i+1].date;
-			if (!minDist || dist < minDist) minDist = dist;
+			if ((!minDist || dist < minDist) && dist != 0) minDist = dist;
 		}
-		var zoomMax = (render.x.domain()[1] - render.x.domain()[0])
-						* C.ZOOMMAXFACTOR / minDist ;
+		var zoomMax = minDist
+			? (render.x.domain()[1] - render.x.domain()[0])
+						* C.ZOOMMAXFACTOR / minDist
+			: C.ZOOMMAXFACTOR;
 		render.zoom
 			.scaleExtent([C.ZOOMMIN, zoomMax])
 		render.zoom.x(render.x);
