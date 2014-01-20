@@ -3,13 +3,12 @@ define([], function () {
 	C.TOTALTIMELINEHEIGHT = 220;
 	C.CONTEXTSTRIPHEIGHT = 20;
 	C.TIMELINEHEIGHT = C.TOTALTIMELINEHEIGHT - C.CONTEXTSTRIPHEIGHT;
-	C.TIMELINEWIDTH = 800;
 	// event-text outer width
 	C.EVENTWIDTH = 184;
 	// make the marker shorter to compensate for event-text margin and leading in text and padding
 	C.MARKEREXTRAHEIGHT = 4 + 4;
 
-	C.TRANSITIONDURATION = 150;
+	C.TRANSITIONDURATION = 250;
 
 	C.INITIALTIMELINEMARGIN = 10;
 
