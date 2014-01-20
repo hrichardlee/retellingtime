@@ -37,7 +37,12 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 
 		render.focus.append("rect")
 			.attr("height", C.TOTALTIMELINEHEIGHT)
-			.classed("background", true);
+			.attr("class", "background");
+
+		render.focus.append("g")
+			.attr("class", "markers")
+		render.focus.append("g")
+			.attr("class", "text-elements")
 
 		render.xAxisEl = svg.append("g")
 			.attr("class", "x axis")
@@ -89,8 +94,8 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 		render.zoom.x(render.x);
 
 		// set widths
-		render.svg.attr("width", render.width)
-		render.focus.select("rect").attr("width", render.width)
+		render.svg.attr("width", render.width);
+		render.focus.select(".background").attr("width", render.width);
 		
 		/* Set the initial scale/translate values */
 		// We want to set the scale to be zoomed out initially so that we can
@@ -134,6 +139,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 	function doRender() {
 		console.debug("render started")
 
+		// Modify events with new left/bottom coordinates
 		function rerenderScale() {
 			_.each(render.events, function (e) {
 				e.reset();
@@ -172,58 +178,79 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 			rerenderScale();
 		}
 
-		var groups = render.focus.selectAll('g')
+		// Render events with new left/bottom coordinates
+		var textElements = render.focus.select('.text-elements').selectAll('g')
+			.data(render.scopedEvents, function (e) { return e.id(); });
+		var markers = render.focus.select('.markers').selectAll('rect')
 			.data(render.scopedEvents, function (e) { return e.id(); });
 
-		// only update:
-		groups
-			.style("opacity", "1"); // kind of a hack, transitions don't always finish cleanly
-		var updateGroups;
+		//only update:
+		var transitionFn;
 		if (onlyTranslate) {
-			updateGroups = groups;
+			transitionFn = function (g) { return g; };
 		} else if (render.firstRender) {
-			updateGroups = groups
-				.transition()
-				.duration(C.FIRST_RENDER_TRANSITION_DURATION)
-				.ease(C.FIRST_RENDER_TRANSITION_EASING);
+			transitionFn = function (g) {
+				return g
+					.transition()
+					.duration(C.FIRST_RENDER_TRANSITION_DURATION)
+					.ease(C.FIRST_RENDER_TRANSITION_EASING);
+			};
 		} else {
-			updateGroups = groups
-				.transition()
-				.duration(C.TRANSITIONDURATION)
-				.ease("linear");
+			transitionFn = function (g) {
+				return g
+					.transition()
+					.duration(C.TRANSITIONDURATION)
+					.ease("linear");
+			}
 		}
 
-		updateGroups
+		// updateGroups
+		transitionFn(textElements)
+			.attr("transform", function (d) {
+				return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
+			});
+		transitionFn(markers)
 			.attr("transform", function (d) {
 				return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
 			})
-			.selectAll("rect")
-			.attr("height", function (d) { return d.bottom + d.height - C.MARKEREXTRAHEIGHT; })
+			.attr("height", function (d) { return d.bottom + d.height - C.MARKEREXTRAHEIGHT; });
+		textElements.style("opacity", 1);
+		markers.style("opacity", 1);
 
-		// only enter
-		var groupsenter = groups.enter()
+		// only entering text elements
+		var textElementsEnter = textElements.enter()
 			.append("g")
 
-		groupsenter
+		textElementsEnter
 			.attr("transform", function (d) {
 				return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
 			})
 			.style("opacity", "0")
 			.transition()
 			.style("opacity", "1")
-
-		groupsenter.append("foreignObject")
+		textElementsEnter
+			.append("foreignObject")
 			.attr("height", function (d) {return d.height; })
 			.attr("width", C.EVENTWIDTH)
 			.append("xhtml:div")
 			.html(function (d) { return d.html(); })
-		groupsenter.append("rect")
+
+		// only entering marker elements
+		markers.enter()
+			.append("rect")
+			.attr("transform", function (d) {
+				return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
+			})
 			.attr("width", 2)
 			.attr("y", C.MARKEREXTRAHEIGHT)
 			.attr("height", function (d) { return d.bottom + d.height - C.MARKEREXTRAHEIGHT; })
+			.style("opacity", "0")
+			.transition()
+			.style("opacity", "1")
 		
 		// only removed elements
-		groups.exit().transition().style("opacity", "0").remove();
+		textElements.exit().transition().style("opacity", "0").remove();
+		markers.exit().transition().style("opacity", "0").remove();
 		
 		render.xAxisEl.call(render.xAxis)
 
