@@ -46,6 +46,8 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 		render.zoom = d3.behavior.zoom()
 			.on("zoom", doRender);
 		render.svg.call(render.zoom);
+
+		render.firstRender = true;
 	}
 	function setRenderWidth() {
 		// copy over old information
@@ -56,7 +58,8 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 				prevTranslateX: render.prevTranslateX,
 				events: render.events,
 				svg: render.svg,
-				zoom: render.zoom
+				zoom: render.zoom,
+				firstRender: render.firstRender
 			}
 		// local var for convenience
 		var events = render.events;
@@ -102,21 +105,26 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 		//		c = (b - a) * W / (W - We - 2 * M) + a
 		// Now we can scale out to (b - a) / (c - a), and translate to M
 
-		if (render.prevScale && render.prevTranslateX) {
-			render.zoom
-				.scale(render.prevScale)
-				.translate([render.prevTranslateX, 0])
-		} else {
+		if (render.firstRender) {
 			var c = (events[0].date - events[(events.length- 1)].date)
-					* render.width / (render.width - C.EVENTWIDTH - 2 * C.INITIALTIMELINEMARGIN)
+					* render.width / (render.width - C.EVENTWIDTH - 2 * C.FIRST_RENDER_MARGIN)
 					+ events[(events.length- 1)].date;
-			render.zoom
-				.scale((render.x.domain()[1] - render.x.domain()[0]) / (c - render.x.domain()[0]))
-				.translate([C.INITIALTIMELINEMARGIN, 0])
-		}
+			var initialScale = (render.x.domain()[1] - render.x.domain()[0]) / (c - render.x.domain()[0]);
 
-		render.prevScale = render.zoom.scale();
-		render.prevTranslateX = render.zoom.translate()[0];
+			render.zoom
+				.scale(zoomMax)
+				.translate([-render.width * zoomMax / 2, 0])
+
+			doRender();
+
+			render.zoom
+				.scale(initialScale)
+				.translate([C.FIRST_RENDER_MARGIN, 0])
+
+			doRender();
+			
+			render.firstRender = false;
+		}
 
 // render.context = svg.append("g")
 //     .attr("transform", "translate(" + 0 + "," + 510 + ")");
@@ -148,7 +156,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 					t[0]));
 			render.zoom.translate(t);
 
-			if (s != render.prevScale) {
+			if (render.firstRender || s != render.prevScale) {
 				render.prevScale = s;
 				rerenderScale();
 			} else {
@@ -169,13 +177,22 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 
 		// only update:
 		groups
-			.style("opacity", "1") // kind of a hack, transitions don't always finish cleanly
-		var updateGroups = onlyTranslate
-			? groups
-			: groups
+			.style("opacity", "1"); // kind of a hack, transitions don't always finish cleanly
+		var updateGroups;
+		if (onlyTranslate) {
+			updateGroups = groups;
+		} else if (render.firstRender) {
+			updateGroups = groups
+				.transition()
+				.duration(C.FIRST_RENDER_TRANSITION_DURATION)
+				.ease(C.FIRST_RENDER_TRANSITION_EASING);
+		} else {
+			updateGroups = groups
 				.transition()
 				.duration(C.TRANSITIONDURATION)
-				.ease("linear")
+				.ease("linear");
+		}
+
 		updateGroups
 			.attr("transform", function (d) {
 				return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
@@ -226,7 +243,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 			createRenderAndSvg();
 			render.events = events;
 			setRenderWidth();
-			doRender();
+			// doRender();
 		});
 	}
 
