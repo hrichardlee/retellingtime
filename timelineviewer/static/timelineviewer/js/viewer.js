@@ -36,7 +36,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 		render.focus = svg.append("g");
 
 		render.focus.append("rect")
-			.attr("height", C.TOTALTIMELINEHEIGHT)
+			.attr("height", C.TIMELINEHEIGHT)
 			.attr("class", "background");
 
 		render.focus.append("g")
@@ -46,40 +46,43 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 
 		render.xAxisEl = svg.append("g")
 			.attr("class", "x axis")
+			.attr("height", C.AXISHEIGHT)
 			.attr("transform", "translate(0," + C.TIMELINEHEIGHT + ")");
+
+		render.context = svg.append("g")
+			.attr("height", C.CONTEXTSTRIPHEIGHT)
+			.attr("transform", "translate(0," + (C.TIMELINEHEIGHT + C.AXISHEIGHT) + ")");
 
 		render.zoom = d3.behavior.zoom()
 			.on("zoom", doRender);
-		render.svg.call(render.zoom);
+		render.focus.call(render.zoom);
+
+		render.x = d3.scale.linear()
+		render.contextX = d3.scale.linear()
+		render.xAxis = d3.svg.axis()
 
 		render.firstRender = true;
+		render.secondRender = false;
 	}
 	function setRenderWidth() {
-		// copy over old information
-		render = {
-				focus: render.focus,
-				xAxisEl: render.xAxisEl,
-				prevScale: render.prevScale,
-				prevTranslateX: render.prevTranslateX,
-				events: render.events,
-				svg: render.svg,
-				zoom: render.zoom,
-				firstRender: render.firstRender
-			}
 		// local var for convenience
 		var events = render.events;
 
 		render.width = $(window).width();
 
 		// create scales/axes
-		render.x = d3.scale.linear().range([0, render.width]);
-		// render.x2 = d3.scale.linear().range([0, render.width]);
-		render.xAxis = d3.svg.axis().scale(render.x).orient("bottom"),
-		// render.xAxis2 = d3.svg.axis().scale(x2).orient("bottom");
+		render.x.range([0, render.width]);
+		render.contextX.range([0, render.width]);
+		render.xAxis.scale(render.x).orient("bottom");
 		render.x.domain([events[(events.length- 1)].date,
 			events[0].date]);
-		// render.x2.domain(render.x.domain());
-		render.xAxisEl.call(render.xAxis)
+		render.xAxisEl.call(render.xAxis);
+
+		// calculate values for initial/min scale
+		var c = (events[0].date - events[(events.length- 1)].date)
+				* render.width / (render.width - C.EVENTWIDTH - 2 * C.FIRST_RENDER_MARGIN)
+				+ events[(events.length- 1)].date;
+		var initialScale = (render.x.domain()[1] - render.x.domain()[0]) / (c - render.x.domain()[0]);
 
 		// get max zoom, set zoom
 		var minDist = null;
@@ -92,12 +95,13 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 						* C.ZOOMMAXFACTOR / minDist
 			: C.ZOOMMAXFACTOR;
 		render.zoom
-			.scaleExtent([C.ZOOMMIN, zoomMax])
+			.scaleExtent([initialScale, zoomMax])
 		render.zoom.x(render.x);
 
 		// set widths
 		render.svg.attr("width", render.width);
 		render.focus.select(".background").attr("width", render.width);
+		render.context.attr("width", render.width);
 		
 		/* Set the initial scale/translate values */
 		// We want to set the scale to be zoomed out initially so that we can
@@ -113,29 +117,22 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 		// Now we can scale out to (b - a) / (c - a), and translate to M
 
 		if (render.firstRender) {
-			var c = (events[0].date - events[(events.length- 1)].date)
-					* render.width / (render.width - C.EVENTWIDTH - 2 * C.FIRST_RENDER_MARGIN)
-					+ events[(events.length- 1)].date;
-			var initialScale = (render.x.domain()[1] - render.x.domain()[0]) / (c - render.x.domain()[0]);
-
 			render.zoom
 				.scale(zoomMax)
-				.translate([-render.width * zoomMax / 2, 0])
-
+				.translate([-render.width * zoomMax / 2, 0]);
 			doRender();
+
+			render.secondRender = true;
 
 			render.zoom
 				.scale(initialScale)
-				.translate([C.FIRST_RENDER_MARGIN, 0])
-
+				.translate([C.FIRST_RENDER_MARGIN, 0]);
+			render.contextX.domain(render.x.domain());
 			doRender();
 			
 			render.firstRender = false;
+			render.secondRender = false;
 		}
-
-// render.context = svg.append("g")
-//     .attr("transform", "translate(" + 0 + "," + 510 + ")");
-		// .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 	}
 
 	function doRender() {
@@ -186,7 +183,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 		var markers = render.focus.select('.markers').selectAll('rect')
 			.data(render.scopedEvents, function (e) { return e.id(); });
 
-		//only update:
+		// only update:
 		var transitionFn;
 		if (onlyTranslate) {
 			transitionFn = function (g) { return g; };
@@ -243,7 +240,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 			.attr("transform", function (d) {
 				return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
 			})
-			.attr("width", 2)
+			.attr("width", C.MARKERWIDTH)
 			.attr("y", C.MARKEREXTRAHEIGHT)
 			.attr("height", function (d) { return d.bottom + d.height - C.MARKEREXTRAHEIGHT; })
 			.style("opacity", "0")
@@ -254,7 +251,20 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 		textElements.exit().transition().style("opacity", "0").remove();
 		markers.exit().transition().style("opacity", "0").remove();
 		
+		// render xAxis
 		render.xAxisEl.call(render.xAxis)
+
+		if (render.secondRender) {
+			// render context
+			var contextMarkers = render.context.selectAll('rect')
+				.data(render.events, function (e) { return e.id(); });
+
+			contextMarkers.enter()
+				.append('rect')
+				.attr('width', C.MARKERWIDTH)
+				.attr('height', C.CONTEXTSTRIPHEIGHT)
+				.attr('x', function (d) { return render.contextX(d.date); })
+		}
 
 		console.debug("render finished")
 	}
