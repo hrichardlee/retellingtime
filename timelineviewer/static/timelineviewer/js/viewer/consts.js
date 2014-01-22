@@ -14,11 +14,14 @@ define([], function () {
 	C.FIRST_RENDER_TRANSITION_DURATION = 300;
 	C.FIRST_RENDER_TRANSITION_EASING = "easeOutExpo"
 
-	C.FIRST_RENDER_MARGIN = 10;
+	C.FIRST_RENDER_MARGIN = 30;
 
-	C.PANMARGIN = 50;
-	C.ZOOMMIN = 0.5; // lower number means you can zoom out more
+	C.PANMARGIN = 30;
 	C.ZOOMMAXFACTOR = 0.25; // higher number means that you can zoom in more
+
+	C.DEBUG = false;
+
+	C.EPSILON = 0.000001;
 
 	return C;
 });

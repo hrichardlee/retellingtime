@@ -20,10 +20,10 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 	function createRenderAndSvg() {
 		// initialize svg and such
 		var svg = d3.select("body").append("svg")
-		    .attr("height", C.TOTALTIMELINEHEIGHT);
+			.attr("height", C.TOTALTIMELINEHEIGHT);
 
 		svg.append("defs").append("clipPath")
-		    .attr("id", "clip");
+			.attr("id", "clip");
 
 		render = {
 			svg: svg,
@@ -61,8 +61,17 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 		render.contextX = d3.scale.linear()
 		render.xAxis = d3.svg.axis()
 
+		render.brush = d3.svg.brush()
+			.x(render.contextX)
+			.on("brush", brushed)
+
 		render.firstRender = true;
 		render.secondRender = false;
+	}
+	function setRenderEvents(events) {
+		render.events = events;
+		render.dateDelta = events[0].date - events[(events.length - 1)].date;
+		render.date0 = events[(events.length - 1)].date;
 	}
 	function setRenderWidth() {
 		// local var for convenience
@@ -102,6 +111,14 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 		render.svg.attr("width", render.width);
 		render.focus.select(".background").attr("width", render.width);
 		render.context.attr("width", render.width);
+
+		// set context brush
+		render.context.append("g")
+			.attr("class", "x brush")
+			.call(render.brush)
+			.selectAll("rect")
+				.attr("y", 0)
+				.attr("height", C.CONTEXTSTRIPHEIGHT);
 		
 		/* Set the initial scale/translate values */
 		// We want to set the scale to be zoomed out initially so that we can
@@ -136,7 +153,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 	}
 
 	function doRender() {
-		console.debug("render started")
+		if (C.DEBUG) console.debug("render started")
 
 		// Modify events with new left/bottom coordinates
 		function rerenderScale() {
@@ -149,19 +166,27 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 
 		var onlyTranslate = false;
 
-		if (d3.event && d3.event.type == "zoom") {
-			var t = d3.event.translate,
-				s = d3.event.scale;
+		if (d3.event && (d3.event.type == "zoom" || d3.event.type == "brush")) {
+			if (d3.event.type == "zoom") {
+				var t = d3.event.translate,
+					s = d3.event.scale;
 
-			t[0] = Math.min(C.PANMARGIN,	// upper bound
-				// the min should be such that
+				t[0] = Math.min(C.PANMARGIN,	// upper bound
+					Math.max(-render.width * (s - 1) - C.PANMARGIN - C.EVENTWIDTH, // lower bound
+						t[0]));
+				render.zoom.translate(t);
 
-				// min + W 
-				Math.max(-render.width * (s - 1) - C.PANMARGIN - C.EVENTWIDTH, // lower bound
-					t[0]));
-			render.zoom.translate(t);
+				render.brush.extent(render.x.domain());
+				render.context.select(".x.brush").call(render.brush);
+			} else if (d3.event.type == "brush") {
+				var s = render.dateDelta / (render.brush.extent()[1] - render.brush.extent()[0]);
+				var t = [render.x(render.date0) - render.x(render.brush.extent()[0]), 0]
 
-			if (render.firstRender || s != render.prevScale) {
+				render.zoom.translate(t);
+				render.zoom.scale(s);
+			}
+
+			if (render.firstRender || Math.abs(s - render.prevScale) > C.EPSILON) {
 				render.prevScale = s;
 				rerenderScale();
 			} else {
@@ -175,6 +200,9 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 			render.prevTranslateX = t[0];
 		} else {
 			rerenderScale();
+
+			render.brush.extent(render.x.domain());
+			render.context.select(".x.brush").call(render.brush);
 		}
 
 		// Render events with new left/bottom coordinates
@@ -256,17 +284,25 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 
 		if (render.secondRender) {
 			// render context
-			var contextMarkers = render.context.selectAll('rect')
+			var contextMarkers = render.context.selectAll('rect.marker')
 				.data(render.events, function (e) { return e.id(); });
 
 			contextMarkers.enter()
 				.append('rect')
+				.attr("class", "marker")
 				.attr('width', C.MARKERWIDTH)
 				.attr('height', C.CONTEXTSTRIPHEIGHT)
 				.attr('x', function (d) { return render.contextX(d.date); })
 		}
 
-		console.debug("render finished")
+		if (C.DEBUG) console.debug("render finished");
+	}
+	function brushed() {
+		if (!render.brush.empty()) {
+			render.x.domain(render.brush.extent());
+
+			doRender();
+		}
 	}
 
 	function foo() {
@@ -280,7 +316,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 			}, this);
 
 			createRenderAndSvg();
-			render.events = events;
+			setRenderEvents(events);
 			setRenderWidth();
 			// doRender();
 		});
