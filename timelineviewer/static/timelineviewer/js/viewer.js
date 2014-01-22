@@ -26,44 +26,49 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 			.attr("id", "clip");
 
 		render = {
-			svg: svg,
-			// these two need to be set so that we know to set a good default
-			// when the timeline is first rendered
-			prevScale: null,
-			prevTranslateX: null
+			svg: svg
 		}
 
 		render.focus = svg.append("g");
+
+		render.zoom = d3.behavior.zoom()
+			.on("zoom", doRender);
+		render.focus.call(render.zoom);
+		render.x = d3.scale.linear();
 
 		render.focus.append("rect")
 			.attr("height", C.TIMELINEHEIGHT)
 			.attr("class", "background");
 
 		render.focus.append("g")
-			.attr("class", "markers")
+			.attr("class", "markers");
 		render.focus.append("g")
-			.attr("class", "text-elements")
+			.attr("class", "text-elements");
+
 
 		render.xAxisEl = svg.append("g")
 			.attr("class", "x axis")
 			.attr("height", C.AXISHEIGHT)
 			.attr("transform", "translate(0," + C.TIMELINEHEIGHT + ")");
 
-		render.context = svg.append("g")
+		render.xAxis = d3.svg.axis();
+
+
+		var context = svg.append("g")
 			.attr("height", C.CONTEXTSTRIPHEIGHT)
 			.attr("transform", "translate(0," + (C.TIMELINEHEIGHT + C.AXISHEIGHT) + ")");
 
-		render.zoom = d3.behavior.zoom()
-			.on("zoom", doRender);
-		render.focus.call(render.zoom);
+		render.contextX = d3.scale.linear();
 
-		render.x = d3.scale.linear()
-		render.contextX = d3.scale.linear()
-		render.xAxis = d3.svg.axis()
+		render.contextMarkersEl = context.append("g");
 
 		render.brush = d3.svg.brush()
 			.x(render.contextX)
-			.on("brush", brushed)
+			.on("brush", brushed);
+
+		render.brushEl = context.append("g")
+			.attr("class", "x brush");
+
 
 		render.firstRender = true;
 		render.secondRender = false;
@@ -110,11 +115,10 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 		// set widths
 		render.svg.attr("width", render.width);
 		render.focus.select(".background").attr("width", render.width);
-		render.context.attr("width", render.width);
+		render.contextMarkersEl.attr("width", render.width);
 
 		// set context brush
-		render.context.append("g")
-			.attr("class", "x brush")
+		render.brushEl
 			.call(render.brush)
 			.selectAll("rect")
 				.attr("y", 0)
@@ -155,55 +159,59 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 	function doRender() {
 		if (C.DEBUG) console.debug("render started")
 
+		var onlyTranslate = true;
+
 		// Modify events with new left/bottom coordinates
-		function rerenderScale() {
+
+		// Depending on whether we've zoomed, brushed or are on our first
+		// render, we will set s and t appropriately
+		if (d3.event && d3.event.type == "zoom") {
+			var t = d3.event.translate,
+				s = d3.event.scale;
+
+			t[0] = Math.min(C.PANMARGIN,	// upper bound
+				Math.max(-render.width * (s - 1) - C.PANMARGIN - C.EVENTWIDTH, // lower bound
+					t[0]));
+			render.zoom.translate(t);
+		} else if (d3.event && d3.event.type == "brush") {
+			var s = render.dateDelta / (render.brush.extent()[1] - render.brush.extent()[0]);
+			var t = [render.x(render.date0) - render.x(render.brush.extent()[0]), 0]
+
+			render.zoom.translate(t);
+			render.zoom.scale(s);
+		} else {
+			var s = render.zoom.scale();
+			var t = render.zoom.translate();
+		}
+
+		// Next, set the left/bottom coordinates appropriately
+
+		// prevTranslateX and prevScale are guaranteed to exist when they are
+		// used because they are only used on the events, which will happen
+		// after the first render
+		if (render.firstRender || Math.abs(s - render.prevScale) > C.EPSILON) {
+			render.prevScale = s;
 			_.each(render.events, function (e) {
 				e.reset();
 				e.setLeft(render.x(e.date));
 			} );
 			render.scopedEvents = tlevents.setBottoms(render.events);
-		}
-
-		var onlyTranslate = false;
-
-		if (d3.event && (d3.event.type == "zoom" || d3.event.type == "brush")) {
-			if (d3.event.type == "zoom") {
-				var t = d3.event.translate,
-					s = d3.event.scale;
-
-				t[0] = Math.min(C.PANMARGIN,	// upper bound
-					Math.max(-render.width * (s - 1) - C.PANMARGIN - C.EVENTWIDTH, // lower bound
-						t[0]));
-				render.zoom.translate(t);
-
-				render.brush.extent(render.x.domain());
-				render.context.select(".x.brush").call(render.brush);
-			} else if (d3.event.type == "brush") {
-				var s = render.dateDelta / (render.brush.extent()[1] - render.brush.extent()[0]);
-				var t = [render.x(render.date0) - render.x(render.brush.extent()[0]), 0]
-
-				render.zoom.translate(t);
-				render.zoom.scale(s);
-			}
-
-			if (render.firstRender || Math.abs(s - render.prevScale) > C.EPSILON) {
-				render.prevScale = s;
-				rerenderScale();
-			} else {
-				var deltaX = t[0] - render.prevTranslateX
-				_.each(render.scopedEvents, function (e) {
-					e.setLeft(e.left + deltaX);
-				})
-				onlyTranslate = true;
-			}
-
-			render.prevTranslateX = t[0];
 		} else {
-			rerenderScale();
-
-			render.brush.extent(render.x.domain());
-			render.context.select(".x.brush").call(render.brush);
+			var deltaX = t[0] - render.prevTranslateX
+			_.each(render.scopedEvents, function (e) {
+				e.setLeft(e.left + deltaX);
+			})
+			onlyTranslate = true;
 		}
+
+		// If we didn't brush, render the brush to coincide with the current view
+		if (!d3.event || d3.event.type != "brush") {
+			render.brush.extent(render.x.domain());
+			render.brushEl.call(render.brush);
+		}
+		
+		render.prevTranslateX = t[0];
+
 
 		// Render events with new left/bottom coordinates
 		var textElements = render.focus.select('.text-elements').selectAll('g')
@@ -212,6 +220,10 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 			.data(render.scopedEvents, function (e) { return e.id(); });
 
 		// only update:
+
+		// If we are only translating elements, don't animate. If we are
+		// scaling them, then animate. If we are rendering for the first time,
+		// animate for longer.
 		var transitionFn;
 		if (onlyTranslate) {
 			transitionFn = function (g) { return g; };
@@ -284,7 +296,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], fu
 
 		if (render.secondRender) {
 			// render context
-			var contextMarkers = render.context.selectAll('rect.marker')
+			var contextMarkers = render.contextMarkersEl.selectAll('rect.marker')
 				.data(render.events, function (e) { return e.id(); });
 
 			contextMarkers.enter()
