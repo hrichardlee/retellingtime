@@ -32,7 +32,7 @@ def wp_page_to_json(title, separate = False):
 	return json.dumps(events)
 
 
-# requires running the nltk downloader
+# requires running the nltk downloader: nltk.download() > d > punkt
 _sentence_splitter = nltk.data.load("tokenizers/punkt/english.pickle")
 
 def _separate_events(events):
