@@ -7,9 +7,13 @@
 
 	<div id="timeline-holder">
 		<p><input id="query" type="text" /><input id="searchButton" type="button" value="Go" /></p>
-		<div id="events-holder" class="invisible" >
-		</div>
 	</div>
+
+	<svg class="invisible-renderer" height="0" width="0">
+		<foreignobject>
+			<div id="events-holder"></div>
+		</foreignobject>
+	</svg>
 
 	<script type="text/javascript"
 		data-main="{% static 'timelineviewer/js/viewer.js' %}"
