@@ -42,14 +42,15 @@ class TestParseDate(unittest.TestCase):
 		self.assertEqual(parse_date_html(u"12th century b.c. to 3rd century b.c."), (TimelineDate(-1200, False, -200, False), ""))
 
 	def test_yearsago(self):
-		self.assertEqual(parse_date_html("12,345 years ago ago"), (TimelineDate(-12345), "ago"))
-		self.assertEqual(parse_date_html("13,600 Ma"), (TimelineDate(-13600000000), ""))
-		self.assertEqual(parse_date_html("13,600-13,500 Ma"), (TimelineDate(-13600000000, False, -13500000000, False), ""))
-		self.assertEqual(parse_date_html("c. 0.79 Ma"), (TimelineDate(-790000, True), ""))
-		self.assertEqual(parse_date_html("15 ±0.3 Ma"), (TimelineDate(-15000000, 300000), ""))
+		self.assertEqual(parse_date_html(u"12,345 years ago ago"), (TimelineDate(-12345), "ago"))
+		self.assertEqual(parse_date_html(u"13,600 Ma"), (TimelineDate(-13600000000), ""))
+		self.assertEqual(parse_date_html(u"13,600-13,500 Ma"), (TimelineDate(-13600000000, False, -13500000000, False), ""))
+		self.assertEqual(parse_date_html(u"c. 0.79 Ma"), (TimelineDate(-790000, True), ""))
+		self.assertEqual(parse_date_html(u"15 ±0.3 Ma"), (TimelineDate(-15000000, 300000), ""))
+		self.assertEqual(parse_date_html(u"541 ±\xa00.3 Ma"), (TimelineDate(-541000000, 300000), ""))
 		# This case should be fixed so that it works
 		# self.assertEqual(parse_date_html(".24 Ma"), (TimelineDate(-240000), ""))
-		self.assertEqual(parse_date_html("25? Ma"), (TimelineDate(-25000000, True), ""))
+		self.assertEqual(parse_date_html(u"25? Ma"), (TimelineDate(-25000000, True), ""))
 		
 
 	def test_html_parsing(self):

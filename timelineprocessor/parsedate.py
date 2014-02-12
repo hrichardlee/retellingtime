@@ -84,6 +84,8 @@ def parse_date_text(text):
 	found, returns None. Assumes that date is at the beginning of the string
 	with no superfluous characters.
 	"""
+	text = text.replace(u'\xa0', u' ')
+
 	date_grammar = parse_cfg(u"""
 		S -> DATE | YEARSAGO | DATERANGE
 
