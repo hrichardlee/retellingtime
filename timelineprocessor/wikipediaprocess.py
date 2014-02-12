@@ -138,8 +138,9 @@ def _string_blocks_to_events(string_blocks, line_break = "<br />",
 				else:
 					if curr_event:
 						curr_event["content"] += line_break + string
-	if curr_event:
-		events.append(curr_event)
+			if curr_event:
+				events.append(curr_event)
+				curr_event = None
 
 	return events
 
