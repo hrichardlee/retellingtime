@@ -27,9 +27,16 @@ def wp_page_to_json(title, separate = False):
 	if separate:
 		events = _separate_events(events)
 	_add_importance_to_events(events)
-	events.reverse()
+	events.sort(key=lambda e: e["date"], reverse=True)
+	events = _filter_bad_events(events)
 
 	return json.dumps(events)
+
+
+def _filter_bad_events(events):
+	"""Eliminates events that are suspected to be incorrect."""
+	#TODO add filtering based on order of dates
+	return [e for e in events if e["content"] and e["date"]]
 
 
 # requires running the nltk downloader: nltk.download() > d > punkt
