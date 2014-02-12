@@ -29,12 +29,23 @@ def wp_page_to_json(title, separate = False):
 	_add_importance_to_events(events)
 	events.sort(key=lambda e: e["date"], reverse=True)
 	events = _filter_bad_events(events)
+	_fix_wikipedia_links(events)
 
 	return json.dumps(events)
 
 
+def _fix_wikipedia_links(events):
+	"""Converts all links in the contents of events that are relative
+	Wikipedia links to absolute Wikipedia links. Modifies events in place"""
+	for e in events:
+		soup = BeautifulSoup(e["content"])
+		for a in soup.find_all('a'):
+			a['href'] = "http://en.wikipedia.org" + a['href']
+		e["content"] = unicode(soup)
+
 def _filter_bad_events(events):
-	"""Eliminates events that are suspected to be incorrect."""
+	"""Eliminates events that are suspected to be incorrect, returns a new
+	list."""
 	#TODO add filtering based on order of dates
 	return [e for e in events if e["content"] and e["date"]]
 
