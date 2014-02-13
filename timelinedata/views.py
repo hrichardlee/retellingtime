@@ -15,7 +15,6 @@ def detail(request, page_title):
 	elif (page_title == "test3"):
 		return HttpResponse(open("timelinedata/timeline of solar astronomy.json"), content_type = "application/json")
 	elif (page_title == "test4"):
-
 		return HttpResponse(open("timelinedata/timeline of mathematics.json"), content_type = "application/json")
 	elif (page_title == "test5"):
 		return HttpResponse(open("timelinedata/timeline of algorithms.json"), content_type = "application/json")
@@ -24,9 +23,9 @@ def detail(request, page_title):
 		if timelines:
 			events = timelines[0].events
 		else:
-			events = wikipediaprocess.wp_page_to_json( \
-				page_title, request.GET.get("separate", "no") == "yes")
-			timeline = Timeline.objects.create(title = page_title, events = events)
+			separate = request.GET.get("separate", "no") == "yes"
+			events = wikipediaprocess.wp_page_to_json(page_title, separate)
+			timeline = Timeline.objects.create(title = page_title, separate = separate, events = events)
 			timeline.save() # move this to after the response
 
 		return HttpResponse(events, content_type = "application/json")
