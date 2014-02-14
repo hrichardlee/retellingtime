@@ -17,11 +17,27 @@ from parsedate import parse_date_html
 import pdb
 
 
+def wikipedia_timeline_page_titles():
+	"""Looks at the List of timelines page and gets all of the page titles
+	that are linked"""
+	
+	timelines_list_page_title = "List of timelines"
+
+	soup = BeautifulSoup(wikipedia.page(timelines_list_page_title).html())
+	return [a['title'] for a in soup.find_all('a') \
+		if a['href'].startswith('/wiki/') and a.has_attr('title') and ':' not in a['title'] and 'disambiguation' not in a['title'].lower()]
+
+
 def wp_page_to_json(title, separate = False):
-	"""Takes the title of a timeline page on Wikipedia and outputs it to a
-	json file
-	"""
-	article = BeautifulSoup(wikipedia.page(title).html())
+	"""Takes the title of a timeline page on Wikipedia and returns a json
+	string that represents the events in that timeline"""
+	return json.dumps(wp_page_to_events(title, separate))
+
+
+def wp_page_to_events(title, separate = False):
+	"""Takes the title of a timeline page on Wikipedia and returns a list of
+	events {date: number, content: string}"""
+	article = BeautifulSoup(wikipedia.page(title, auto_suggest=False).html())
 
 	events = _string_blocks_to_events(_html_to_string_blocks(article))
 	if separate:
@@ -31,7 +47,7 @@ def wp_page_to_json(title, separate = False):
 	events = _filter_bad_events(events)
 	_fix_wikipedia_links(events)
 
-	return json.dumps(events)
+	return events
 
 
 def _fix_wikipedia_links(events):

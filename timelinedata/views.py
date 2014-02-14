@@ -31,4 +31,6 @@ def detail(request, page_title):
 		return HttpResponse(events, content_type = "application/json")
 
 def all(request):
+	Timeline.test()
+
 	return HttpResponse(json.dumps([t.title for t in Timeline.objects.all()]), content_type = "application/json")

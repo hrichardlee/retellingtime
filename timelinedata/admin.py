@@ -6,7 +6,7 @@ from timelineprocessor import wikipediaprocess
 class TimelineAdmin(admin.ModelAdmin):
 	def refresh(modeladmin, request, queryset):
 		for timeline in queryset:
-			timeline.events = wikipediaprocess.wp_page_to_json(timeline.title, timeline.separate)
+			timeline.get_events()
 			timeline.save()
 
 	actions = ["refresh"]
