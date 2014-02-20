@@ -1,0 +1,12 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls admin_static admin_list %}
+
+{% block object-tools-items %}
+  <li>
+    <a href="{% url 'admin:timelineadmin_populate' %}">
+      Populate timelines
+    </a>
+  </li>
+
+  {{ block.super }}
+{% endblock %}

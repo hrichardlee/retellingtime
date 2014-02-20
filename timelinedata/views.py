@@ -1,5 +1,8 @@
 from django.http import HttpResponse
 from timelinedata.models import Timeline
+from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import render_to_response
+from django.template import RequestContext
 
 from timelineprocessor import wikipediaprocess
 import json
@@ -34,3 +37,22 @@ def all(request):
 	Timeline.test()
 
 	return HttpResponse(json.dumps([t.title for t in Timeline.objects.all()]), content_type = "application/json")
+
+
+@staff_member_required
+def admin_populate(request, model_admin):
+	# pretty much taken wholesale from http://www.slideshare.net/lincolnloop/customizing-the-django-admin
+
+	opts = model_admin.model._meta
+	admin_site = model_admin.admin_site
+	has_perm = request.user.has_perm(opts.app_label + '.' + opts.get_change_permission())
+
+	context = {'admin_site': admin_site.name,
+		'title': 'Populate',
+		'opts': opts,
+		# 'root_path': '/%s' % admin_site.root_path, # this is from the slides but doesn't work
+		'app_label': opts.app_label,
+		'has_change_permission': has_perm }
+	return render_to_response('timelinedata/admin_populate.html',
+		context,
+		context_instance=RequestContext(request))
