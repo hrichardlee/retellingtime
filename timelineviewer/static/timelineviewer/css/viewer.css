@@ -5,15 +5,6 @@ body {
 }
 
 
-.invisible-renderer {
-	visibility: hidden;
-	position: absolute;
-}
-
-
-svg {
-	font-size: 10px;
-}
 
 .event-text {
 	font-size: 10px;
@@ -24,19 +15,42 @@ svg {
 	background-color: rgba(200, 200, 200, 0.9);
 }
 
-.axis path,
-.axis line {
+
+
+#timelines svg {
+	font-size: 10px;
+}
+
+#timelines svg .axis path,
+#timelines svg .axis line {
 	fill: none;
 	stroke: #000;
 	shape-rendering: crispEdges;
 }
 
-.background {
+#timelines svg .background {
 	fill: white;
 }
 
-.brush .extent {
-  stroke: #fff;
-  fill-opacity: .125;
-  shape-rendering: crispEdges;
+#timelines svg .brush .extent {
+	stroke: #fff;
+	fill-opacity: .125;
+	shape-rendering: crispEdges;
+}
+
+
+
+#timeline-adder #options .option {
+	float: left;
+}
+
+#timeline-adder #options .option .tags {
+	display: none;
+}
+
+
+
+#invisible-renderer {
+	visibility: hidden;
+	position: absolute;
 }

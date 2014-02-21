@@ -3,6 +3,7 @@ from django.conf.urls import patterns, url
 from timelinedata import views
 
 urlpatterns = patterns('',
-    url(r'^(?P<page_title>.+)/$', views.detail, name='detail'),
+    url(r'^search/(?P<page_title>.+)/$', views.search),
+    url(r'^(?P<id>\d+)/$', views.detail),
     url(r'^$', views.all, name='all')
 )

@@ -14,6 +14,20 @@ class Timeline(models.Model):
 	events = models.CharField(max_length = 1000000)
 	separate = models.BooleanField()
 
+	def short_title(self):
+		prefixes = ['timeline of ', 'chronology of']
+		suffixes = [' timeline']
+
+		t = self.title.lower()
+
+		for p in prefixes:
+			if t.startswith(p):
+				return self.title[len(p)].upper() + self.title[len(p) + 1:]
+		for s in suffixes:
+			if t.endswith(s):
+				return self.title[:-len(s)]
+		return self.title
+
 	def get_events(self):
 		events = wikipediaprocess.wp_page_to_events(self.title, self.separate)
 		if len(events) > 2:
@@ -25,6 +39,7 @@ class Timeline(models.Model):
 	def __unicode__(self):
 		return "Timeline(id: %d, title: %s, separate: %s, events: %s)" \
 			% (self.id, self.title, self.separate, self.events[:30])
+			
 
 	@classmethod
 	def process_wikipedia_page(cls, page_title):

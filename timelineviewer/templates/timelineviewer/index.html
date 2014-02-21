@@ -8,10 +8,19 @@
 	<div id="timelines"></div>
 
 	<div id="timeline-adder">
-		<p><input id="query" type="text" /><input id="searchButton" type="button" value="Go" /></p>
+		<input id="query" type="text" />
+
+		<div id="options">
+			{% for t in timelines %}
+			<div class="option">
+				<a href="#" id="t-{{ t.id }}">{{ t.short_title }}</a>
+				<span class="tags">{{ "todo: tags" }}</span>
+			</div>
+			{% endfor %}
+		</div>
 	</div>
 
-	<svg class="invisible-renderer" height="0" width="0">
+	<svg id="invisible-renderer" height="0" width="0">
 		<foreignobject>
 			<div id="invisible-events-holder"></div>
 		</foreignobject>

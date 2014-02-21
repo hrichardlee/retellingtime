@@ -2,16 +2,19 @@ from django.http import HttpResponse
 from timelinedata.models import Timeline
 import timelinedata.tasks
 from django.contrib.admin.views.decorators import staff_member_required
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 
 from timelineprocessor import wikipediaprocess
 import json
 
-
 import pdb
 
-def detail(request, page_title):
+def detail(request, id):
+	t = get_object_or_404(Timeline, id=id)
+	return HttpResponse(t.events, content_type = "application/json")
+
+def search(request, page_title):
 	if (page_title == "test1"):
 		return HttpResponse(open("timelinedata/timeline of particle physics.json"), content_type = "application/json")
 	elif (page_title == "test2"):
@@ -35,9 +38,13 @@ def detail(request, page_title):
 		return HttpResponse(events, content_type = "application/json")
 
 def all(request):
-	Timeline.test()
-
-	return HttpResponse(json.dumps([t.title for t in Timeline.objects.all()]), content_type = "application/json")
+	return HttpResponse(json.dumps([{
+				'title': t.title,
+				'short_title': t.short_title(),
+				'tags': 'TODO add tags',
+				'id': t.id
+			}
+			for t in Timeline.objects.all()]), content_type = "application/json")
 
 
 @staff_member_required
