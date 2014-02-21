@@ -1,5 +1,6 @@
 from django.db import models
 import logging
+import json
 
 import pdb
 
@@ -16,7 +17,7 @@ class Timeline(models.Model):
 	def get_events(self):
 		events = wikipediaprocess.wp_page_to_events(self.title, self.separate)
 		if len(events) > 2:
-			self.events = events
+			self.events = json.dumps(events)
 			return True
 		else:
 			return False
@@ -26,17 +27,16 @@ class Timeline(models.Model):
 			% (self.id, self.title, self.separate, self.events[:30])
 
 	@classmethod
-	def process_wikipedia_timelines(cls):
-		for timeline_title in wikipediaprocess.wikipedia_timeline_page_titles():
-			objs = cls.objects.filter(title=timeline_title)
-			if objs:
-				objs[0].get_events()
-				objs[0].save()
-				logger.info("Refreshed " + timeline_title)
+	def process_wikipedia_page(cls, page_title):
+		objs = cls.objects.filter(title=page_title)
+		if objs:
+			objs[0].get_events()
+			objs[0].save()
+			logger.info("Refreshed " + page_title)
+		else:
+			timeline = cls(title=page_title, separate=False)
+			if timeline.get_events():
+				timeline.save()
+				logger.info("Added " + page_title + " successfully")
 			else:
-				timeline = cls.objects.create(title=timeline_title, separate=False)
-				if timeline.get_events():
-					timeline.save()
-					logger.info("Added " + timeline_title + " successfully")
-				else:
-					logger.info("Failed to add " + timeline_title)
+				logger.info("Failed to add " + page_title)

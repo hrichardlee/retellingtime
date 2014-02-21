@@ -1,5 +1,6 @@
 from django.http import HttpResponse
 from timelinedata.models import Timeline
+import timelinedata.tasks
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -41,8 +42,11 @@ def all(request):
 
 @staff_member_required
 def admin_populate(request, model_admin):
-	# pretty much taken wholesale from http://www.slideshare.net/lincolnloop/customizing-the-django-admin
+	timeline_titles =  wikipediaprocess.wikipedia_timeline_page_titles()
+	for title in timeline_titles:
+		timelinedata.tasks.getWikipediaTimeline.delay(title)
 
+	# pretty much taken wholesale from http://www.slideshare.net/lincolnloop/customizing-the-django-admin
 	opts = model_admin.model._meta
 	admin_site = model_admin.admin_site
 	has_perm = request.user.has_perm(opts.app_label + '.' + opts.get_change_permission())
@@ -52,7 +56,8 @@ def admin_populate(request, model_admin):
 		'opts': opts,
 		# 'root_path': '/%s' % admin_site.root_path, # this is from the slides but doesn't work
 		'app_label': opts.app_label,
-		'has_change_permission': has_perm }
+		'has_change_permission': has_perm,
+		'timeline_titles': timeline_titles }
 	return render_to_response('timelinedata/admin_populate.html',
 		context,
 		context_instance=RequestContext(request))
