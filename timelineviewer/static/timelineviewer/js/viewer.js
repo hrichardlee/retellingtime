@@ -14,7 +14,7 @@ requirejs.config({
 	}
 });
 
-requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl', 'viewer/consts'], function ($, _, d3, tlevents, tl, C) {
+requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], function ($, _, d3, tlevents, tl) {
 
 	var timelines;
 
@@ -23,16 +23,12 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl', 'viewer
 			// data should be a list of [{date, content, importance}, ...]
 			// Turn data into Event objects
 			var eventTemplate = _.template($("#event-template").html());
-			var eventsHolder = $("#events-holder", this.$el);
+			var eventsHolder = $("#invisible-events-holder");
 			var events = _.map(data, function(ev) {
 				return new tlevents.Event(ev, eventsHolder, eventTemplate);
-			}, this);
+			});
 
-			var timeline = new tl.Timeline($(window));
-
-			timeline.createRenderAndSvg();
-			timeline.setRenderEvents(events);
-			timeline.setRenderWidth();
+			var timeline = new tl.Timeline($(window), d3.select('#timelines'), events);
 		});
 	}
 

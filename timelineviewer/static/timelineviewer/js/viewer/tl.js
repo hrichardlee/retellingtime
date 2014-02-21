@@ -15,12 +15,13 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					this.doRender();
 				}
 			},
-			createRenderAndSvg: function () {
+			createRenderAndSvg: function (d3svgholder) {
 				var that = this;
 
 				// initialize svg and such
-				this.svg = d3.select("body").append("svg")
+				this.svg = d3svgholder.append("svg")
 					.attr("height", C.TOTALTIMELINEHEIGHT);
+				this.svg.attr("width", "100%");
 
 				this.svg.append("defs").append("clipPath")
 					.attr("id", "clip");
@@ -35,7 +36,8 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 				this.focus.append("rect")
 					.attr("height", C.TIMELINEHEIGHT)
-					.attr("class", "background");
+					.attr("class", "background")
+					.attr("width", "100%");
 
 				this.focus.append("g")
 					.attr("class", "markers");
@@ -57,7 +59,8 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 				this.contextX = d3.scale.linear();
 
-				this.contextMarkersEl = context.append("g");
+				this.contextMarkersEl = context.append("g")
+					.attr("width", "100%");
 
 				this.brush = d3.svg.brush()
 					.x(this.contextX)
@@ -65,7 +68,6 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 				this.brushEl = context.append("g")
 					.attr("class", "x brush");
-
 
 				this.firstRender = true;
 				this.secondRender = false;
@@ -79,7 +81,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				// local var for convenience
 				var events = this.events;
 
-				this.width = $(window).width();
+				this.width = this.$window.width();
 
 				// create scales/axes
 				this.x.range([0, this.width]);
@@ -109,11 +111,6 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				this.zoom
 					.scaleExtent([initialScale, zoomMax])
 				this.zoom.x(this.x);
-
-				// set widths
-				this.svg.attr("width", this.width);
-				this.focus.select(".background").attr("width", this.width);
-				this.contextMarkersEl.attr("width", this.width);
 
 				// set context brush
 				this.brushEl
@@ -325,12 +322,18 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				if (C.DEBUG) console.debug("render finished");
 			}
 		}
-		function Timeline($window) {
+		function Timeline($window, d3svgholder, events) {
 			var that = this;
 			$window.on('resize', function () {
 				that.setRenderWidth();
 				that.doRender();
 			});
+
+			this.$window = $window;
+
+			this.createRenderAndSvg(d3svgholder);
+			this.setRenderEvents(events);
+			this.setRenderWidth();
 		}
 		Timeline.prototype = baseObject;
 		return Timeline;

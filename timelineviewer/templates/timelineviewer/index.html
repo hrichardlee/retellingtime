@@ -3,15 +3,17 @@
 {% load staticfiles %}
 
 {% block content %}
-	<h1>Hello there</h1>
+	<h1>ANANKE</h1>
 
-	<div id="timeline-holder">
+	<div id="timelines"></div>
+
+	<div id="timeline-adder">
 		<p><input id="query" type="text" /><input id="searchButton" type="button" value="Go" /></p>
 	</div>
 
 	<svg class="invisible-renderer" height="0" width="0">
 		<foreignobject>
-			<div id="events-holder"></div>
+			<div id="invisible-events-holder"></div>
 		</foreignobject>
 	</svg>
 

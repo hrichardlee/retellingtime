@@ -1,18 +1,18 @@
 body {
 	font-family: Georgia;
+	margin: 0;
+	padding: 0;
 }
 
-#timeline-holder {
-	position: relative;
-}
-
-#timeline-holder #events-holder {
-	position: absolute;
-}
 
 .invisible-renderer {
 	visibility: hidden;
 	position: absolute;
+}
+
+
+svg {
+	font-size: 10px;
 }
 
 .event-text {
@@ -20,17 +20,8 @@ body {
 	width: 180px;
 	padding-top: 4px;
 	padding-left: 4px;
-	/*position: absolute;*/
 	top: 0;
 	background-color: rgba(200, 200, 200, 0.9);
-}
-
-.background {
-	fill: white;
-}
-
-svg {
-	font-size: 10px;
 }
 
 .axis path,
@@ -40,9 +31,8 @@ svg {
 	shape-rendering: crispEdges;
 }
 
-body {
-	margin: 0;
-	padding: 0;
+.background {
+	fill: white;
 }
 
 .brush .extent {
