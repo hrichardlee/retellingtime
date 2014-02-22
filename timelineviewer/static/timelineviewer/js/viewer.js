@@ -79,7 +79,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 					})
 				});
 
-			$('.option', '#options').each(function (i, el) {
+			$('#options .option').each(function (i, el) {
 				var text = $(el).text().toLowerCase();
 				if ($(el).hasClass('hidden')) {
 					if (!hiddenAllRemainHidden
@@ -111,7 +111,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 			// exact match, add that timeline. if no timelines are matched,
 			// then look for the exactly specified Wikipedia page
 			if (e.which == 13) {
-				var visible = $('.option', '#options').not('.hidden');
+				var visible = $('#options .option').not('.hidden');
 				if (visible.length == 1) {
 					$('a', visible).click();
 				} else if (exactMatch) {
