@@ -33,7 +33,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 	}
 
 	$(function() {
-		$('a', '#options').click(function (e) {
+		$('#options .option a').click(function (e) {
 			// each link has an id of the form "t-26". The "t-" is to
 			// namespace these ids so they don't collide with other elements
 			// on the page. substring(2) reverses this to get the id back. We
