@@ -44,10 +44,64 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 			addTimeline("/timelinedata/" + this.id.substring(2));
 		})
 
-		$('#query').keypress(function (e) {
+		var prevQuery = [];
+
+		$('#query').keyup(function (e) {
+			var currQuery = $('#query').val().toLowerCase().split(/\s+/);
+			currQuery = $.grep(currQuery, function (e) { return e.length > 0; });
+			currQuery = $.unique(currQuery);
+
+			// figure out whether whether we can skip some checks
+			var addedTerms = $(currQuery).not(prevQuery).get();
+			var removedTerms = $(prevQuery).not(currQuery).get();
+			// if every removed term is a substring of an added term, then all
+			// hidden items will remain hidden (includes cases where there are
+			// no removed terms)
+			var hiddenAllRemainHidden =
+				_.every(removedTerms, function (removedTerm) {
+					return _.some(addedTerms, function (addedTerm) {
+						return addedTerm.indexOf(removedTerm) != -1;
+					})
+				});
+			// if every added term is a substring of a removed term, then all
+			// displayed items will remain displayed (includes cases where
+			// there are no added terms)
+			var displayedAllRemainDisplayed =
+				_.every(addedTerms, function (addedTerm) {
+					return _.some(removedTerms, function (removedTerm) {
+						return removedTerm.indexOf(addedTerm) != -1;
+					})
+				});
+
+			$('.option', '#options').each(function (i, el) {
+				var text = $(el).text().toLowerCase();
+				if ($(el).hasClass('hidden')) {
+					if (!hiddenAllRemainHidden
+						&& _.every(currQuery, function (t) {
+							return text.indexOf(t) != -1; }))
+						$(el).removeClass('hidden');
+				} else {
+					if (!displayedAllRemainDisplayed
+						&& _.some(addedTerms, function (t) {
+							return text.indexOf(t) == -1; }))
+						$(el).addClass('hidden');
+				}
+			});
+
+			prevQuery = currQuery;
+
+			// on enter, if there is only one matched option or there is an
+			// exact match, add that timeline
 			if (e.which == 13) {
-				foo();
-				return false;
+				var visible = $('.option', '#options').not('.hidden');
+				if (visible.length == 1) {
+					$('a', visible).click();
+				} else {
+					var exactMatch = _.find(visible, function (el) {
+						return $('a', el).text().toLowerCase() == $('#query').val().toLowerCase();
+					})
+					$('a', exactMatch).click();
+				}
 			}
 		})
 	})
