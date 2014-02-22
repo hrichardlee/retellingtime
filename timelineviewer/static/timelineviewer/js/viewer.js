@@ -41,13 +41,19 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 			// there would be some way to use the {% url %} template tag, but
 			// it's really not worth the trouble here. There isn't a great way
 			// of solving either of these problems.
-			addTimeline("/timelinedata/" + this.id.substring(2));
+			addTimeline('/timelinedata/' + this.id.substring(2));
+		})
+
+		$('#options #customoption a').click(function (e) {
+			addTimeline('/timelinedata/search/' + $('#query').val());
 		})
 
 		var prevQuery = [];
 
 		$('#query').keyup(function (e) {
-			var currQuery = $('#query').val().toLowerCase().split(/\s+/);
+			var currOrigQuery = $('#query').val();
+			var currLowerQuery = currOrigQuery.toLowerCase();
+			var currQuery = currLowerQuery.split(/\s+/);
 			currQuery = $.grep(currQuery, function (e) { return e.length > 0; });
 			currQuery = $.unique(currQuery);
 
@@ -90,17 +96,28 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 
 			prevQuery = currQuery;
 
+			// check for exact match
+			var exactMatch = _.find(visible, function (el) {
+				return $('a', el).text().toLowerCase() == currLowerQuery;
+			});
+			if (currLowerQuery.length == 0 || exactMatch) {
+				$('#options #customoption').addClass('hidden')
+			} else {
+				$('#options #customoption #query-text').text(currOrigQuery);
+				$('#options #customoption').removeClass('hidden')
+			}
+
 			// on enter, if there is only one matched option or there is an
-			// exact match, add that timeline
+			// exact match, add that timeline. if no timelines are matched,
+			// then look for the exactly specified Wikipedia page
 			if (e.which == 13) {
 				var visible = $('.option', '#options').not('.hidden');
 				if (visible.length == 1) {
 					$('a', visible).click();
-				} else {
-					var exactMatch = _.find(visible, function (el) {
-						return $('a', el).text().toLowerCase() == $('#query').val().toLowerCase();
-					})
+				} else if (exactMatch) {
 					$('a', exactMatch).click();
+				} else if (visible.length == 0) {
+					$('#options #customoption a').click();
 				}
 			}
 		})

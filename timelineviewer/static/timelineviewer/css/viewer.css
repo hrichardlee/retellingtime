@@ -44,7 +44,8 @@ body {
 
 
 
-#timeline-adder #options .option {
+#timeline-adder #options .option,
+#timeline-adder #options #customoption {
 	float: left;
 }
 
