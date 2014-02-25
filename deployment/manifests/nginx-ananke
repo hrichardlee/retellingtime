@@ -1,0 +1,12 @@
+server {
+    listen 80 default_server;
+    #server_name gregale.cloudapp.com;
+
+    location /static/ {
+        alias /home/hrichardlee/staticfiles/;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8001;
+    }
+}

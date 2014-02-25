@@ -1,0 +1,7 @@
+description "ananke gunicorn instance"
+start on runlevel [2345]
+stop on runlevel [06]
+
+respawn
+
+exec bash -c "cd /home/hrichardlee/ananke && . /home/hrichardlee/anankevenv/bin/activate && exec /home/hrichardlee/anankevenv/bin/gunicorn -u hrichardlee -g hrichardlee -w 4 -b 127.0.0.1:8001 ananke.wsgi:application"
