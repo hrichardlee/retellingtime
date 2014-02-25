@@ -1,7 +1,7 @@
 $base_dir = "/home/hrichardlee"
-$venv_dir = "${base_dir}/anankevenv"
+$venv_dir = "${base_dir}/retellingtimevenv"
 $puppet_manifests_dir = "${base_dir}/manifests"
-$source_dir = "${base_dir}/ananke"
+$source_dir = "${base_dir}/retellingtime"
 
 
 include py
@@ -18,9 +18,9 @@ class git {
 }
 
 class upstart {
-	file { "/etc/init/ananke.conf":
+	file { "/etc/init/retellingtime.conf":
 		ensure => "file",
-		source => "${puppet_manifests_dir}/upstart-ananke"
+		source => "${puppet_manifests_dir}/upstart-retellingtime"
 	}
 }
 
@@ -56,17 +56,17 @@ class webserver {
 		notify => Service["nginx"]
 	}
 
-	file { "/etc/nginx/sites-available/ananke":
+	file { "/etc/nginx/sites-available/retellingtime":
 		require => Package["nginx"],
 		ensure => "file",
-		source => "${puppet_manifests_dir}/nginx-ananke",
+		source => "${puppet_manifests_dir}/nginx-retellingtime",
 		notify => Service["nginx"]
 	}
 
-	file { "/etc/nginx/sites-enabled/ananke":
+	file { "/etc/nginx/sites-enabled/retellingtime":
 		require => Package["nginx"],
 		ensure => "link",
-		target => "/etc/nginx/sites-available/ananke",
+		target => "/etc/nginx/sites-available/retellingtime",
 		notify => Service["nginx"]
 	}
 }

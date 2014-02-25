@@ -1,6 +1,6 @@
 from fabric.api import env
 from fabric.operations import run, put, sudo
-from fabric.context_managers import cd, prefix
+from fabric.context_managers import cd, prefix, settings
 from fabric.contrib.project import rsync_project
 
 
@@ -14,8 +14,8 @@ from fabric.contrib.project import rsync_project
 base_dir = '/home/hrichardlee'
 puppet_modules_dir = base_dir + '/.puppet/modules'
 puppet_manifests_dir = base_dir + '/manifests'
-venv_dir = base_dir + '/anankevenv' # linked to the puppet recipe
-source_dir = base_dir + '/ananke'
+venv_dir = base_dir + '/retellingtimevenv' # linked to the puppet recipe
+source_dir = base_dir + '/retellingtime'
 
 
 ## Initial code-independent configuration
@@ -34,7 +34,7 @@ def put_exec_puppet():
 	# the things that go in the puppet config are exclusively things that can
 	# be configured without looking at the code
 	put('deployment/manifests', base_dir)
-	sudo('puppet apply %s/ananke.pp --modulepath="%s" --verbose' % (puppet_manifests_dir, puppet_modules_dir))
+	sudo('puppet apply %s/retellingtime.pp --modulepath="%s" --verbose' % (puppet_manifests_dir, puppet_modules_dir))
 
 def install_pip():
 	# install pip manually to get the latest version
@@ -71,8 +71,10 @@ def prep_staticfiles():
 	run('mv -f %s/staticfiles %s/' % (source_dir, base_dir))
 
 def restart_gunicorn():
-	sudo('stop ananke')
-	sudo('start ananke')
+	with settings(warn_only=True):
+		sudo('stop retellingtime')
+
+	sudo('start retellingtime')
 
 def code_setup():
 	"""This uploads a new version of source, updates python packages, and

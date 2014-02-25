@@ -4,7 +4,7 @@ import os
 from celery import Celery
 from django.conf import settings
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ananke.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'retellingtime.settings')
 
 app = Celery('timelinedata', backend='amqp', broker='amqp://guest@localhost//')
 

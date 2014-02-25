@@ -1,5 +1,5 @@
 """
-Django settings for ananke project.
+Django settings for retellingtime project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.6/topics/settings/
@@ -49,9 +49,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'ananke.urls'
+ROOT_URLCONF = 'retellingtime.urls'
 
-WSGI_APPLICATION = 'ananke.wsgi.application'
+WSGI_APPLICATION = 'retellingtime.wsgi.application'
 
 
 # Database
