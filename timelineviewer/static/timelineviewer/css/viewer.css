@@ -1,7 +1,29 @@
+/* From http://ethanschoonover.com/solarized */
 body {
   font-family: Georgia;
   margin: 0;
-  padding: 0; }
+  padding: 0;
+  background-color: #fdf6e3;
+  color: #657b83; }
+
+.horiz-padding, #header h1 {
+  padding-left: 6px;
+  padding-right: 6px; }
+
+#header {
+  background-color: #eee8d5;
+  width: 100%;
+  border-bottom: 2px solid #eee8d5;
+  margin-bottom: 6px; }
+  #header h1 {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    margin: 0;
+    font-size: 16pt;
+    font-family: "Open Sans", sans-serif;
+    color: #839496; }
+    #header h1 #retelling {
+      font-family: "Open Sans Condensed", sans-serif; }
 
 .event-text {
   font-size: 10px;
