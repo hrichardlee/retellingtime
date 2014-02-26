@@ -101,8 +101,9 @@ def data_setup():
 	"""This must be run after the code has been set up on the machine."""
 	ve_run('python -m nltk.downloader punkt')
 	ve_run('python manage.py syncdb --noinput', base_dir=source_dir)
-	# this file contains data for creating a superuser called hrichardlee
-	ve_run('python manage.py loaddata deployment/fixtures/hrichardlee-superuser.json', base_dir=source_dir)
+	# fixtures include data for creating a superuser called hrichardlee and
+	# loading initial test data
+	ve_run('python manage.py loaddata deployment/fixtures/*.json', base_dir=source_dir)
 
 
 ## Initial machine setup
@@ -133,4 +134,4 @@ def devenv_serve():
 def devenv_resetdb():
 	local("rm db.sqlite3 --force")
 	local("python manage.py syncdb --noinput")
-	local("python manage.py loaddata deployment/fixtures/hrichardlee-superuser.json")
+	local("python manage.py loaddata deployment/fixtures/*.json")

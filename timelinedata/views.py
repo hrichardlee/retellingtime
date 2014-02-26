@@ -16,28 +16,17 @@ def detail(request, id):
 	return HttpResponse(t.details_json(), content_type = "application/json")
 
 def search(request, page_title):
-	if (page_title == "test1"):
-		return HttpResponse(open("timelinedata/timeline of particle physics.json"), content_type = "application/json")
-	elif (page_title == "test2"):
-		return HttpResponse(open("timelinedata/timeline of modern history.json"), content_type = "application/json")
-	elif (page_title == "test3"):
-		return HttpResponse(open("timelinedata/timeline of solar astronomy.json"), content_type = "application/json")
-	elif (page_title == "test4"):
-		return HttpResponse(open("timelinedata/timeline of mathematics.json"), content_type = "application/json")
-	elif (page_title == "test5"):
-		return HttpResponse(open("timelinedata/timeline of algorithms.json"), content_type = "application/json")
+	try:
+		wikipediaprocess.get_wp_page(page_title)
+	except wikipedia.PageError:
+		# this is a quick hack. should be symmetric with Timeline.short_title
+		page_title = "Timeline of " + page_title
+	separate = request.GET.get("separate", "no") == "yes"
+	result = Timeline.process_wikipedia_page(page_title, separate=separate)
+	if not result:
+		raise Http404
 	else:
-		try:
-			wikipediaprocess.get_wp_page(page_title)
-		except wikipedia.PageError:
-			# this is a quick hack. should be symmetric with Timeline.short_title
-			page_title = "Timeline of " + page_title
-		separate = request.GET.get("separate", "no") == "yes"
-		result = Timeline.process_wikipedia_page(page_title, separate=separate)
-		if not result:
-			raise Http404
-		else:
-			return HttpResponse(result.details_json(), content_type = "application/json")
+		return HttpResponse(result.details_json(), content_type = "application/json")
 
 def all(request):
 	return HttpResponse(
