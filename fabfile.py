@@ -28,13 +28,18 @@ def install_puppet():
 
 def install_puppet_dependencies():
 	# this should really be read from data somewhere
+	# for retellingtime.pp
 	run('puppet module install stankevich/python --version=1.6.3 --modulepath="%s" --force' % puppet_modules_dir)
 
-def put_exec_puppet():
-	# the things that go in the puppet config are exclusively things that can
-	# be configured without looking at the code
+	# for worker-role.pp
+	run('puppet module install puppetlabs/apt --version=1.4.1 --modulepath="%s" --force' % puppet_modules_dir)
+	run('puppet module install puppetlabs/stdlib --version=4.1.0 --modulepath="%s" --force' % puppet_modules_dir)
+
+def put_manifests():
 	put('deployment/manifests', base_dir)
-	sudo('puppet apply %s/retellingtime.pp --modulepath="%s" --verbose' % (puppet_manifests_dir, puppet_modules_dir))
+
+def webserver_puppet():
+	exec_puppet('retellingtime.pp')
 
 def install_pip():
 	# install pip manually to get the latest version
@@ -46,7 +51,8 @@ def code_independent_setup():
 	put on the machine"""
 	install_puppet()
 	install_puppet_dependencies()
-	put_exec_puppet()
+	put_manifests()
+	webserver_puppet()
 
 	install_pip()
 
@@ -56,6 +62,11 @@ def ve_run(command, func=run, base_dir=base_dir, *args, **kwargs):
 	with cd(base_dir):
 		with prefix('source %s/bin/activate' % venv_dir):
 			return func(command, *args, **kwargs)
+
+def exec_puppet(manifest):
+	# the things that go in the puppet config are exclusively things that can
+	# be configured without looking at the code
+	sudo('puppet apply %s/%s --modulepath="%s" --verbose' % (puppet_manifests_dir, manifest, puppet_modules_dir))
 
 
 ## Source
@@ -101,3 +112,9 @@ def initial_setup():
 	code_independent_setup()
 	code_setup()
 	data_setup()
+	worker_puppet()
+
+
+## Worker role setup
+def worker_puppet():
+	exec_puppet('worker-role.pp')
