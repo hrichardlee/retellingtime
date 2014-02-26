@@ -51,3 +51,6 @@ docs/_build/
 
 #sqlite files
 *.sqlite3
+
+#sass files
+.sass-cache

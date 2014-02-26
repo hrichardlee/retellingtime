@@ -1,5 +1,5 @@
 from fabric.api import env
-from fabric.operations import run, put, sudo
+from fabric.operations import run, put, sudo, local
 from fabric.context_managers import cd, prefix, settings
 from fabric.contrib.project import rsync_project
 
@@ -118,3 +118,14 @@ def initial_setup():
 ## Worker role setup
 def worker_puppet():
 	exec_puppet('worker-role.pp')
+
+
+# Sass only works in VirtualBox Shared folder in version 3.2.10 (do not go
+# higher)
+# Polling with rb-inotify does not work, so this command needs to be
+# run every time the files are touched
+def devenv_sass():
+	local("sass --update timelineviewer/sass:timelineviewer/static/timelineviewer/css")
+
+def devenv_serve():
+	local("python manage.py runserver 0.0.0.0:8000")
