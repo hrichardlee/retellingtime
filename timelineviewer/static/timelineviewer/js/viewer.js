@@ -20,15 +20,12 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 
 	function addTimeline(url) {
 		$.get(url, function(data) {
-			// data should be a list of [{date, content, importance}, ...]
-			// Turn data into Event objects
-			var eventTemplate = _.template($("#event-template").html());
-			var eventsHolder = $("#invisible-events-holder");
-			var events = _.map(data, function(ev) {
-				return new tlevents.Event(ev, eventsHolder, eventTemplate);
+			var timeline = new tl.Timeline({
+				data: data,
+				eventTemplate: _.template($("#event-template").html()),
+				invisibleEventsHolder: $("#invisible-events-holder"),
+				timelineHolder: d3.select('#timelines')
 			});
-
-			var timeline = new tl.Timeline($(window), d3.select('#timelines'), events);
 		});
 	}
 

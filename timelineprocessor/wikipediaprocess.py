@@ -37,7 +37,7 @@ def wp_page_to_json(title, separate = False):
 def wp_page_to_events(title, separate = False):
 	"""Takes the title of a timeline page on Wikipedia and returns a list of
 	events {date: number, content: string}"""
-	article = BeautifulSoup(wikipedia.page(title, auto_suggest=False).html())
+	article = BeautifulSoup(get_wp_page(title).html())
 
 	events = _string_blocks_to_events(_html_to_string_blocks(article))
 	if separate:
@@ -48,6 +48,14 @@ def wp_page_to_events(title, separate = False):
 	_fix_wikipedia_links(events)
 
 	return events
+
+
+def get_wp_page(title):
+	"""Gets the wikipedia.page object the way that it is gotten in
+	wp_page_to_events. Applications using wikipediaprocess should never call
+	the wikiepdia library directly for consistency. Throws wikipedia.PageError
+	if the page is not found."""
+	return wikipedia.page(title, auto_suggest=False)
 
 
 def _fix_wikipedia_links(events):

@@ -15,11 +15,14 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					this.doRender();
 				}
 			},
-			createRenderAndSvg: function (d3svgholder) {
+			createRenderAndSvg: function (timelineholder, shortTitle) {
 				var that = this;
 
+				var baseEl = timelineholder.append("div");
+				baseEl.append("h2").text(shortTitle);
+
 				// initialize svg and such
-				this.svg = d3svgholder.append("svg")
+				this.svg = baseEl.append("svg")
 					.attr("height", C.TOTALTIMELINEHEIGHT);
 				this.svg.attr("width", "100%");
 
@@ -81,7 +84,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				// local var for convenience
 				var events = this.events;
 
-				this.width = this.$window.width();
+				this.width = $(window).width();
 
 				// create scales/axes
 				this.x.range([0, this.width]);
@@ -322,16 +325,22 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				if (C.DEBUG) console.debug("render finished");
 			}
 		}
-		function Timeline($window, d3svgholder, events) {
+		function Timeline(p) {
+			// Takes one parameter p that should have the following
+			// properties: data, eventTemplate, invisibleEventsHolder,
+			// timelineHolder. data should be [short_title, events: [{date,
+			// content, importance}, ...]]
 			var that = this;
-			$window.on('resize', function () {
+			$(window).on('resize', function () {
 				that.setRenderWidth();
 				that.doRender();
 			});
 
-			this.$window = $window;
+			var events = _.map(p.data.events, function(ev) {
+				return new tlevents.Event(ev, p.invisibleEventsHolder, p.eventTemplate);
+			});
 
-			this.createRenderAndSvg(d3svgholder);
+			this.createRenderAndSvg(p.timelineHolder, p.data.short_title);
 			this.setRenderEvents(events);
 			this.setRenderWidth();
 		}

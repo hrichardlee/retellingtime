@@ -129,3 +129,8 @@ def devenv_sass():
 
 def devenv_serve():
 	local("python manage.py runserver 0.0.0.0:8000")
+
+def devenv_resetdb():
+	local("rm db.sqlite3 --force")
+	local("python manage.py syncdb --noinput")
+	local("python manage.py loaddata deployment/fixtures/hrichardlee-superuser.json")
