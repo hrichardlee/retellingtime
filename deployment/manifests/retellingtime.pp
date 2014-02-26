@@ -20,7 +20,14 @@ class git {
 class upstart {
 	file { "/etc/init/retellingtime.conf":
 		ensure => "file",
-		source => "${puppet_manifests_dir}/upstart-retellingtime"
+		source => "${puppet_manifests_dir}/upstart-retellingtime",
+		notify => Service["retellingtime"]
+	}
+
+	service { "retellingtime":
+		require => File["/etc/init/retellingtime.conf"],
+		provider => "upstart",
+		ensure => "running"
 	}
 }
 

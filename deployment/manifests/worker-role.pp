@@ -61,7 +61,8 @@ class rabbitmq {
 	file { "/etc/init/rabbitmq-server.conf":
 		require => Package["rabbitmq-server"],
 		ensure => "file",
-		source => "${puppet_manifests_dir}/upstart-rabbitmq-server"
+		source => "${puppet_manifests_dir}/upstart-rabbitmq-server",
+		notify => Service["rabbitmq-server"]
 	}
 
 	service { "rabbitmq-server":
@@ -76,7 +77,8 @@ class celery {
 
 	file { "/etc/init/retellingtime-celery.conf":
 		ensure => "file",
-		source => "${puppet_manifests_dir}/upstart-retellingtime-celery"
+		source => "${puppet_manifests_dir}/upstart-retellingtime-celery",
+		notify => Service["retellingtime-celery"]
 	}
 
 	service { "retellingtime-celery":
@@ -91,7 +93,8 @@ class flower {
 
 	file { "/etc/init/flower.conf":
 		ensure => "file",
-		source => "${puppet_manifests_dir}/upstart-flower"
+		source => "${puppet_manifests_dir}/upstart-flower",
+		notify => Service["flower"]
 	}
 
 	service { "flower":

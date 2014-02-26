@@ -6,4 +6,4 @@ respawn
 
 chdir /home/hrichardlee/retellingtime
 
-exec /home/hrichardlee/retellingtimevenv/bin/gunicorn -u hrichardlee -g hrichardlee -w 4 -b 127.0.0.1:8001 retellingtime.wsgi:application
+exec /home/hrichardlee/retellingtimevenv/bin/gunicorn --access-logfile /home/hrichardlee/gunicorn.access.log --error-logfile /home/hrichardlee/gunicorn.error.log -t 600 -u hrichardlee -g hrichardlee -w 4 -b 127.0.0.1:8001 retellingtime.wsgi:application
