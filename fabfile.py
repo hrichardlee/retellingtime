@@ -100,6 +100,7 @@ def code_setup():
 def data_setup():
 	"""This must be run after the code has been set up on the machine."""
 	ve_run('python -m nltk.downloader punkt')
+	run('rm -f %s/db.sqlite3' % source_dir)
 	ve_run('python manage.py syncdb --noinput', base_dir=source_dir)
 	# fixtures include data for creating a superuser called hrichardlee and
 	# loading initial test data
