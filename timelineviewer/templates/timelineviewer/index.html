@@ -11,20 +11,21 @@
 	<div id="timelines"></div>
 
 	<div id="timeline-adder">
+		<div>
+		<span id="query-instructions">Add a timeline:</span>
 		<input id="query" type="text" />
+		</div>
 
 		<div id="options">
 			{% for t in timelines %}
-			<div class="option">
-				<a href="#" id="t-{{ t.id }}">{{ t.short_title }}</a>
+			<span class="option">
+				<a href="#" id="t-{{ t.id }}">{{ t.short_title.split|join:"&nbsp;" }}</a>
 				<span class="tags">{{ "todo: tags" }}</span>
-			</div>
+			</span>
 			{% endfor %}
-			<div id="customoption" class="hidden">
-				<a href="#">
-				(Parse the Wikipedia page titled: <span id="query-text"></span>)
-				</a>
-			</div>
+			<span id="customoption" class="hidden">
+				<a href="#">(Parse&nbsp;the&nbsp;Wikipedia&nbsp;page&nbsp;titled:&nbsp;<span id="query-text"></span>)</a>
+			</span>
 		</div>
 	</div>
 

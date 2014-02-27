@@ -23,12 +23,13 @@ $green:     #859900;
 $bodyFont: 'Noticia Text', serif;
 $chromeFont: 'Open Sans', sans-serif;
 $headerFont: 'Open Sans Condensed', sans-serif;
+$headerFontSize: 12pt;
 
 body {
 	margin: 0;
 	padding: 0;
 
-	background-color: $white;
+	background-color: $whitedark;
 	color: $fgdark;
 	font-family: $bodyFont;
 }
@@ -45,7 +46,6 @@ a, a:visited { color: $cyan; }
 .hidden { display: none; }
 
 #header {
-	background-color: $whitedark;
 	width: 100%;
 	border-bottom: 2px solid $fglight;
 
@@ -58,6 +58,7 @@ a, a:visited { color: $cyan; }
 		font-size: 16pt;
 		font-family: $chromeFont;
 		color: $fglight;
+		font-weight: 400;
 
 		#retelling {
 			font-family: $headerFont;
@@ -73,60 +74,84 @@ h2 {
 
 	background-color: $whitedark;
 	color: $fglight;
-	font-size: 12pt;
+	font-size: $headerFontSize;
 	font-family: $headerFont;
+	font-weight: 400;
 }
 
 .event-text {
 	width: 180px;
 	margin-left: 6px;
 	padding-right: 2px;
-	padding-top: 4px;
+	padding-top: 2px;
+	padding-bottom: 2px;
 
 	background-color: $whiteTransp;
 	font-size: 13px;
 	line-height: 125%;
 }
 
-#timelines svg {
-	font-size: 10px;
+#timelines {
+	background-color: $white;
 
-	.background {
-		fill: $white;
-	}
+	svg {
+		font-size: 10px;
 
-	.markers {
-		fill: $fglight;
-		shape-rendering: crispEdges;
-	}
+		.background {
+			fill: $white;
+		}
 
-	.axis {
-		path, line {
-			fill: none;
-			stroke: $fglight;
+		.markers {
+			fill: $fglight;
 			shape-rendering: crispEdges;
 		}
-		text {
-			fill: $fglight;
+
+		.axis {
+			path, line {
+				fill: none;
+				stroke: $fglight;
+				shape-rendering: crispEdges;
+			}
+			text {
+				fill: $fglight;
+			}
+		}
+
+		.brush .extent {
+			stroke: #fff;
+			fill-opacity: .125;
+			shape-rendering: crispEdges;
 		}
 	}
+}
 
-	.brush .extent {
-		stroke: #fff;
-		fill-opacity: .125;
-		shape-rendering: crispEdges;
+
+#timeline-adder {
+	@extend .horiz-padding;
+	border-top: 2px solid $fglight;
+	padding-top: 4px;
+
+	#query-instructions {
+		font-size: $headerFontSize;
+		font-family: $headerFont;
+		color: $fglight;
+	}
+
+	#query {
+		font-family: $bodyFont;
+		width: 400px;
+	}
+
+	#options {
+		.option {
+			margin-right: 2.5em;
+
+			.tags {
+				display: none;
+			}
+		}
 	}
 }
-
-#timeline-adder #options .option,
-#timeline-adder #options #customoption {
-	float: left;
-}
-
-#timeline-adder #options .option .tags {
-	display: none;
-}
-
 
 
 #invisible-renderer {

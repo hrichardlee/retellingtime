@@ -2,7 +2,7 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #fdf6e3;
+  background-color: #eee8d5;
   color: #586e75;
   font-family: "Noticia Text", serif; }
 
@@ -15,7 +15,7 @@ a:hover {
 a, a:visited {
   color: #2aa198; }
 
-.horiz-padding, #header h1, h2 {
+.horiz-padding, #header h1, h2, #timeline-adder {
   padding-left: 10px;
   padding-right: 10px; }
 
@@ -23,7 +23,6 @@ a, a:visited {
   display: none; }
 
 #header {
-  background-color: #eee8d5;
   width: 100%;
   border-bottom: 2px solid #93a1a1; }
   #header h1 {
@@ -32,7 +31,8 @@ a, a:visited {
     margin: 0;
     font-size: 16pt;
     font-family: "Open Sans", sans-serif;
-    color: #93a1a1; }
+    color: #93a1a1;
+    font-weight: 400; }
     #header h1 #retelling {
       font-family: "Open Sans Condensed", sans-serif; }
 
@@ -43,41 +43,53 @@ h2 {
   background-color: #eee8d5;
   color: #93a1a1;
   font-size: 12pt;
-  font-family: "Open Sans Condensed", sans-serif; }
+  font-family: "Open Sans Condensed", sans-serif;
+  font-weight: 400; }
 
 .event-text {
   width: 180px;
   margin-left: 6px;
   padding-right: 2px;
-  padding-top: 4px;
+  padding-top: 2px;
+  padding-bottom: 2px;
   background-color: rgba(253, 246, 227, 0.9);
   font-size: 13px;
   line-height: 125%; }
 
-#timelines svg {
-  font-size: 10px; }
-  #timelines svg .background {
-    fill: #fdf6e3; }
-  #timelines svg .markers {
-    fill: #93a1a1;
-    shape-rendering: crispEdges; }
-  #timelines svg .axis path, #timelines svg .axis line {
-    fill: none;
-    stroke: #93a1a1;
-    shape-rendering: crispEdges; }
-  #timelines svg .axis text {
-    fill: #93a1a1; }
-  #timelines svg .brush .extent {
-    stroke: #fff;
-    fill-opacity: .125;
-    shape-rendering: crispEdges; }
+#timelines {
+  background-color: #fdf6e3; }
+  #timelines svg {
+    font-size: 10px; }
+    #timelines svg .background {
+      fill: #fdf6e3; }
+    #timelines svg .markers {
+      fill: #93a1a1;
+      shape-rendering: crispEdges; }
+    #timelines svg .axis path, #timelines svg .axis line {
+      fill: none;
+      stroke: #93a1a1;
+      shape-rendering: crispEdges; }
+    #timelines svg .axis text {
+      fill: #93a1a1; }
+    #timelines svg .brush .extent {
+      stroke: #fff;
+      fill-opacity: .125;
+      shape-rendering: crispEdges; }
 
-#timeline-adder #options .option,
-#timeline-adder #options #customoption {
-  float: left; }
-
-#timeline-adder #options .option .tags {
-  display: none; }
+#timeline-adder {
+  border-top: 2px solid #93a1a1;
+  padding-top: 4px; }
+  #timeline-adder #query-instructions {
+    font-size: 12pt;
+    font-family: "Open Sans Condensed", sans-serif;
+    color: #93a1a1; }
+  #timeline-adder #query {
+    font-family: "Noticia Text", serif;
+    width: 400px; }
+  #timeline-adder #options .option {
+    margin-right: 2.5em; }
+    #timeline-adder #options .option .tags {
+      display: none; }
 
 #invisible-renderer {
   visibility: hidden;
