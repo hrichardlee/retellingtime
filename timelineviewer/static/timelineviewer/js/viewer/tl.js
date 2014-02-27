@@ -225,7 +225,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 
 				// Render events with new left/bottom coordinates
-				var textElements = this.focus.select('.text-elements').selectAll('g')
+				var textElements = this.focus.select('.text-elements').selectAll('g.text-root')
 					.data(this.scopedEvents, function (e) { return e.id(); });
 				var markers = this.focus.select('.markers').selectAll('rect')
 					.data(this.scopedEvents, function (e) { return e.id(); });
@@ -255,7 +255,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				}
 
 				// updateGroups
-				transitionFn(textElements)
+				transitionFn(textElements.select("g.text-transform"))
 					.attr("transform", function (d) {
 						return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
 					});
@@ -264,21 +264,33 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 						return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
 					})
 					.attr("height", function (d) { return d.bottom + d.height - C.MARKEREXTRAHEIGHT; });
-				textElements.style("opacity", 1);
+
+				textElements.filter('.exiting').classed('exiting', false).transition().style('opacity', '1');
 				markers.style("opacity", 1);
 
 				// only entering text elements
 				var textElementsEnter = textElements.enter()
 					.append("g")
-
+					.attr("class", "text-root")
 				textElementsEnter
-					.attr("transform", function (d) {
-						return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
-					})
 					.style("opacity", "0")
 					.transition()
 					.style("opacity", "1")
-				textElementsEnter
+
+				// note on opacity transitions. If we apply the opacity
+				// transitions and the transform transition on the same
+				// element, then when a transform transition gets applied, the
+				// opacity one gets cancelled and the object is left semi-
+				// visible until the next update. In order to prevent this, we
+				// create the innerTransformGroup that takes the transform
+				// transition, while the outer (text-root) group takes the
+				// opacity transition
+				var textInnerTransformGroup = textElementsEnter
+					.append("g")
+					.attr("class", "text-transform")
+					.attr("transform", function (d) {
+						return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
+					})
 					.append("foreignObject")
 					.attr("height", function (d) {return d.height; })
 					.attr("width", C.EVENTWIDTH)
@@ -299,7 +311,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					.style("opacity", "1")
 				
 				// only removed elements
-				textElements.exit().transition().style("opacity", "0").remove();
+				textElements.exit().classed('exiting', true).transition().style("opacity", "0").remove();
 				markers.exit().transition().style("opacity", "0").remove();
 				
 				// render xAxis
