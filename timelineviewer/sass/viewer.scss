@@ -1,4 +1,4 @@
-/* From http://ethanschoonover.com/solarized */
+// From http://ethanschoonover.com/solarized
 $black:    #002b36;			//base03
 $blacklight:    #073642;	//base02
 $fgdark:    #586e75;		//base01
@@ -24,6 +24,20 @@ $bodyFont: 'Noticia Text', serif;
 $chromeFont: 'Open Sans', sans-serif;
 $headerFont: 'Open Sans Condensed', sans-serif;
 $headerFontSize: 12pt;
+
+// for frame/scrolling stuff
+html, body {
+	height: 100%;
+	width: 100%;
+}
+
+#frame {
+	overflow: auto;
+	position: absolute;
+	top: 0;
+	height: 100%;
+	width: 100%;
+}
 
 body {
 	margin: 0;
@@ -130,6 +144,7 @@ h2 {
 	@extend .horiz-padding;
 	border-top: 2px solid $fglight;
 	padding-top: 4px;
+	padding-bottom: 24px;
 
 	#query-instructions {
 		font-size: $headerFontSize;

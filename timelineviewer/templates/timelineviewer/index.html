@@ -3,6 +3,7 @@
 {% load staticfiles %}
 
 {% block content %}
+<div id="frame">
 	<div id="header">
 		<h1><span id="retelling">RETELLING</span>TIME</h1>
 	</div>
@@ -46,4 +47,5 @@
 	<script type="text/template" id="header-template">
 		<h2><%= short_title %> <a href="<%= url %>">(original page)</a></h2>
 	</script>
+</div>
 {% endblock %}

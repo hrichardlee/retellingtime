@@ -31,6 +31,42 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 	}
 
 	$(function() {
+		// This is extremely loosely based on http://azoff.github.io/overscroll/
+		var $target = $('#frame')
+
+		var posY;
+
+		$target.on('mousedown', start);
+		$target.on('mouseup mouseleave', stop); // also click?
+		$target.on('select dragstart drag', ignore);
+
+		function start(event) {
+			event.preventDefault();
+			$target.on('mousemove', drag)
+			posY = event.pageY;
+		}
+
+		function drag(event) {
+			event.preventDefault();
+			$target.get(0).scrollTop -= event.pageY - posY;
+			posY = event.pageY;
+		}
+
+		function stop(event) {
+			$target.unbind('mousemove', drag);
+			posy = false;
+		}
+
+		function ignore(event) {
+			event.preventDefault();
+		}
+
+
+
+
+
+		// All timeline-adder stuff
+
 		$('#options .option a').click(function (e) {
 			// each link has an id of the form "t-26". The "t-" is to
 			// namespace these ids so they don't collide with other elements
