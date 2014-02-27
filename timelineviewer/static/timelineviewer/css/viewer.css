@@ -1,57 +1,76 @@
 /* From http://ethanschoonover.com/solarized */
 body {
-  font-family: Georgia;
   margin: 0;
   padding: 0;
   background-color: #fdf6e3;
-  color: #657b83; }
+  color: #586e75;
+  font-family: "Noticia Text", serif; }
 
-.horiz-padding, #header h1 {
-  padding-left: 6px;
-  padding-right: 6px; }
+a {
+  text-decoration: none; }
+
+a:hover {
+  text-decoration: underline; }
+
+a, a:visited {
+  color: #2aa198; }
+
+.horiz-padding, #header h1, h2 {
+  padding-left: 10px;
+  padding-right: 10px; }
+
+.hidden {
+  display: none; }
 
 #header {
   background-color: #eee8d5;
   width: 100%;
-  border-bottom: 2px solid #eee8d5;
-  margin-bottom: 6px; }
+  border-bottom: 2px solid #93a1a1; }
   #header h1 {
     padding-top: 4px;
     padding-bottom: 4px;
     margin: 0;
     font-size: 16pt;
     font-family: "Open Sans", sans-serif;
-    color: #839496; }
+    color: #93a1a1; }
     #header h1 #retelling {
       font-family: "Open Sans Condensed", sans-serif; }
 
-.event-text {
-  font-size: 10px;
-  width: 180px;
-  padding-top: 4px;
-  padding-left: 4px;
-  top: 0;
-  background-color: rgba(200, 200, 200, 0.9); }
+h2 {
+  margin: 0;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  background-color: #eee8d5;
+  color: #93a1a1;
+  font-size: 12pt;
+  font-family: "Open Sans Condensed", sans-serif; }
 
-.hidden {
-  display: none; }
+.event-text {
+  width: 180px;
+  margin-left: 6px;
+  padding-right: 2px;
+  padding-top: 4px;
+  background-color: rgba(253, 246, 227, 0.9);
+  font-size: 13px;
+  line-height: 125%; }
 
 #timelines svg {
   font-size: 10px; }
-
-#timelines svg .axis path,
-#timelines svg .axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges; }
-
-#timelines svg .background {
-  fill: white; }
-
-#timelines svg .brush .extent {
-  stroke: #fff;
-  fill-opacity: .125;
-  shape-rendering: crispEdges; }
+  #timelines svg .background {
+    fill: #fdf6e3; }
+  #timelines svg .markers {
+    fill: #93a1a1;
+    shape-rendering: crispEdges; }
+  #timelines svg .axis path, #timelines svg .axis line {
+    fill: none;
+    stroke: #93a1a1;
+    shape-rendering: crispEdges; }
+  #timelines svg .axis text {
+    fill: #93a1a1; }
+  #timelines svg .brush .extent {
+    stroke: #fff;
+    fill-opacity: .125;
+    shape-rendering: crispEdges; }
 
 #timeline-adder #options .option,
 #timeline-adder #options #customoption {

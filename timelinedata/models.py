@@ -46,15 +46,20 @@ class Timeline(models.Model):
 
 	def details(self):
 		return { 'short_title': self.short_title(),
+			'url': self.url,
 			'events': self.events
 		}
 
 	def details_json(self):
-		# this is a massive hack, but will work as long as 1234512345 does not
-		# show up in short_title...
-		return json.dumps({ 'short_title': self.short_title(),
-				'events': 1234512345
-			}).replace('1234512345', self.events)
+		# this is a massive hack, but will work as long as 3021621274449386 does not
+		# show up in any of the other fields...
+		return json.dumps({
+				'metadata': {
+					'short_title': self.short_title(),
+					'url': self.url
+				},
+				'events': 3021621274449386
+			}).replace('3021621274449386', self.events)
 
 	def __unicode__(self):
 		return "Timeline(id: %d, title: %s, separate: %s, events: %s)" \

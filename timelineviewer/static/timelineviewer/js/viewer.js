@@ -24,6 +24,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 				data: data,
 				eventTemplate: _.template($("#event-template").html()),
 				invisibleEventsHolder: $("#invisible-events-holder"),
+				headerTemplate: _.template($("#header-template").html()),
 				timelineHolder: d3.select('#timelines')
 			});
 		});

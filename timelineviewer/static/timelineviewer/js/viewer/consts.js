@@ -1,13 +1,13 @@
 define([], function () {
 	var C = {};
-	C.TOTALTIMELINEHEIGHT = 220;
+	C.TOTALTIMELINEHEIGHT = 340;
 	C.CONTEXTSTRIPHEIGHT = 20;
 	C.AXISHEIGHT = 21;
 	C.TIMELINEHEIGHT = C.TOTALTIMELINEHEIGHT - C.AXISHEIGHT - C.CONTEXTSTRIPHEIGHT;
 	// event-text outer width
-	C.EVENTWIDTH = 184;
+	C.EVENTWIDTH = 188;
 	// make the marker shorter to compensate for event-text margin and leading in text and padding
-	C.MARKEREXTRAHEIGHT = 4 + 4;
+	C.MARKEREXTRAHEIGHT = 4 + 2;
 	C.MARKERWIDTH = 2;
 
 	C.TRANSITIONDURATION = 250;

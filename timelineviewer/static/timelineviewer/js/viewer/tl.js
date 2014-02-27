@@ -15,11 +15,11 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					this.doRender();
 				}
 			},
-			createRenderAndSvg: function (timelineholder, shortTitle) {
+			createRenderAndSvg: function (timelineholder, headerTemplate, metadata) {
 				var that = this;
 
 				var baseEl = timelineholder.append("div");
-				baseEl.append("h2").text(shortTitle);
+				baseEl.append("div").html(headerTemplate(metadata));
 
 				// initialize svg and such
 				this.svg = baseEl.append("svg")
@@ -328,8 +328,8 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 		function Timeline(p) {
 			// Takes one parameter p that should have the following
 			// properties: data, eventTemplate, invisibleEventsHolder,
-			// timelineHolder. data should be [short_title, events: [{date,
-			// content, importance}, ...]]
+			// headerTemplate timelineHolder. data should be [metadata:
+			// {short_title, url}, events: [{date, content, importance}, ...]]
 			var that = this;
 			$(window).on('resize', function () {
 				that.setRenderWidth();
@@ -340,7 +340,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				return new tlevents.Event(ev, p.invisibleEventsHolder, p.eventTemplate);
 			});
 
-			this.createRenderAndSvg(p.timelineHolder, p.data.short_title);
+			this.createRenderAndSvg(p.timelineHolder, p.headerTemplate, p.data.metadata);
 			this.setRenderEvents(events);
 			this.setRenderWidth();
 		}
