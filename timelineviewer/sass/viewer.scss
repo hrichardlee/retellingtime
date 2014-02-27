@@ -115,8 +115,9 @@ h2 {
 			fill: $white;
 		}
 
-		.markers {
-			fill: $fglight;
+		.markers line {
+			stroke: $fglight;
+			stroke-width: 2;
 			shape-rendering: crispEdges;
 		}
 

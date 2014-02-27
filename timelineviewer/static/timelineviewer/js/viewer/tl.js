@@ -225,66 +225,96 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 
 				// Render events with new left/bottom coordinates
-				var textElements = this.focus.select('.text-elements').selectAll('g.text-root')
-					.data(this.scopedEvents, function (e) { return e.id(); });
-				var markers = this.focus.select('.markers').selectAll('rect')
-					.data(this.scopedEvents, function (e) { return e.id(); });
 
-				// only update:
+// Note on transitions. Calling transition() on an element when another
+// transition is in progress will cancel the existing transition. There are
+// two bad scenarios that can happen with a naive implementation.
+// 1. Object enters, then is moved before fade in finishes. The fade in will
+//    be not finish and the object is left semi-visible.
+//  - The solution is that there is a root element that only handles opacity
+//    transitions, and a child element that handles transform transitions.
+//    (The opacity one being root is necessary because the remove() call at
+//    the end of the fade out transition.) For text elements, the root object
+//    is a g .text-root and the transform-handling child is a g .text-
+//    transform. For markers, the root is a g, and the child is a line.
+// 2. Object exits, then is supposed to re-enter before the fade out finishes.
+//  - The solution is to mark all exiting objects (in this case with class
+//    'exiting'). On an update, these objects will not show up in the enter()
+//    selection. They will show up in the update selection. So we check the
+//    update selection for '.exiting' objects, and start a new transition on
+//    them to cancel the fade out transition and bring them back to full
+//    opacity
 
-				// If we are only translating elements, don't animate. If we are
-				// scaling them, then animate. If we are rendering for the first time,
-				// animate for longer.
-				var transitionFn;
+// - References
+//  - https://groups.google.com/forum/#!topic/d3-js/H7mLE0dF6-E
+//  - http://jsfiddle.net/xbfSU/ http://stackoverflow.com/questions/16335781/d3-js-stop-transitions-being-interrupted
+
+				// First, create transition functions. If we are only
+				// translating elements, don't animate. If we are rendering
+				// for the first time, animate for longer. If we are scaling
+				// them, then animate.
+				var transformTransitionFn;
 				if (onlyTranslate) {
-					transitionFn = function (g) { return g; };
+					transformTransitionFn = function (g) { return g; };
 				} else if (this.secondRender) {
-					transitionFn = function (g) {
+					transformTransitionFn = function (g) {
 						return g
 							.transition()
 							.duration(C.FIRST_RENDER_TRANSITION_DURATION)
 							.ease(C.FIRST_RENDER_TRANSITION_EASING);
 					};
 				} else {
-					transitionFn = function (g) {
+					transformTransitionFn = function (g) {
 						return g
 							.transition()
-							.duration(C.TRANSITIONDURATION)
-							.ease("linear");
+							.duration(C.TRANSFORM_TRANSITION_DURATION)
+							.ease(C.TRANSFORM_TRANSITION_EASING);
 					}
 				}
+				var fadeIn = function (g, reset) {
+					if (reset) g.style("opacity", "0");
+					g.transition()
+						.duration(C.OPACITY_TRANSITION_DURATION)
+						.ease(C.OPACITY_TRANSITION_EASING)
+						.style("opacity", "1");
+				};
+				var fadeOut = function (g) {
+					g.transition()
+						.duration(C.OPACITY_TRANSITION_DURATION)
+						.ease(C.OPACITY_TRANSITION_EASING)
+						.style("opacity", "0")
+						.remove();
+				};
 
-				// updateGroups
-				transitionFn(textElements.select("g.text-transform"))
+				// select elements
+				var textElements = this.focus.select('.text-elements').selectAll('g.text-root')
+					.data(this.scopedEvents, function (e) { return e.id(); });
+				var markers = this.focus.select('.markers').selectAll('g')
+					.data(this.scopedEvents, function (e) { return e.id(); });
+
+				// update elements
+				transformTransitionFn(textElements.select("g.text-transform"))
 					.attr("transform", function (d) {
 						return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
 					});
-				transitionFn(markers)
+				transformTransitionFn(markers.select("line"))
 					.attr("transform", function (d) {
 						return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
 					})
-					.attr("height", function (d) { return d.bottom + d.height - C.MARKEREXTRAHEIGHT; });
-
-				textElements.filter('.exiting').classed('exiting', false).transition().style('opacity', '1');
-				markers.style("opacity", 1);
+					.attr("y2", function (d) { return d.bottom + d.height; });
+				// this catches elements that are transitioning for exiting,
+				// have not finished their transition yet, and were
+				// reintroduced.
+				var reenteringTexts = textElements.filter('.exiting').classed('exiting', false);
+				fadeIn(reenteringTexts, false);
+				var reenteringMarkers = markers.filter('.exiting').classed('exiting', false);
+				fadeIn(reenteringMarkers, false);
 
 				// only entering text elements
 				var textElementsEnter = textElements.enter()
 					.append("g")
 					.attr("class", "text-root")
-				textElementsEnter
-					.style("opacity", "0")
-					.transition()
-					.style("opacity", "1")
-
-				// note on opacity transitions. If we apply the opacity
-				// transitions and the transform transition on the same
-				// element, then when a transform transition gets applied, the
-				// opacity one gets cancelled and the object is left semi-
-				// visible until the next update. In order to prevent this, we
-				// create the innerTransformGroup that takes the transform
-				// transition, while the outer (text-root) group takes the
-				// opacity transition
+				fadeIn(textElementsEnter, true)
 				var textInnerTransformGroup = textElementsEnter
 					.append("g")
 					.attr("class", "text-transform")
@@ -298,24 +328,26 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					.html(function (d) { return d.html(); })
 
 				// only entering marker elements
-				markers.enter()
-					.append("rect")
+				var markersEnter = markers.enter()
+					.append("g");
+				fadeIn(markersEnter, true);
+				markersEnter.append("line")
 					.attr("transform", function (d) {
 						return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
 					})
-					.attr("width", C.MARKERWIDTH)
-					.attr("y", C.MARKEREXTRAHEIGHT)
-					.attr("height", function (d) { return d.bottom + d.height - C.MARKEREXTRAHEIGHT; })
-					.style("opacity", "0")
-					.transition()
-					.style("opacity", "1")
+					.attr("x1", "0")
+					.attr("x2", "0")
+					.attr("y1", C.MARKEREXTRAHEIGHT)
+					.attr("y2", function (d) { return d.bottom + d.height; })
 				
 				// only removed elements
-				textElements.exit().classed('exiting', true).transition().style("opacity", "0").remove();
-				markers.exit().transition().style("opacity", "0").remove();
+				var exitingTexts = textElements.exit().classed('exiting', true);
+				fadeOut(exitingTexts);
+				var exitingMarkers = markers.exit().classed('exiting', true);
+				fadeOut(exitingMarkers);
 				
 				// render xAxis
-				this.xAxisEl.call(this.xAxis)
+				this.xAxisEl.call(this.xAxis);
 
 				if (this.secondRender || resize) {
 					// render context
