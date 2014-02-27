@@ -1,12 +1,6 @@
 define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], function ($, _, d3, tlevents, C) {
-
-	var render = null;
-
-
-
+	
 	var Timeline = (function() {
-		var render;
-
 		var baseObject = {
 			brushed: function () {
 				if (!this.brush.empty()) {
