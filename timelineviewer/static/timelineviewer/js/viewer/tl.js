@@ -1,6 +1,10 @@
 define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], function ($, _, d3, tlevents, C) {
-	
+
 	var Timeline = (function() {
+		// static class variables
+		var allTimelines = [];
+
+		// class methods
 		var baseObject = {
 			brushed: function () {
 				if (!this.brush.empty()) {
@@ -131,8 +135,8 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 				if (this.firstRender) {
 					this.zoom
-						.scale(zoomMax)
-						.translate([-this.width * zoomMax / 2, 0]);
+						.scale(initialScale * 2)
+						.translate([-this.width * (initialScale ) / 2, 0]);
 					this.doRender();
 
 					this.secondRender = true;
@@ -202,6 +206,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 						e.setLeft(this.x(e.date));
 					}, this);
 					this.scopedEvents = tlevents.setBottoms(this.events);
+					onlyTranslate = false;
 				} else {
 					var deltaX = t[0] - this.prevTranslateX
 					_.each(this.scopedEvents, function (e) {
@@ -233,7 +238,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				var transitionFn;
 				if (onlyTranslate) {
 					transitionFn = function (g) { return g; };
-				} else if (this.firstRender) {
+				} else if (this.secondRender) {
 					transitionFn = function (g) {
 						return g
 							.transition()
@@ -319,6 +324,8 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				if (C.DEBUG) console.debug("render finished");
 			}
 		}
+
+		// constructor
 		function Timeline(p) {
 			// Takes one parameter p that should have the following
 			// properties: data, eventTemplate, invisibleEventsHolder,
@@ -337,8 +344,11 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 			this.createRenderAndSvg(p.timelineHolder, p.headerTemplate, p.data.metadata);
 			this.setRenderEvents(events);
 			this.setRenderWidth();
+
+			allTimelines.push(this);
 		}
 		Timeline.prototype = baseObject;
+
 		return Timeline;
 	})();
 
