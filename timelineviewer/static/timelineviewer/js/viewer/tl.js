@@ -39,17 +39,17 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 				this.focus.append('rect')
 					.attr('height', C.TIMELINEHEIGHT)
-					.attr('class', 'background')
+					.classed('background', true)
 					.attr('width', '100%');
 
 				this.focus.append('g')
-					.attr('class', 'markers');
+					.classed('markers', true);
 				this.focus.append('g')
-					.attr('class', 'text-elements');
+					.classed('text-elements', true);
 
 
 				this.xAxisEl = this.svg.append('g')
-					.attr('class', 'x axis')
+					.classed({'x': true, 'axis': true})
 					.attr('height', C.AXISHEIGHT)
 					.attr('transform', 'translate(0,' + C.TIMELINEHEIGHT + ')');
 
@@ -70,7 +70,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					.on('brush', function () { that.brushed(); } );
 
 				this.brushEl = context.append('g')
-					.attr('class', 'x brush');
+					.classed({'x': true, 'brush': true});
 
 				this.firstRender = true;
 				this.secondRender = false;
@@ -356,11 +356,11 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				// only entering text elements
 				var textElementsEnter = textElements.enter()
 					.append('g')
-					.attr('class', 'text-root')
+					.classed('text-root', true)
 				fadeIn(textElementsEnter, true)
 				var textInnerTransformGroup = textElementsEnter
 					.append('g')
-					.attr('class', 'text-transform')
+					.classed('text-transform', true)
 					.attr('transform', function (d) {
 						return 'translate(' + d.left + ', ' + (C.TIMELINEHEIGHT - d.bottom - d.height) + ')';
 					})
@@ -399,7 +399,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					.append('rect')
 
 				contextMarkers
-					.attr('class', 'marker')
+					.classed('marker', true)
 					.attr('width', C.MARKERWIDTH)
 					.attr('height', C.CONTEXTSTRIPHEIGHT)
 					.attr('x', function (d) { return that.contextX(d.date); })
