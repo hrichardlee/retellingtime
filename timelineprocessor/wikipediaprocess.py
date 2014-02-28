@@ -34,14 +34,20 @@ def wp_page_to_json(title, separate = False):
 	return json.dumps(wp_page_to_events(title, separate))
 
 
-def wp_page_to_events(title, separate = False):
-	"""Takes the title of a timeline page on Wikipedia and returns a list of
-	events {date: number, content: string}"""
+def _wp_page_to_events_raw(title, separate = False):
+	"""Without the post_processing in wp_page_to_events"""
 	article = BeautifulSoup(get_wp_page(title).html())
 
 	events = _string_blocks_to_events(_html_to_string_blocks(article))
 	if separate:
 		events = _separate_events(events)
+	return events
+
+
+def wp_page_to_events(title, separate = False):
+	"""Takes the title of a timeline page on Wikipedia and returns a list of
+	events {date: number, content: string}"""
+	events = _wp_page_to_events_raw(title, separate = False)
 	_add_importance_to_events(events)
 	events.sort(key=lambda e: e["date"], reverse=True)
 	events = _filter_bad_events(events)
