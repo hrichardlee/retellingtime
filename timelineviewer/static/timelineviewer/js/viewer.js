@@ -143,7 +143,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 			if (currLowerQuery.length == 0 || exactMatch) {
 				$('#options #customoption').addClass('hidden')
 			} else {
-				$('#options #customoption #query-text').text(currOrigQuery.replace(/ /g, '&nbsp;'));
+				$('#options #customoption #query-text').text(currOrigQuery);
 				$('#options #customoption').removeClass('hidden')
 			}
 
