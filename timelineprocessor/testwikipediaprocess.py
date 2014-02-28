@@ -9,6 +9,7 @@ import unittest
 import json
 from pprint import pprint
 import cProfile
+import warnings
 
 import pdb
 
@@ -53,15 +54,49 @@ class TestSeparate(unittest.TestCase):
 		pprint(wikipediaprocess._separate_events(combinedEvents))
 
 
-class TestWpPageToJson(unittest.TestCase):
-	def test_particle_physics(self):
-		pprint(wikipediaprocess.wp_page_to_json("timeline of particle physics"))
-	def test_modern_hist(self):
-		pprint(wikipediaprocess.wp_page_to_json("Timeline_of_modern_history"))
-	def test_modern_hist_sep(self):
-		pprint(wikipediaprocess.wp_page_to_json("Timeline_of_modern_history", separate = True))
-	def test_ancient_hist(self):
-		pprint(wikipediaprocess.wp_page_to_json("Timeline_of_ancient_history"))
+class TestWpPageToEvents(unittest.TestCase):
+	def print_event(self, event):
+		print('%d: %s: %s' % (event['date'], event['date_string'], event['content'][:20]))
+
+	def validate_page(self, title, separate = False):
+		# beautifulSoup warns about parsing strings like ". blah" because it
+		# thinks it looks like a filename. We can safely ignore these warnings
+		warnings.filterwarnings('ignore', module='bs4')
+
+		print('validating ' + title + '...')
+
+		raw_events = wikipediaprocess._wp_page_to_events_raw(title, separate)
+		print('first and last events:')
+		self.print_event(raw_events[0])
+		self.print_event(raw_events[-1])
+
+		if len(raw_events) < 3:
+			print('fewer than 3 events:')
+			for e in raw_events:
+				self.print_event(e)
+
+		for e in [e for e in raw_events if len(e['content']) < 5]:
+			print ('short event:')
+			self.print_event(e)
+
+		# look for out of order events
+		for i, (curre, nexte) in enumerate(zip(raw_events[:-1], raw_events[1:])):
+			if curre['date'] > nexte['date']:
+				print('out of order events:')
+				if (i == 0):
+					print('---')
+				else:
+					self.print_event(raw_events[i-1])
+				self.print_event(curre)
+				self.print_event(nexte)
+				print('')
+
+	def test_one(self):
+		self.validate_page('timeline of particle physics')
+		self.validate_page('timeline of ancient history')
+		self.validate_page('Timeline_of_modern_history', separate = True)
+	def test_two(self):
+		self.validate_page('timeline of natural history')
 
 
 @unittest.skip("skipping perf tests")
