@@ -3,6 +3,8 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 	var Timeline = (function() {
 		// static class variables
 		var allTimelines = [];
+		var allFirstDate = false;
+		var allLastDate = false;
 
 		// class methods
 		var baseObject = {
@@ -76,15 +78,39 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 			},
 			setRenderEvents: function (events) {
 				this.events = events;
-				this.dateDelta = events[0].date - events[(events.length - 1)].date;
-				this.date0 = events[(events.length - 1)].date;
 			},
 			setRenderWidth: function () {
 				// local var for convenience
 				var events = this.events;
 
+				// get first and last date
 				var firstDate = events[(events.length- 1)].date;
 				var lastDate = events[0].date;
+
+				if (this.synced) {
+					var allRangeModified = false;
+					if (allFirstDate === false || firstDate < allFirstDate) {
+						allFirstDate = firstDate;
+						allRangeModified = true;
+					} else {
+						firstDate = allFirstDate;
+					}
+					if (allLastDate === false || lastDate > allLastDate) {
+						allLastDate = lastDate;
+						allRangeModified = true;
+					} else {
+						lastDate = allLastDate;
+					}
+
+					if (allRangeModified) {
+						_.each(allTimelines, function (other) {
+							if (other !== this) { other.setRenderWidth(); }
+						});
+					}
+				}
+
+				this.dateDelta = lastDate - firstDate;
+				this.firstDate = firstDate;
 
 				this.width = $(window).width();
 
@@ -168,45 +194,67 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					this.resetRenderWidth = false;
 				}
 			},
-			doRender: function () {
+			doRender: function (s, t) {
 				if (C.DEBUG) console.debug("render started");
 
-				var onlyTranslate = this.renderUpdateZoomAndBrush();
-				this.renderUpdateTimelineBody(onlyTranslate);
+				var p = this.renderUpdateZoomBrushEvents(s, t);
+				console.log(p.s + ", " + p.t);
+				this.renderUpdateTimelineBody(p.onlyTranslate);
 				this.xAxisEl.call(this.xAxis);
 				if (this.secondRender || this.resetRenderWidth) this.renderUpdateContextStrip();
 
+				if (this.synced && !(s && t)) {
+					var that = this;
+					_.each(allTimelines, function (other) {
+						if (other !== that && other.synced	) other.doRender(p.s, p.t);
+					})
+				}
+
 				if (C.DEBUG) console.debug("render finished");
 			},
-			renderUpdateZoomAndBrush: function () {
+			renderUpdateZoomBrushEvents: function (s, t) {
 				var onlyTranslate = true;
 
-				if (d3.event && d3.event.type == "zoom") {
-					var t = d3.event.translate,
-						s = d3.event.scale;
+				console.log(s + ", " + t);
+				var setZoom = true;
+				var setBrush = true;
+
+				// enforce limits on translate, make zoom and brush cohere
+				if (s && t) {
+					// we will set brush and zoom by default to s and t
+				} else if (d3.event && d3.event.type == "zoom") {
+					t = d3.event.translate;
+					s = d3.event.scale;
 
 					t[0] = Math.min(C.PANMARGIN,	// upper bound
 						Math.max(-this.width * (s - 1) - C.PANMARGIN - C.EVENTWIDTH, // lower bound
 							t[0]));
 					this.zoom.translate(t);
-				} else if (d3.event && d3.event.type == "brush") {
-					var s = this.dateDelta / (this.brush.extent()[1] - this.brush.extent()[0]);
-					var t = [this.x(this.date0) - this.x(this.brush.extent()[0]), 0]
 
-					// if this is the result of a brush, we need to change the
-					// zoom to stay up to date
-					this.zoom.translate(t);
-					this.zoom.scale(s);
+					setZoom = false;
+				} else if (d3.event && d3.event.type == "brush") {
+					s = this.dateDelta / (this.brush.extent()[1] - this.brush.extent()[0]);
+					t = [this.x(this.firstDate) - this.x(this.brush.extent()[0]), 0]
+
+					setBrush = false;
 				} else {
 					// this means that this is the first render or it's a
 					// resetRenderWidth
-					var s = this.zoom.scale();
-					var t = this.zoom.translate();
+					s = this.zoom.scale();
+					t = this.zoom.translate();
 				}
 
-				// Next, set the left/bottom coordinates appropriately
+				if (setZoom) {
+					this.zoom.translate(t);
+					this.zoom.scale(s);
+				}
+				if (setBrush) {
+					this.brush.extent(this.x.domain());
+					this.brushEl.call(this.brush);
+				}
 
-				// prevTranslateX and prevScale are guaranteed to exist
+				// Set the left/bottom coordinates appropriately
+				// Note: prevTranslateX and prevScale are guaranteed to exist
 				// because of firstRender
 				if (this.firstRender || this.resetRenderWidth || Math.abs(s - this.prevScale) > C.EPSILON) {
 					this.prevScale = s;
@@ -223,16 +271,10 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					}, this)
 					onlyTranslate = true;
 				}
-
-				// If we didn't brush, render the brush to coincide with the current view
-				if (!d3.event || d3.event.type != "brush") {
-					this.brush.extent(this.x.domain());
-					this.brushEl.call(this.brush);
-				}
 				
 				this.prevTranslateX = t[0];
 
-				return onlyTranslate;
+				return { onlyTranslate: onlyTranslate, s: s, t: t }
 			},
 			renderUpdateTimelineBody: function (onlyTranslate) {
 				// Note on transitions. Calling transition() on an element
@@ -375,6 +417,8 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 			// headerTemplate timelineHolder. data should be [metadata:
 			// {short_title, url}, events: [{date, content, importance}, ...]]
 			var that = this;
+			this.synced = true;
+
 			$(window).on('resize', function () {
 				that.setRenderWidth();
 			});
