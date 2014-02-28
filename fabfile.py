@@ -123,16 +123,16 @@ def worker_puppet():
 
 
 # Sass only works in VirtualBox Shared folder in version 3.2.10 (do not go
-# higher)
-# Polling with rb-inotify does not work, so this command needs to be
-# run every time the files are touched
-def devenv_sass():
-	local("sass --update timelineviewer/sass:timelineviewer/static/timelineviewer/css")
+# higher) Polling with rb-inotify for sass does not work, and django's
+# runserver also starts polling manually in virtualbox shared folders. So the
+# server needs to be restarted every time the files are touched
+def devgo():
+	with settings(warn_only=True):
+		local('kill `pgrep -f "python manage.py runserver"`')
+	local('sass --update timelineviewer/sass:timelineviewer/static/timelineviewer/css/')
+	local('python manage.py runserver 0.0.0.0:8000 --noreload')
 
-def devenv_serve():
-	local("python manage.py runserver 0.0.0.0:8000")
-
-def devenv_resetdb():
-	local("rm db.sqlite3 --force")
-	local("python manage.py syncdb --noinput")
-	local("python manage.py loaddata deployment/fixtures/*.json")
+def devresetdb():
+	local('rm db.sqlite3 --force')
+	local('python manage.py syncdb --noinput')
+	local('python manage.py loaddata deployment/fixtures/*.json')
