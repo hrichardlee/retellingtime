@@ -162,15 +162,19 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				}
 			},
 			doRender: function () {
-				if (C.DEBUG) console.debug("render started")
+				if (C.DEBUG) console.debug("render started");
 
+				var params = this.renderUpdateZoomAndBrush();
+				this.renderUpdateTimelineBody(params.onlyTranslate);
+				this.xAxisEl.call(this.xAxis);
+				if (this.secondRender || params.resizeWindow) this.renderUpdateContextStrip();
+
+				if (C.DEBUG) console.debug("render finished");
+			},
+			renderUpdateZoomAndBrush: function () {
 				var onlyTranslate = true;
-				var resize = false;
+				var resizeWindow = false;
 
-				// Modify events with new left/bottom coordinates
-
-				// Depending on whether we've zoomed, brushed or are on our first
-				// render, we will set s and t appropriately
 				if (d3.event && d3.event.type == "zoom") {
 					var t = d3.event.translate,
 						s = d3.event.scale;
@@ -183,6 +187,8 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					var s = this.dateDelta / (this.brush.extent()[1] - this.brush.extent()[0]);
 					var t = [this.x(this.date0) - this.x(this.brush.extent()[0]), 0]
 
+					// if this is the result of a brush, we need to change the
+					// zoom to stay up to date
 					this.zoom.translate(t);
 					this.zoom.scale(s);
 				} else {
@@ -190,16 +196,15 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					var t = this.zoom.translate();
 
 					// not zoom or brush means this is the first render or
-					// it's a resize
-					resize = !this.firstRender;
+					// it's a resizeWindow
+					resizeWindow = !this.firstRender;
 				}
 
 				// Next, set the left/bottom coordinates appropriately
 
-				// prevTranslateX and prevScale are guaranteed to exist when they are
-				// used because they are only used on the events, which will happen
-				// after the first render
-				if (this.firstRender || resize || Math.abs(s - this.prevScale) > C.EPSILON) {
+				// prevTranslateX and prevScale are guaranteed to exist
+				// because of firstRender
+				if (this.firstRender || resizeWindow || Math.abs(s - this.prevScale) > C.EPSILON) {
 					this.prevScale = s;
 					_.each(this.events, function (e) {
 						e.reset();
@@ -223,31 +228,37 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				
 				this.prevTranslateX = t[0];
 
+				return { onlyTranslate: onlyTranslate, resizeWindow: resizeWindow };
+			},
+			renderUpdateTimelineBody: function (onlyTranslate) {
+				// Note on transitions. Calling transition() on an element
+				// when another transition is in progress will cancel the
+				// existing transition. There are two bad scenarios that can
+				// happen with a naive implementation.
+				// 1. Object enters, then is moved before fade in finishes.
+				//    The fade in will be not finish and the object is left
+				//    semi-visible.
+				//  - The solution is that there is a root element that only
+				//    handles opacity transitions, and a child element that
+				//    handles transform transitions. (The opacity one being
+				//    root is necessary because the remove() call at the end
+				//    of the fade out transition.) For text elements, the root
+				//    object is a g .text-root and the transform-handling
+				//    child is a g .text- transform. For markers, the root is
+				//    a g, and the child is a line.
+				// 2. Object exits, then is supposed to re-enter before the
+				//    fade out finishes.
+				//  - The solution is to mark all exiting objects (in this
+				//    case with class 'exiting'). On an update, these objects
+				//    will not show up in the enter() selection. They will
+				//    show up in the update selection. So we check the update
+				//    selection for '.exiting' objects, and start a new
+				//    transition on them to cancel the fade out transition and
+				//    bring them back to full opacity
 
-				// Render events with new left/bottom coordinates
-
-// Note on transitions. Calling transition() on an element when another
-// transition is in progress will cancel the existing transition. There are
-// two bad scenarios that can happen with a naive implementation.
-// 1. Object enters, then is moved before fade in finishes. The fade in will
-//    be not finish and the object is left semi-visible.
-//  - The solution is that there is a root element that only handles opacity
-//    transitions, and a child element that handles transform transitions.
-//    (The opacity one being root is necessary because the remove() call at
-//    the end of the fade out transition.) For text elements, the root object
-//    is a g .text-root and the transform-handling child is a g .text-
-//    transform. For markers, the root is a g, and the child is a line.
-// 2. Object exits, then is supposed to re-enter before the fade out finishes.
-//  - The solution is to mark all exiting objects (in this case with class
-//    'exiting'). On an update, these objects will not show up in the enter()
-//    selection. They will show up in the update selection. So we check the
-//    update selection for '.exiting' objects, and start a new transition on
-//    them to cancel the fade out transition and bring them back to full
-//    opacity
-
-// - References
-//  - https://groups.google.com/forum/#!topic/d3-js/H7mLE0dF6-E
-//  - http://jsfiddle.net/xbfSU/ http://stackoverflow.com/questions/16335781/d3-js-stop-transitions-being-interrupted
+				// - References
+				//  - https://groups.google.com/forum/#!topic/d3-js/H7mLE0dF6-E
+				//  - http://jsfiddle.net/xbfSU/ http://stackoverflow.com/questions/16335781/d3-js-stop-transitions-being-interrupted
 
 				// First, create transition functions. If we are only
 				// translating elements, don't animate. If we are rendering
@@ -258,30 +269,20 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					transformTransitionFn = function (g) { return g; };
 				} else if (this.secondRender) {
 					transformTransitionFn = function (g) {
-						return g
-							.transition()
-							.duration(C.FIRST_RENDER_TRANSITION_DURATION)
-							.ease(C.FIRST_RENDER_TRANSITION_EASING);
+						return g.transition().duration(C.FIRST_RENDER_TRANSITION_DURATION).ease(C.FIRST_RENDER_TRANSITION_EASING);
 					};
 				} else {
 					transformTransitionFn = function (g) {
-						return g
-							.transition()
-							.duration(C.TRANSFORM_TRANSITION_DURATION)
-							.ease(C.TRANSFORM_TRANSITION_EASING);
+						return g.transition().duration(C.TRANSFORM_TRANSITION_DURATION).ease(C.TRANSFORM_TRANSITION_EASING);
 					}
 				}
 				var fadeIn = function (g, reset) {
 					if (reset) g.style("opacity", "0");
-					g.transition()
-						.duration(C.OPACITY_TRANSITION_DURATION)
-						.ease(C.OPACITY_TRANSITION_EASING)
+					g.transition().duration(C.OPACITY_TRANSITION_DURATION).ease(C.OPACITY_TRANSITION_EASING)
 						.style("opacity", "1");
 				};
 				var fadeOut = function (g) {
-					g.transition()
-						.duration(C.OPACITY_TRANSITION_DURATION)
-						.ease(C.OPACITY_TRANSITION_EASING)
+					g.transition().duration(C.OPACITY_TRANSITION_DURATION).ease(C.OPACITY_TRANSITION_EASING)
 						.style("opacity", "0")
 						.remove();
 				};
@@ -345,27 +346,21 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				fadeOut(exitingTexts);
 				var exitingMarkers = markers.exit().classed('exiting', true);
 				fadeOut(exitingMarkers);
-				
-				// render xAxis
-				this.xAxisEl.call(this.xAxis);
+			},
+			renderUpdateContextStrip: function () {
+				// render context
+				var contextMarkers = this.contextMarkersEl.selectAll('rect.marker')
+					.data(this.events, function (e) { return e.id(); });
 
-				if (this.secondRender || resize) {
-					// render context
-					var contextMarkers = this.contextMarkersEl.selectAll('rect.marker')
-						.data(this.events, function (e) { return e.id(); });
+				var that = this;
+				contextMarkers.enter()
+					.append('rect')
 
-					var that = this;
-					contextMarkers.enter()
-						.append('rect')
-
-					contextMarkers
-						.attr("class", "marker")
-						.attr('width', C.MARKERWIDTH)
-						.attr('height', C.CONTEXTSTRIPHEIGHT)
-						.attr('x', function (d) { return that.contextX(d.date); })
-				}
-
-				if (C.DEBUG) console.debug("render finished");
+				contextMarkers
+					.attr("class", "marker")
+					.attr('width', C.MARKERWIDTH)
+					.attr('height', C.CONTEXTSTRIPHEIGHT)
+					.attr('x', function (d) { return that.contextX(d.date); })
 			}
 		}
 
