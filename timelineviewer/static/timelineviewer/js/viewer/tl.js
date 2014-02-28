@@ -121,7 +121,18 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				this.x.domain([firstDate, lastDate]);
 				this.xAxisEl.call(this.xAxis);
 
-				// calculate values for initial/min scale
+				// calculate values for initial/min scale:
+				// - We want to set the scale to be zoomed out initially so that we can
+				// see the full text of the last event, as well as the initial margin,
+				// which we will call M. Let a, b be the dates of the first and last
+				// events. We need to find a date c such that when the timeline is
+				// rendered from a to c, the rendering of b's event text box hits the
+				// right edge of the timeline. Let W be the physical width of the
+				// timeline and We be the width of the event text box. We are looking
+				// for c such that
+				// 	   (W - We - 2 * M) * (c - a) / W + a = b
+				//		c = (b - a) * W / (W - We - 2 * M) + a
+				// Now we can scale out to (b - a) / (c - a), and translate to M
 				var c = (lastDate - firstDate)
 						* this.width / (this.width - C.EVENTWIDTH - 2 * C.FIRST_RENDER_MARGIN)
 						+ firstDate;
@@ -148,19 +159,6 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					.selectAll('rect')
 						.attr('y', 0)
 						.attr('height', C.CONTEXTSTRIPHEIGHT);
-				
-				/* Set the initial scale/translate values */
-				// We want to set the scale to be zoomed out initially so that we can
-				// see the full text of the last event, as well as the initial margin,
-				// which we will call M. Let a, b be the dates of the first and last
-				// events. We need to find a date c such that when the timeline is
-				// rendered from a to c, the rendering of b's event text box hits the
-				// right edge of the timeline. Let W be the physical width of the
-				// timeline and We be the width of the event text box. We are looking
-				// for c such that
-				// 	   (W - We - 2 * M) * (c - a) / W + a = b
-				//		c = (b - a) * W / (W - We - 2 * M) + a
-				// Now we can scale out to (b - a) / (c - a), and translate to M
 
 				if (this.firstRender) {
 					this.zoom
