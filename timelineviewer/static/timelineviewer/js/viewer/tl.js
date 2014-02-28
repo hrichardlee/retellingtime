@@ -72,6 +72,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 				this.firstRender = true;
 				this.secondRender = false;
+				this.resetRenderWidth = false;
 			},
 			setRenderEvents: function (events) {
 				this.events = events;
@@ -82,22 +83,24 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				// local var for convenience
 				var events = this.events;
 
+				var firstDate = events[(events.length- 1)].date;
+				var lastDate = events[0].date;
+
 				this.width = $(window).width();
 
 				// create scales/axes
 				this.x.range([0, this.width]);
 				this.contextX.range([0, this.width]);
 				this.xAxis.scale(this.x).orient("bottom");
-				this.x.domain([events[(events.length- 1)].date,
-					events[0].date]);
+				this.x.domain([firstDate, lastDate]);
 				this.xAxisEl.call(this.xAxis);
 
 				// calculate values for initial/min scale
-				var c = (events[0].date - events[(events.length- 1)].date)
+				var c = (lastDate - firstDate)
 						* this.width / (this.width - C.EVENTWIDTH - 2 * C.FIRST_RENDER_MARGIN)
-						+ events[(events.length- 1)].date;
-				var initialScale = (events[0].date - events[(events.length- 1)].date)
-						/ (c - events[(events.length- 1)].date);
+						+ firstDate;
+				var initialScale = (lastDate - firstDate)
+						/ (c - firstDate);
 
 				// get max zoom, set zoom
 				var minDist = null;
@@ -140,6 +143,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					this.doRender();
 
 					this.secondRender = true;
+					this.firstRender = false;
 
 					this.zoom
 						.scale(initialScale)
@@ -147,7 +151,6 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					this.contextX.domain(this.x.domain());
 					this.doRender();
 					
-					this.firstRender = false;
 					this.secondRender = false;
 				} else {
 					// this is just to set the contextX domain correctly
@@ -159,21 +162,24 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					this.zoom
 						.scale(this.prevScale)
 						.translate([this.prevTranslateX, 0]);
+
+					this.resetRenderWidth = true;
+					this.doRender();
+					this.resetRenderWidth = false;
 				}
 			},
 			doRender: function () {
 				if (C.DEBUG) console.debug("render started");
 
-				var params = this.renderUpdateZoomAndBrush();
-				this.renderUpdateTimelineBody(params.onlyTranslate);
+				var onlyTranslate = this.renderUpdateZoomAndBrush();
+				this.renderUpdateTimelineBody(onlyTranslate);
 				this.xAxisEl.call(this.xAxis);
-				if (this.secondRender || params.resizeWindow) this.renderUpdateContextStrip();
+				if (this.secondRender || this.resetRenderWidth) this.renderUpdateContextStrip();
 
 				if (C.DEBUG) console.debug("render finished");
 			},
 			renderUpdateZoomAndBrush: function () {
 				var onlyTranslate = true;
-				var resizeWindow = false;
 
 				if (d3.event && d3.event.type == "zoom") {
 					var t = d3.event.translate,
@@ -192,19 +198,17 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					this.zoom.translate(t);
 					this.zoom.scale(s);
 				} else {
+					// this means that this is the first render or it's a
+					// resetRenderWidth
 					var s = this.zoom.scale();
 					var t = this.zoom.translate();
-
-					// not zoom or brush means this is the first render or
-					// it's a resizeWindow
-					resizeWindow = !this.firstRender;
 				}
 
 				// Next, set the left/bottom coordinates appropriately
 
 				// prevTranslateX and prevScale are guaranteed to exist
 				// because of firstRender
-				if (this.firstRender || resizeWindow || Math.abs(s - this.prevScale) > C.EPSILON) {
+				if (this.firstRender || this.resetRenderWidth || Math.abs(s - this.prevScale) > C.EPSILON) {
 					this.prevScale = s;
 					_.each(this.events, function (e) {
 						e.reset();
@@ -228,7 +232,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				
 				this.prevTranslateX = t[0];
 
-				return { onlyTranslate: onlyTranslate, resizeWindow: resizeWindow };
+				return onlyTranslate;
 			},
 			renderUpdateTimelineBody: function (onlyTranslate) {
 				// Note on transitions. Calling transition() on an element
@@ -373,7 +377,6 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 			var that = this;
 			$(window).on('resize', function () {
 				that.setRenderWidth();
-				that.doRender();
 			});
 
 			var events = _.map(p.data.events, function(ev) {
