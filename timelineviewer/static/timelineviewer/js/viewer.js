@@ -31,8 +31,10 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 	}
 
 	$(function() {
+		// This section is for scrolling vertically through the page
 		// This is extremely loosely based on http://azoff.github.io/overscroll/
-		var $target = $('#frame')
+		var $target = $('#frame');
+		var excludes = [$('#query')];
 
 		var posY;
 
@@ -41,9 +43,16 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 		$target.on('select dragstart drag', ignore);
 
 		function start(event) {
-			event.preventDefault();
-			$target.on('mousemove', drag)
-			posY = event.pageY;
+			var $currEl = $(document.elementFromPoint(event.clientX, event.clientY));
+
+			// only start dragging if we're not on top of an excluded element
+			if (_.every(excludes, function (exclude) {
+				return !$currEl.is(exclude);
+			})) {
+				event.preventDefault();
+				$target.on('mousemove', drag)
+				posY = event.pageY;
+			}
 		}
 
 		function drag(event) {
@@ -60,9 +69,6 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 		function ignore(event) {
 			event.preventDefault();
 		}
-
-
-
 
 
 		// All timeline-adder stuff
