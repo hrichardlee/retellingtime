@@ -18,59 +18,59 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 			createRenderAndSvg: function (timelineholder, headerTemplate, metadata) {
 				var that = this;
 
-				var baseEl = timelineholder.append("div");
-				baseEl.append("div").html(headerTemplate(metadata));
+				var baseEl = timelineholder.append('div');
+				baseEl.append('div').html(headerTemplate(metadata));
 
 				// initialize svg and such
-				this.svg = baseEl.append("svg")
-					.attr("height", C.TOTALTIMELINEHEIGHT);
-				this.svg.attr("width", "100%");
+				this.svg = baseEl.append('svg')
+					.attr('height', C.TOTALTIMELINEHEIGHT);
+				this.svg.attr('width', '100%');
 
-				this.svg.append("defs").append("clipPath")
-					.attr("id", "clip");
+				this.svg.append('defs').append('clipPath')
+					.attr('id', 'clip');
 
 
-				this.focus = this.svg.append("g");
+				this.focus = this.svg.append('g');
 
 				this.zoom = d3.behavior.zoom()
-					.on("zoom", function () { that.doRender(); });
+					.on('zoom', function () { that.doRender(); });
 				this.focus.call(this.zoom);
 				this.x = d3.scale.linear();
 
-				this.focus.append("rect")
-					.attr("height", C.TIMELINEHEIGHT)
-					.attr("class", "background")
-					.attr("width", "100%");
+				this.focus.append('rect')
+					.attr('height', C.TIMELINEHEIGHT)
+					.attr('class', 'background')
+					.attr('width', '100%');
 
-				this.focus.append("g")
-					.attr("class", "markers");
-				this.focus.append("g")
-					.attr("class", "text-elements");
+				this.focus.append('g')
+					.attr('class', 'markers');
+				this.focus.append('g')
+					.attr('class', 'text-elements');
 
 
-				this.xAxisEl = this.svg.append("g")
-					.attr("class", "x axis")
-					.attr("height", C.AXISHEIGHT)
-					.attr("transform", "translate(0," + C.TIMELINEHEIGHT + ")");
+				this.xAxisEl = this.svg.append('g')
+					.attr('class', 'x axis')
+					.attr('height', C.AXISHEIGHT)
+					.attr('transform', 'translate(0,' + C.TIMELINEHEIGHT + ')');
 
 				this.xAxis = d3.svg.axis();
 
 
-				var context = this.svg.append("g")
-					.attr("height", C.CONTEXTSTRIPHEIGHT)
-					.attr("transform", "translate(0," + (C.TIMELINEHEIGHT + C.AXISHEIGHT) + ")");
+				var context = this.svg.append('g')
+					.attr('height', C.CONTEXTSTRIPHEIGHT)
+					.attr('transform', 'translate(0,' + (C.TIMELINEHEIGHT + C.AXISHEIGHT) + ')');
 
 				this.contextX = d3.scale.linear();
 
-				this.contextMarkersEl = context.append("g")
-					.attr("width", "100%");
+				this.contextMarkersEl = context.append('g')
+					.attr('width', '100%');
 
 				this.brush = d3.svg.brush()
 					.x(this.contextX)
-					.on("brush", function () { that.brushed(); } );
+					.on('brush', function () { that.brushed(); } );
 
-				this.brushEl = context.append("g")
-					.attr("class", "x brush");
+				this.brushEl = context.append('g')
+					.attr('class', 'x brush');
 
 				this.firstRender = true;
 				this.secondRender = false;
@@ -117,7 +117,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				// create scales/axes
 				this.x.range([0, this.width]);
 				this.contextX.range([0, this.width]);
-				this.xAxis.scale(this.x).orient("bottom");
+				this.xAxis.scale(this.x).orient('bottom');
 				this.x.domain([firstDate, lastDate]);
 				this.xAxisEl.call(this.xAxis);
 
@@ -145,9 +145,9 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				// set context brush
 				this.brushEl
 					.call(this.brush)
-					.selectAll("rect")
-						.attr("y", 0)
-						.attr("height", C.CONTEXTSTRIPHEIGHT);
+					.selectAll('rect')
+						.attr('y', 0)
+						.attr('height', C.CONTEXTSTRIPHEIGHT);
 				
 				/* Set the initial scale/translate values */
 				// We want to set the scale to be zoomed out initially so that we can
@@ -195,10 +195,9 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				}
 			},
 			doRender: function (s, t) {
-				if (C.DEBUG) console.debug("render started");
+				if (C.DEBUG) console.debug('render started');
 
 				var p = this.renderUpdateZoomBrushEvents(s, t);
-				console.log(p.s + ", " + p.t);
 				this.renderUpdateTimelineBody(p.onlyTranslate);
 				this.xAxisEl.call(this.xAxis);
 				if (this.secondRender || this.resetRenderWidth) this.renderUpdateContextStrip();
@@ -210,19 +209,18 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					})
 				}
 
-				if (C.DEBUG) console.debug("render finished");
+				if (C.DEBUG) console.debug('render finished');
 			},
 			renderUpdateZoomBrushEvents: function (s, t) {
 				var onlyTranslate = true;
 
-				console.log(s + ", " + t);
 				var setZoom = true;
 				var setBrush = true;
 
 				// enforce limits on translate, make zoom and brush cohere
 				if (s && t) {
 					// we will set brush and zoom by default to s and t
-				} else if (d3.event && d3.event.type == "zoom") {
+				} else if (d3.event && d3.event.type == 'zoom') {
 					t = d3.event.translate;
 					s = d3.event.scale;
 
@@ -232,7 +230,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					this.zoom.translate(t);
 
 					setZoom = false;
-				} else if (d3.event && d3.event.type == "brush") {
+				} else if (d3.event && d3.event.type == 'brush') {
 					s = this.dateDelta / (this.brush.extent()[1] - this.brush.extent()[0]);
 					t = [this.x(this.firstDate) - this.x(this.brush.extent()[0]), 0]
 
@@ -323,13 +321,13 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					}
 				}
 				var fadeIn = function (g, reset) {
-					if (reset) g.style("opacity", "0");
+					if (reset) g.style('opacity', '0');
 					g.transition().duration(C.OPACITY_TRANSITION_DURATION).ease(C.OPACITY_TRANSITION_EASING)
-						.style("opacity", "1");
+						.style('opacity', '1');
 				};
 				var fadeOut = function (g) {
 					g.transition().duration(C.OPACITY_TRANSITION_DURATION).ease(C.OPACITY_TRANSITION_EASING)
-						.style("opacity", "0")
+						.style('opacity', '0')
 						.remove();
 				};
 
@@ -340,15 +338,15 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					.data(this.scopedEvents, function (e) { return e.id(); });
 
 				// update elements
-				transformTransitionFn(textElements.select("g.text-transform"))
-					.attr("transform", function (d) {
-						return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
+				transformTransitionFn(textElements.select('g.text-transform'))
+					.attr('transform', function (d) {
+						return 'translate(' + d.left + ', ' + (C.TIMELINEHEIGHT - d.bottom - d.height) + ')';
 					});
-				transformTransitionFn(markers.select("line"))
-					.attr("transform", function (d) {
-						return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
+				transformTransitionFn(markers.select('line'))
+					.attr('transform', function (d) {
+						return 'translate(' + d.left + ', ' + (C.TIMELINEHEIGHT - d.bottom - d.height) + ')';
 					})
-					.attr("y2", function (d) { return d.bottom + d.height; });
+					.attr('y2', function (d) { return d.bottom + d.height; });
 				// this catches elements that are transitioning for exiting,
 				// have not finished their transition yet, and were
 				// reintroduced.
@@ -359,33 +357,33 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 				// only entering text elements
 				var textElementsEnter = textElements.enter()
-					.append("g")
-					.attr("class", "text-root")
+					.append('g')
+					.attr('class', 'text-root')
 				fadeIn(textElementsEnter, true)
 				var textInnerTransformGroup = textElementsEnter
-					.append("g")
-					.attr("class", "text-transform")
-					.attr("transform", function (d) {
-						return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
+					.append('g')
+					.attr('class', 'text-transform')
+					.attr('transform', function (d) {
+						return 'translate(' + d.left + ', ' + (C.TIMELINEHEIGHT - d.bottom - d.height) + ')';
 					})
-					.append("foreignObject")
-					.attr("height", function (d) {return d.height; })
-					.attr("width", C.EVENTWIDTH)
-					.append("xhtml:div")
+					.append('foreignObject')
+					.attr('height', function (d) {return d.height; })
+					.attr('width', C.EVENTWIDTH)
+					.append('xhtml:div')
 					.html(function (d) { return d.html(); })
 
 				// only entering marker elements
 				var markersEnter = markers.enter()
-					.append("g");
+					.append('g');
 				fadeIn(markersEnter, true);
-				markersEnter.append("line")
-					.attr("transform", function (d) {
-						return "translate(" + d.left + ", " + (C.TIMELINEHEIGHT - d.bottom - d.height) + ")";
+				markersEnter.append('line')
+					.attr('transform', function (d) {
+						return 'translate(' + d.left + ', ' + (C.TIMELINEHEIGHT - d.bottom - d.height) + ')';
 					})
-					.attr("x1", "0")
-					.attr("x2", "0")
-					.attr("y1", C.MARKEREXTRAHEIGHT)
-					.attr("y2", function (d) { return d.bottom + d.height; })
+					.attr('x1', '0')
+					.attr('x2', '0')
+					.attr('y1', C.MARKEREXTRAHEIGHT)
+					.attr('y2', function (d) { return d.bottom + d.height; })
 				
 				// only removed elements
 				var exitingTexts = textElements.exit().classed('exiting', true);
@@ -403,7 +401,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					.append('rect')
 
 				contextMarkers
-					.attr("class", "marker")
+					.attr('class', 'marker')
 					.attr('width', C.MARKERWIDTH)
 					.attr('height', C.CONTEXTSTRIPHEIGHT)
 					.attr('x', function (d) { return that.contextX(d.date); })

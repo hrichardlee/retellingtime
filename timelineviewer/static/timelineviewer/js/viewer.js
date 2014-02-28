@@ -22,9 +22,9 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 		$.get(url, function(data) {
 			var timeline = new tl.Timeline({
 				data: data,
-				eventTemplate: _.template($("#event-template").html()),
-				invisibleEventsHolder: $("#invisible-events-holder"),
-				headerTemplate: _.template($("#header-template").html()),
+				eventTemplate: _.template($('#event-template').html()),
+				invisibleEventsHolder: $('#invisible-events-holder'),
+				headerTemplate: _.template($('#header-template').html()),
 				timelineHolder: d3.select('#timelines')
 			});
 		});
@@ -68,7 +68,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 		// All timeline-adder stuff
 
 		$('#options .option a').click(function (e) {
-			// each link has an id of the form "t-26". The "t-" is to
+			// each link has an id of the form 't-26'. The 't-' is to
 			// namespace these ids so they don't collide with other elements
 			// on the page. substring(2) reverses this to get the id back. We
 			// construct the /timelinedata/26/ url manually here. Ideally

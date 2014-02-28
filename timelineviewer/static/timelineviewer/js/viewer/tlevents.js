@@ -25,7 +25,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 	// until height of the blocks removed equals or exceeds verticalHeight.
 	// Not guaranteed to actually move the block down
 	function hideDependentBlocks(block, verticalHeight) {
-		if (C.DEBUG) console.debug("hideDependentBlocks: " + block.content);
+		if (C.DEBUG) console.debug('hideDependentBlocks: ' + block.content);
 		var blocks = [];
 		var origBlock = block;
 		var i = 0;
@@ -58,7 +58,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 			}
 		}
 
-		if (C.DEBUG) console.debug("done with hideDependentBlocks");
+		if (C.DEBUG) console.debug('done with hideDependentBlocks');
 	}
 	// Given a block, does not reposition it, and calls
 	// layoutDependentChainBlock on the dependingBlocks. Each chain
@@ -66,7 +66,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 	// all chains return true, then true is returned. If at least one
 	// chain returns false, then false is returned.
 	function layoutDependentChains(startingBlock) {
-		if (C.DEBUG) console.debug("Dependent chains " + startingBlock.content.slice(0, 20));
+		if (C.DEBUG) console.debug('Dependent chains ' + startingBlock.content.slice(0, 20));
 
 		var revisit = [startingBlock]
 
@@ -106,7 +106,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 			revisit = localRevisit.concat(revisit);
 		}
 
-		if (C.DEBUG) console.debug("Dependent chains finished");
+		if (C.DEBUG) console.debug('Dependent chains finished');
 	}
 	// Given a block, repositions that block and then walks the
 	// dependingBlocks chain (starting with the left-most if there is a
@@ -163,7 +163,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 		var i = chains.length - 1;
 		var reset = null;
 		while (i >= 0 || reset) {
-			if (C.DEBUG) console.debug("layoutViewChains i=" + i);
+			if (C.DEBUG) console.debug('layoutViewChains i=' + i);
 
 			var block = chains[i].firstBlock;
 			var prevChainBlock = block.prevChain
@@ -178,12 +178,12 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 				}
 				block = block.nextBlock;
 			}
-			if (C.DEBUG) console.debug("layoutViewChains i=" + i + " done");
+			if (C.DEBUG) console.debug('layoutViewChains i=' + i + ' done');
 
 			i--;
 		}
 
-		if (C.DEBUG) console.debug("layoutViewChains done");
+		if (C.DEBUG) console.debug('layoutViewChains done');
 	}
 
 	function makeViewChains (events) {
