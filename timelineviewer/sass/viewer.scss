@@ -132,6 +132,13 @@ h2 {
 			}
 		}
 
+		.context-markers {
+			line.marker {
+				stroke-width: 2;
+				shape-rendering: crispEdges;
+			}
+		}
+
 		.brush .extent {
 			stroke: #fff;
 			fill-opacity: .125;

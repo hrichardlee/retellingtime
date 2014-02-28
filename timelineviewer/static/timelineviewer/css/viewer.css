@@ -82,6 +82,9 @@ h2 {
       shape-rendering: crispEdges; }
     #timelines svg .axis text {
       fill: #93a1a1; }
+    #timelines svg .context-markers line.marker {
+      stroke-width: 2;
+      shape-rendering: crispEdges; }
     #timelines svg .brush .extent {
       stroke: #fff;
       fill-opacity: .125;

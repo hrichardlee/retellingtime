@@ -63,7 +63,8 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				this.contextX = d3.scale.linear();
 
 				this.contextMarkersEl = context.append('g')
-					.attr('width', '100%');
+					.attr('width', '100%')
+					.classed('context-markers', true);
 
 				this.brush = d3.svg.brush()
 					.x(this.contextX)
@@ -198,7 +199,8 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				var p = this.renderUpdateZoomBrushEvents(s, t);
 				this.renderUpdateTimelineBody(p.onlyTranslate);
 				this.xAxisEl.call(this.xAxis);
-				if (this.secondRender || this.resetRenderWidth) this.renderUpdateContextStrip();
+				//if (this.secondRender || this.resetRenderWidth)
+					this.renderUpdateContextStrip();
 
 				if (this.synced && !(s && t)) {
 					var that = this;
@@ -391,18 +393,35 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 			},
 			renderUpdateContextStrip: function () {
 				// render context
-				var contextMarkers = this.contextMarkersEl.selectAll('rect.marker')
+				var contextMarkers = this.contextMarkersEl.selectAll('line.marker')
 					.data(this.events, function (e) { return e.id(); });
 
 				var that = this;
 				contextMarkers.enter()
-					.append('rect')
+					.append('line')
+					.classed('marker', true)
+					.attr('y1', 0)
+					.attr('y2', C.CONTEXTSTRIPHEIGHT)
 
 				contextMarkers
-					.classed('marker', true)
-					.attr('width', C.MARKERWIDTH)
-					.attr('height', C.CONTEXTSTRIPHEIGHT)
-					.attr('x', function (d) { return that.contextX(d.date); })
+					.style('stroke', function (e) { return that.contextMarkerColor(e); })
+					.attr('x1', function (e) { return that.contextX(e.date); })
+					.attr('x2', function (e) { return that.contextX(e.date); })
+			},
+			contextMarkerColor: function (event) {
+				// requires that this.maxImportance gets set
+				if (!this.maxImportance) {
+					this.maxImportance = Math.max.apply(null, _.map(this.events, function (e) { return e.importance; }));
+				}
+
+				var scaledImportance = Math.max(0, event.importance / this.maxImportance);
+				var intensity = Math.min(1, scaledImportance * 0.8 + 0.5);
+
+				var hidden = event.hidden || event.date <= this.x.domain()[0] || event.date >= this.x.domain()[1];
+
+				return hidden
+					? 'rgba(' + C.FGDARK_RGB + ', ' + scaledImportance + ')'
+					: 'rgba(' + C.CYAN_RGB + ', ' + scaledImportance + ')';
 			}
 		}
 

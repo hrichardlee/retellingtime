@@ -8,7 +8,6 @@ define([], function () {
 	C.EVENTWIDTH = 188;
 	// make the marker shorter to compensate for event-text margin and leading in text and padding
 	C.MARKEREXTRAHEIGHT = 4 + 2;
-	C.MARKERWIDTH = 2;
 
 	C.TRANSFORM_TRANSITION_DURATION = 250;
 	C.TRANSFORM_TRANSITION_EASING = 'linear';
@@ -25,6 +24,9 @@ define([], function () {
 	C.DEBUG = false;
 
 	C.EPSILON = 0.000001;
+
+	C.FGDARK_RGB = '88, 110, 117';
+	C.CYAN_RGB = '42, 161, 152';
 
 	return C;
 });
