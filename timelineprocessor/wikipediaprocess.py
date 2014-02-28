@@ -46,7 +46,7 @@ def _wp_page_to_events_raw(title, separate = False):
 
 def wp_page_to_events(title, separate = False):
 	"""Takes the title of a timeline page on Wikipedia and returns a list of
-	events {date: number, content: string}"""
+	events {date: number, date_string: string, content: string}"""
 	events = _wp_page_to_events_raw(title, separate = False)
 	_add_importance_to_events(events)
 	events.sort(key=lambda e: e["date"], reverse=True)
@@ -91,7 +91,7 @@ def _separate_events(events):
 			for start, end in _sentence_splitter.span_tokenize(htmlsplitter.text_string))
 		for s in separated:
 			# not sure whether to go for interface consistency or not having to reparse
-			new_events.append({"date": e["date"], "content": unicode(s)})
+			new_events.append({"date": e["date"], "date_string": e["date_string"], "content": unicode(s)})
 	return new_events
 
 
@@ -164,7 +164,11 @@ def _string_blocks_to_events(string_blocks, line_break = "<br />",
 				if extract:
 					if curr_event:
 						events.append(curr_event)
-					curr_event = {"date": extract[0].simple_year, "content": extract[1]}
+					curr_event = {
+						"date": extract[0].simple_year,
+						"date_string": extract[1],
+						"content": extract[2]
+					}
 				else:
 					if curr_event:
 						curr_event["content"] += line_break + string

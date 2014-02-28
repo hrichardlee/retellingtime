@@ -281,6 +281,7 @@ def parse_date_html(html_string):
 		return None
 	(date, date_index) = extract
 	content_offset += date_index
+	date_string = html_splitter.get_span(0, date_index)
 
 	# strip out any transition characters between the date and the content
 	m = re.search(u'^[\s\-–—:\.]+', s[content_offset:])
@@ -290,4 +291,4 @@ def parse_date_html(html_string):
 	content = "" if content_offset >= len(s) \
 		else html_splitter.get_span(content_offset, len(s))
 
-	return (date, content)
+	return (date, date_string, content)
