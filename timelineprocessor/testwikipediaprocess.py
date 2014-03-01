@@ -62,7 +62,15 @@ class TestAddImportanceToEvents(unittest.TestCase):
 
 class TestSeparate(unittest.TestCase):
 	def testOne(self):
-		pprint(wikipediaprocess._separate_events(combinedEvents))
+		evs = wikipediaprocess._separate_events(combinedEvents)
+		pprint(evs)
+		self.assertEqual(len(evs), 32)
+		for e in evs[0:12]:
+			self.assertEqual(e['date'], 2010)
+		for e in evs[12:25]:
+			self.assertEqual(e['date'], 2011)
+		for e in evs[25:32]:
+			self.assertEqual(e['date'], 2012)			
 
 
 class TestWpPageToEvents(unittest.TestCase):
