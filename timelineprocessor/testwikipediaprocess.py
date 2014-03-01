@@ -66,6 +66,23 @@ class TestSeparate(unittest.TestCase):
 
 
 class TestWpPageToEvents(unittest.TestCase):
+	def test_one(self):
+		self.validate_pages([
+			'Timeline of natural history',
+			'Timeline of human prehistory',
+			'Timeline of ancient history',
+		])
+		self.validate_pages([
+			'Timeline of modern history',
+		], separate = True)
+	def failing(self):
+		self.validate_pages([
+			'Timeline of the Middle Ages',
+			'Timeline of early modern history',
+			'Timeline of country and capital changes',
+			'Timeline of European exploration',
+		])
+
 	def print_event(self, event):
 		print('%d: %s: %s' % (event['date'], event['date_string'], event['content'][:20]))
 
@@ -107,23 +124,6 @@ class TestWpPageToEvents(unittest.TestCase):
 	def validate_pages(self, titles, separate = False):
 		for t in titles:
 			self.validate_page(t, separate)
-
-	def test_one(self):
-		self.validate_pages([
-			'Timeline of natural history',
-			'Timeline of human prehistory',
-			'Timeline of ancient history',
-		])
-		self.validate_pages([
-			'Timeline of modern history',
-		], separate = True)
-	def test_failing(self):
-		self.validate_pages([
-			'Timeline of the Middle Ages',
-			'Timeline of early modern history',
-			'Timeline of country and capital changes',
-			'Timeline of European exploration',
-		])
 
 
 @unittest.skip("skipping perf tests")
