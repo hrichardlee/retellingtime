@@ -141,26 +141,24 @@ def _html_to_string_blocks(html,
 				curr_heading += [''] * (heading_index - len(curr_heading)) 
 			# heading is usually under mw-headline, but sometimes is not
 			curr_heading.append(el.find(class_='mw-headline').text if el.find(class_='mw-headline') else el.get_text())
+
 			curr_string_block = {'lines': [], 'heading': curr_heading}
-			# curr_string = None
+			curr_string = ''
 		elif el.name in block_elements:
 			close_string(curr_string_block, curr_string)
-			curr_string = ''
+
 			# assumes no header elements under block elements
 			child_string_blocks = _html_to_string_blocks(el)
 			if child_string_blocks:
 				curr_string_block['lines'] += child_string_blocks[0]['lines']
+
+			curr_string = ''
 		elif el.name == 'table':
 			close_string(curr_string_block, curr_string)
-			curr_string = None
 			curr_string_block['lines'].append({'line_type': LineTypes.table, 'line': el})
+			curr_string = ''
 		else:
-			if curr_string != None:
-				curr_string += unicode(el)
-			# if curr_string is None, that means that there is a non-block
-			# element immediately after a heading or table or something like
-			# that. In that case, we should just discard the line. It is
-			# probably malformed. TODO log the line
+			curr_string += unicode(el)
 
 	close_string_blocks(string_blocks, curr_string_block, curr_string)
 
@@ -174,8 +172,12 @@ def _string_blocks_to_events(string_blocks, line_break = '<br />',
 	events. A timeline event is {date: number, date_string: string, content: string}
 	"""
 
-	curr_event = {}
+	curr_event = None
 	events = []
+
+	def close_event(es, e):
+		if e:
+			es.append(e)
 
 	for string_block in string_blocks:
 		if string_block['heading'][0] not in ignore_sections:
@@ -184,8 +186,7 @@ def _string_blocks_to_events(string_blocks, line_break = '<br />',
 					extract = parse_date_html(line['line'])
 					# if we can extract a date, create a new event
 					if extract:
-						if curr_event:
-							events.append(curr_event)
+						close_event(events, curr_event)
 						curr_event = {
 							'date': extract[0].simple_year,
 							'date_string': extract[1],
@@ -193,17 +194,14 @@ def _string_blocks_to_events(string_blocks, line_break = '<br />',
 						}
 					# if we can't extract a date, append the line to the
 					# current event if there is one
-					else:
-						if curr_event:
-							curr_event['content'] += line_break + line['line']
+					elif curr_event:
+						curr_event['content'] += line_break + line['line']
 				elif line['line_type'] == LineTypes.table:
-					if curr_event:
-						events.append(curr_event)
+					close_event(events, curr_event)
 					events += _table_to_events(line['line'])
 					curr_event = None
-			if curr_event:
-				events.append(curr_event)
-				curr_event = None
+			close_event(events, curr_event)
+			curr_event = None
 
 	return events
 
