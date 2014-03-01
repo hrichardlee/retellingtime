@@ -83,9 +83,10 @@ class TestWpPageToEvents(unittest.TestCase):
 		self.validate_pages([
 			'Timeline of modern history',
 		], separate = True)
+	def test_two(self):
+		self.validate_pages(['Timeline of the Middle Ages'])
 	def failing(self):
 		self.validate_pages([
-			'Timeline of the Middle Ages',
 			'Timeline of early modern history',
 			'Timeline of country and capital changes',
 			'Timeline of European exploration',

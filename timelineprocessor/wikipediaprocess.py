@@ -206,8 +206,49 @@ def _string_blocks_to_events(string_blocks, line_break = '<br />',
 	return events
 
 
+def _bs_inner_html(soup):
+	"""Gets the inner html (almost) of a BeautifulSoup element. It is slightly
+	different than the javascript function because it drops all comments and
+	comment-like items"""
+	return ''.join(unicode(c) for c in soup.children if
+		not isinstance(c, bs4.Comment) and
+		not isinstance(c, bs4.CData) and
+		not isinstance(c, bs4.ProcessingInstruction) and
+		not isinstance(c, bs4.Declaration) and
+		not isinstance(c, bs4.Doctype))
+
+
 def _table_to_events(table):
-	return []
+	"""Given a table html element as a BeautifulSoup, returns a list of
+	"""
+	events = []
+
+	year_col_candidates = []
+	for row in table.find_all('tr'):
+		cells = row.find_all('th')
+		for i, cell in enumerate(cells):
+			if cell.get_text().strip().lower() == 'year':
+				year_col_candidates.append(i)
+	# we would like to pick the lowest index that is the max, and this happens
+	# with cPython's implementation of max, but is not in the spec. So this is
+	# a quick hack
+	year_col_index = max(set(year_col_candidates), key=year_col_candidates.count)
+
+	for row in table.find_all('tr'):
+		cells = row.find_all('td')
+
+		if len(cells) > year_col_index:
+			extract = parse_date_html(_bs_inner_html(cells[year_col_index]))
+			if extract:
+				del cells[year_col_index]
+				content = ''.join(_bs_inner_html(cell) for cell in cells)
+				events.append({
+					'date': extract[0].simple_year,
+					'date_string': extract[1],
+					'content': content
+				})
+
+	return events
 
 
 def _add_importance_to_events(events):
