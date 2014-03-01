@@ -72,7 +72,7 @@ class TimelineDate:
 		return self.__dict__ == other.__dict__
 
 	def __repr__(self):
-		return "TimelineDate(%r, %r, %r, %r)" % \
+		return 'TimelineDate(%r, %r, %r, %r)' % \
 			(self.start_year, self.start_year_approx, self.end_year, self.end_year_approx)
 
 
@@ -174,48 +174,48 @@ def parse_date_text(text):
 	
 	# these are all very closely tied to date_grammar
 	def numetostring(nume):
-		return "".join(l for l in nume.leaves() if l.isdigit())
+		return ''.join(l for l in nume.leaves() if l.isdigit())
 	def num(num):
-		if num[0].node == "NUME":
+		if num[0].node == 'NUME':
 			return TimelineDate(int(numetostring(num[0])), False)
-		elif num[0].node == "NUMQ":
+		elif num[0].node == 'NUMQ':
 			return TimelineDate(
-				[int(numetostring(n)) for n in num[0] if n.node == "NUME"][0],
+				[int(numetostring(n)) for n in num[0] if n.node == 'NUME'][0],
 				True)
 	def dece(dece):
 		if len(dece) == 1: return int(numetostring(dece[0]))
-		else: return float(numetostring(dece[0]) + "." + numetostring(dece[2]))
+		else: return float(numetostring(dece[0]) + '.' + numetostring(dece[2]))
 	def dec(dec):
-		if dec[0].node == "DECE":
+		if dec[0].node == 'DECE':
 			return TimelineDate(dece(dec[0]), False)
-		elif dec[0].node == "DECQ":
-			return TimelineDate([dece(n) for n in dec[0] if n.node == "DECE"][0], True)
-		elif dec[0].node == "DECQQ":
+		elif dec[0].node == 'DECQ':
+			return TimelineDate([dece(n) for n in dec[0] if n.node == 'DECE'][0], True)
+		elif dec[0].node == 'DECQQ':
 			return TimelineDate(dece(dec[0][0]), dece(dec[0][4]))
 	def period(period):
-		isad = period.node == "PERIODAD"
+		isad = period.node == 'PERIODAD'
 
 		n = num(period[0][0][0])
-		if period[0][2].node == "century": factor = 100
-		elif period[0][2].node == "millenium": factor = 1000
+		if period[0][2].node == 'century': factor = 100
+		elif period[0][2].node == 'millenium': factor = 1000
 
 		if isad:
 			return TimelineDate.span_from_years(n * factor - factor, n * factor)
 		else:
 			return TimelineDate.span_from_years(-n * factor, -n * factor + factor)
 	def year(year):
-		if year.node == "YBC": return -num(year[0])
-		elif year.node == "YAD": return num(year[0])
+		if year.node == 'YBC': return -num(year[0])
+		elif year.node == 'YAD': return num(year[0])
 	def _has_child_node(n, label):
 		return [i for i, c in enumerate(n) if hasattr(c, 'node') and c.node == label]
 	def daterange(r):
-		if r[0].node == "DATE" and r[0][0].node != "YAD" and r[0][0].node != "PERIODAD":
+		if r[0].node == 'DATE' and r[0][0].node != 'YAD' and r[0][0].node != 'PERIODAD':
 			first = date(r[0])
 		else:
 			# this if/else deals with interpretations of 12-34 b.c. as YAD TO YBC
-			if r[0][0].node == "YAD":
+			if r[0][0].node == 'YAD':
 				replacement_node = r[0][0][0]
-			elif r[0][0].node == "PERIODAD":
+			elif r[0][0].node == 'PERIODAD':
 				replacement_node = r[0][0][0][0]
 			else:
 				replacement_node = r[0]
@@ -229,28 +229,28 @@ def parse_date_text(text):
 
 		return TimelineDate.span_from_dates(first, date(r[2]))
 	def date(date):
-		if date[0].node == "YAD" or date[0].node == "YBC":
+		if date[0].node == 'YAD' or date[0].node == 'YBC':
 			return year(date[0])
-		elif date[0].node == "PERIODAD" or date[0].node == "PERIODBC":
+		elif date[0].node == 'PERIODAD' or date[0].node == 'PERIODBC':
 			return period(date[0])
 	def yearsago(yearsago):
 		# not currently adjusting for the 2014 years since 0 A.D....
-		if yearsago[0].node == "YAS":
+		if yearsago[0].node == 'YAS':
 			return -num(yearsago[0][0])
-		elif yearsago[0].node == "YAR":
+		elif yearsago[0].node == 'YAR':
 			return TimelineDate.span_from_years(-num(yearsago[0][0]), -num(yearsago[0][2]))
-		elif yearsago[0].node == "MAS":
+		elif yearsago[0].node == 'MAS':
 			return -dec(yearsago[0][0]) * 1000000
-		elif yearsago[0].node == "MAR":
+		elif yearsago[0].node == 'MAR':
 			return TimelineDate.span_from_years(-dec(yearsago[0][0]), -dec(yearsago[0][2])) * 1000000
 
 
 	# pdb.set_trace()
-	if parse[0].node == "DATE":
+	if parse[0].node == 'DATE':
 		result = date(parse[0])
-	elif parse[0].node == "YEARSAGO":
+	elif parse[0].node == 'YEARSAGO':
 		result = yearsago(parse[0])
-	elif parse[0].node == "DATERANGE":
+	elif parse[0].node == 'DATERANGE':
 		result = daterange(parse[0])
 	return (result, len(date_text))
 
@@ -288,7 +288,7 @@ def parse_date_html(html_string):
 	if m:
 		content_offset += m.end()
 
-	content = "" if content_offset >= len(s) \
+	content = '' if content_offset >= len(s) \
 		else html_splitter.get_span(content_offset, len(s))
 
 	return (date, date_string, content)

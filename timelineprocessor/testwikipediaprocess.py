@@ -28,21 +28,21 @@ class TestHtmlToStringBlocks(unittest.TestCase):
 
 class TestStringBlocksToEvents(unittest.TestCase):
 	def p(self, data):
-		pprint([str(x["date"]) + ":::" + x["content"][:60] for x in data])
-	def testOne(self):
+		pprint([str(x['date']) + ':::' + x['content'][:60] for x in data])
+	def test_one(self):
 		evs = wikipediaprocess._string_blocks_to_events(stringblocksone)
 		self.p(evs)
 		self.assertEqual(len(evs), 3)
-	def testTwo(self):
+	def test_two(self):
 		evs = wikipediaprocess._string_blocks_to_events(stringblockstwo)
 		self.p(evs)
 		self.assertEqual(len(evs), 1)
-	def testThree(self):
+	def test_three(self):
 		article = BeautifulSoup(html_particlephysics)
 		evs = wikipediaprocess._string_blocks_to_events(wikipediaprocess._html_to_string_blocks(article))
 		self.p(evs)
 		self.assertEqual(len(evs), 31)
-	def testFour(self):
+	def test_four(self):
 		article = BeautifulSoup(html_modernhist)
 		evs = wikipediaprocess._string_blocks_to_events(wikipediaprocess._html_to_string_blocks(article))
 		self.p(evs)
@@ -54,14 +54,14 @@ class TestAddImportanceToEvents(unittest.TestCase):
 		pprint(list(wikipediaprocess._group_list_by_count([1, 2, 3, 4, 5, 6, 7], [2, 3, 0, 1])))
 	def test_bulk_importance(self):
 		pprint(wikipediaprocess._bulk_importance(pageTitles))
-	def testOne(self):
+	def test_one(self):
 		x = copy.deepcopy(events)
 		wikipediaprocess._add_importance_to_events(x)
 		pprint(x)
 
 
 class TestSeparate(unittest.TestCase):
-	def testOne(self):
+	def test_one(self):
 		evs = wikipediaprocess._separate_events(combinedEvents)
 		pprint(evs)
 		self.assertEqual(len(evs), 32)
@@ -95,7 +95,7 @@ class TestWpPageToEvents(unittest.TestCase):
 		print('%d: %s: %s' % (event['date'], event['date_string'], event['content'][:20]))
 
 	def validate_page(self, title, separate = False):
-		# beautifulSoup warns about parsing strings like ". blah" because it
+		# beautifulSoup warns about parsing strings like '. blah' because it
 		# thinks it looks like a filename. We can safely ignore these warnings
 		warnings.filterwarnings('ignore', module='bs4')
 
@@ -134,11 +134,11 @@ class TestWpPageToEvents(unittest.TestCase):
 			self.validate_page(t, separate)
 
 
-@unittest.skip("skipping perf tests")
+@unittest.skip('skipping perf tests')
 class TestPerf(unittest.TestCase):
-	def testTimeModernHistory(self):
+	def test_time_modern_history(self):
 		cProfile.runctx('wikipediaprocess.wp_page_to_json("Timeline_of_modern_history")', globals(), locals())
-	def testTimeModernHistorySeparate(self):
+	def test_time_modern_history_separate(self):
 		cProfile.runctx('wikipediaprocess.wp_page_to_json("Timeline_of_modern_history", separate = True)', globals(), locals())
 
 if __name__ == '__main__':

@@ -20,6 +20,6 @@ class TimelineAdmin(admin.ModelAdmin):
 			timeline.get_events()
 			timeline.save()
 
-	actions = ["refresh"]
+	actions = ['refresh']
 
 admin.site.register(Timeline, TimelineAdmin)

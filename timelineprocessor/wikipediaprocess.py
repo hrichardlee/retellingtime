@@ -22,7 +22,7 @@ def wikipedia_timeline_page_titles():
 	"""Looks at the List of timelines page and gets all of the page titles
 	that are linked"""
 	
-	timelines_list_page_title = "List of timelines"
+	timelines_list_page_title = 'List of timelines'
 
 	soup = BeautifulSoup(wikipedia.page(timelines_list_page_title).html())
 	return [a['title'] for a in soup.find_all('a') \
@@ -50,7 +50,7 @@ def wp_page_to_events(title, separate = False):
 	events {date: number, date_string: string, content: string}"""
 	events = _wp_page_to_events_raw(title, separate = False)
 	_add_importance_to_events(events)
-	events.sort(key=lambda e: e["date"], reverse=True)
+	events.sort(key=lambda e: e['date'], reverse=True)
 	events = _filter_bad_events(events)
 	_fix_wikipedia_links(events)
 
@@ -69,30 +69,30 @@ def _fix_wikipedia_links(events):
 	"""Converts all links in the contents of events that are relative
 	Wikipedia links to absolute Wikipedia links. Modifies events in place"""
 	for e in events:
-		soup = BeautifulSoup(e["content"])
+		soup = BeautifulSoup(e['content'])
 		for a in soup.find_all('a'):
-			a['href'] = "http://en.wikipedia.org" + a['href']
-		e["content"] = unicode(soup)
+			a['href'] = 'http://en.wikipedia.org' + a['href']
+		e['content'] = unicode(soup)
 
 def _filter_bad_events(events):
 	"""Eliminates events that are suspected to be incorrect, returns a new
 	list."""
 	#TODO add filtering based on order of dates
-	return [e for e in events if e["content"] and e["date"]]
+	return [e for e in events if e['content'] and e['date']]
 
 
 # requires running the nltk downloader: nltk.download() > d > punkt
-_sentence_splitter = nltk.data.load("tokenizers/punkt/english.pickle")
+_sentence_splitter = nltk.data.load('tokenizers/punkt/english.pickle')
 
 def _separate_events(events):
 	new_events = []
 	for e in events:
-		htmlsplitter = HtmlSplitter(e["content"])
+		htmlsplitter = HtmlSplitter(e['content'])
 		separated = (htmlsplitter.get_span(start, end) \
 			for start, end in _sentence_splitter.span_tokenize(htmlsplitter.text_string))
 		for s in separated:
 			# not sure whether to go for interface consistency or not having to reparse
-			new_events.append({"date": e["date"], "date_string": e["date_string"], "content": unicode(s)})
+			new_events.append({'date': e['date'], 'date_string': e['date_string'], 'content': unicode(s)})
 	return new_events
 
 
@@ -102,8 +102,8 @@ class LineTypes(Enum):
 
 
 def _html_to_string_blocks(html, 
-	block_elements = set(["address", "article", "aside", "blockquote", "section", "dd", "div", "dl", "p", "ol", "ul", "li"]),
-	header_elements = ["h2", "h3", "h4", "h5", "h6"]):
+	block_elements = set(['address', 'article', 'aside', 'blockquote', 'section', 'dd', 'div', 'dl', 'p', 'ol', 'ul', 'li']),
+	header_elements = ['h2', 'h3', 'h4', 'h5', 'h6']):
 	"""Given an html element as a BeautifulSoup, returns a list of string
 	blocks. Each string block represents a section in the html demarcated by a
 	header element. Each string block is {heading, lines: [{line_type,
@@ -119,17 +119,17 @@ def _html_to_string_blocks(html,
 		if s:
 			s = s.strip()
 		if s:
-			sb["lines"].append({'line_type': LineTypes.line, 'line': s})
+			sb['lines'].append({'line_type': LineTypes.line, 'line': s})
 
 	def close_string_blocks(sbs, sb, s):
 		close_string(sb, s)
-		if sb["lines"]:
+		if sb['lines']:
 			sbs.append(sb)
 
 	string_blocks = []
-	curr_heading = [""]
-	curr_string_block = {"lines": [], "heading": curr_heading}
-	curr_string = ""
+	curr_heading = ['']
+	curr_string_block = {'lines': [], 'heading': curr_heading}
+	curr_string = ''
 	for el in html.children:
 		if el.name in header_elements:
 			# close the previous block
@@ -138,18 +138,18 @@ def _html_to_string_blocks(html,
 			heading_index = header_elements.index(el.name)
 			curr_heading = curr_heading[:heading_index]
 			if len(curr_heading) < heading_index:
-				curr_heading += [""] * (heading_index - len(curr_heading)) 
+				curr_heading += [''] * (heading_index - len(curr_heading)) 
 			# heading is usually under mw-headline, but sometimes is not
 			curr_heading.append(el.find(class_='mw-headline').text if el.find(class_='mw-headline') else el.get_text())
-			curr_string_block = {"lines": [], "heading": curr_heading}
+			curr_string_block = {'lines': [], 'heading': curr_heading}
 			# curr_string = None
 		elif el.name in block_elements:
 			close_string(curr_string_block, curr_string)
-			curr_string = ""
+			curr_string = ''
 			# assumes no header elements under block elements
 			child_string_blocks = _html_to_string_blocks(el)
 			if child_string_blocks:
-				curr_string_block["lines"] += child_string_blocks[0]["lines"]
+				curr_string_block['lines'] += child_string_blocks[0]['lines']
 		elif el.name == 'table':
 			close_string(curr_string_block, curr_string)
 			curr_string = None
@@ -167,8 +167,8 @@ def _html_to_string_blocks(html,
 	return string_blocks
 
 
-def _string_blocks_to_events(string_blocks, line_break = "<br />",
-	ignore_sections = set(["", "Contents", "See also", "References"])):
+def _string_blocks_to_events(string_blocks, line_break = '<br />',
+	ignore_sections = set(['', 'Contents', 'See also', 'References'])):
 	"""Given a set of string blocks (as produced by _html_to_string_blocks,
 	expects that all strings are non-empty), returns a list of timeline
 	events. A timeline event is {date: number, date_string: string, content: string}
@@ -178,8 +178,8 @@ def _string_blocks_to_events(string_blocks, line_break = "<br />",
 	events = []
 
 	for string_block in string_blocks:
-		if string_block["heading"][0] not in ignore_sections:
-			for line in string_block["lines"]:
+		if string_block['heading'][0] not in ignore_sections:
+			for line in string_block['lines']:
 				if line['line_type'] == LineTypes.line:
 					extract = parse_date_html(line['line'])
 					# if we can extract a date, create a new event
@@ -187,15 +187,15 @@ def _string_blocks_to_events(string_blocks, line_break = "<br />",
 						if curr_event:
 							events.append(curr_event)
 						curr_event = {
-							"date": extract[0].simple_year,
-							"date_string": extract[1],
-							"content": extract[2]
+							'date': extract[0].simple_year,
+							'date_string': extract[1],
+							'content': extract[2]
 						}
 					# if we can't extract a date, append the line to the
 					# current event if there is one
 					else:
 						if curr_event:
-							curr_event["content"] += line_break + line['line']
+							curr_event['content'] += line_break + line['line']
 				elif line['line_type'] == LineTypes.table:
 					if curr_event:
 						events.append(curr_event)
@@ -219,7 +219,7 @@ def _add_importance_to_events(events):
 	"""
 
 	links_lists = [
-		[a["title"] for a in BeautifulSoup(event["content"]).find_all('a')
+		[a['title'] for a in BeautifulSoup(event['content']).find_all('a')
 			if a['href'].startswith('/wiki/')]
 		for event in events]
 	counts = (len(l) for l in links_lists)
@@ -230,7 +230,7 @@ def _add_importance_to_events(events):
 		(float(sum(importanceList))/len(importanceList) if len(importanceList) > 0 else 0 \
 			for importanceList in importance_lists)
 	for event, importance in zip(events, average_importances):
-		event["importance"] = importance
+		event['importance'] = importance
 
 
 def _group_list_by_constant(l, n):
@@ -257,15 +257,15 @@ def _bulk_importance(links):
 # TODO: add a relevance metric as a multiplier for the importance
 
 def main():
-	parser = argparse.ArgumentParser(description="Writes a json file that represents extracted timeline data")
+	parser = argparse.ArgumentParser(description='Writes a json file that represents extracted timeline data')
 	parser.add_argument('titles', metavar='titles', type=str, nargs='+', help='The titles of the Wikipedia pages to process')
 	parser.add_argument('--separate', action='store_true', help='Separate blocks of text')
 
 	args = parser.parse_args()
 
 	for t in args.titles:
-		with open("".join([c for c in t if c.isalpha() or c.isdigit() or c==' ']).rstrip() + ".json", "w") as f:
+		with open(''.join([c for c in t if c.isalpha() or c.isdigit() or c==' ']).rstrip() + '.json', 'w') as f:
 			f.write(wp_page_to_json(t, args.separate).encode('utf-8'))
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 	main()

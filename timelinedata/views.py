@@ -13,25 +13,25 @@ import pdb
 
 def detail(request, id):
 	t = get_object_or_404(Timeline, id=id)
-	return HttpResponse(t.details_json(), content_type = "application/json")
+	return HttpResponse(t.details_json(), content_type = 'application/json')
 
 def search(request, page_title):
 	try:
 		wikipediaprocess.get_wp_page(page_title)
 	except wikipedia.PageError:
 		# this is a quick hack. should be symmetric with Timeline.short_title
-		page_title = "Timeline of " + page_title
-	separate = request.GET.get("separate", "no") == "yes"
+		page_title = 'Timeline of ' + page_title
+	separate = request.GET.get('separate', 'no') == 'yes'
 	result = Timeline.process_wikipedia_page(page_title, separate=separate)
 	if not result:
 		raise Http404
 	else:
-		return HttpResponse(result.details_json(), content_type = "application/json")
+		return HttpResponse(result.details_json(), content_type = 'application/json')
 
 def all(request):
 	return HttpResponse(
 		json.dumps([t.summary() for t in Timeline.objects.all()]),
-		content_type = "application/json")
+		content_type = 'application/json')
 
 
 @staff_member_required

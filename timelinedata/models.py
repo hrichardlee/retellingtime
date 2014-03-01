@@ -77,14 +77,14 @@ class Timeline(models.Model):
 			if refresh:
 				objs[0].get_events()
 				objs[0].save()
-				logger.info("Refreshed " + page_title)
+				logger.info('Refreshed ' + page_title)
 			return objs[0]
 		else:
 			timeline = cls(title=page_title, separate=separate)
 			if timeline.get_events():
 				timeline.save()
-				logger.info("Added " + page_title + " successfully")
+				logger.info('Added ' + page_title + ' successfully')
 				return timeline
 			else:
-				logger.info("Failed to add " + page_title)
+				logger.info('Failed to add ' + page_title)
 				return None

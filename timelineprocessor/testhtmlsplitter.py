@@ -18,20 +18,20 @@ class TestHtmlSplitter(unittest.TestCase):
 		splitter = HtmlSplitter(self.data)
 		top_level_ranges = splitter._top_level_ranges
 		self.assertEqual(
-			[r["range"] for r in top_level_ranges],
+			[r['range'] for r in top_level_ranges],
 			[(0, 5), (5, 21), (21, 29)])
 		self.assertEqual(
-			[r["range"] for r in splitter._get_applicable_ranges(
+			[r['range'] for r in splitter._get_applicable_ranges(
 				top_level_ranges,
 				0, 5)],
 			[(0, 5)])
 		self.assertEqual(
-			[r["range"] for r in splitter._get_applicable_ranges(
+			[r['range'] for r in splitter._get_applicable_ranges(
 				top_level_ranges,
 				22, 29)],
 			[(21, 29)])
 		self.assertEqual(
-			[r["range"] for r in splitter._get_applicable_ranges(
+			[r['range'] for r in splitter._get_applicable_ranges(
 				top_level_ranges,
 				3, 7)],
 			[(0, 5), (5, 21)])
@@ -40,22 +40,22 @@ class TestHtmlSplitter(unittest.TestCase):
 		splitter = HtmlSplitter(self.data)
 
 		self.assertEqual(unicode(splitter.get_span(0, 5)),
-			u"0abc4")
+			u'0abc4')
 		self.assertEqual(unicode(splitter.get_span(5, 8)),
-			u"<p><b><a>14d</a></b></p>")
+			u'<p><b><a>14d</a></b></p>')
 		self.assertEqual(unicode(splitter.get_span(0, 9)),
-			u"0abc4<p><b><a>14de</a></b></p>")
+			u'0abc4<p><b><a>14de</a></b></p>')
 		self.assertEqual(unicode(splitter.get_span(2, 24)),
-			u"bc4<p><b><a>14defg21</a></b>30hijk37</p>42m")
+			u'bc4<p><b><a>14defg21</a></b>30hijk37</p>42m')
 
 	def test_span2(self):
-		splitter = HtmlSplitter("abcdefghijkl")
+		splitter = HtmlSplitter('abcdefghijkl')
 		self.assertEqual(unicode(splitter.get_span(2, 5)),
-			u"cde")
+			u'cde')
 		self.assertEqual(unicode(splitter.get_span(5, 12)),
-			u"fghijkl")
+			u'fghijkl')
 		self.assertEqual(unicode(splitter.get_span(5, 13)),
-			u"fghijkl")
+			u'fghijkl')
 
 	def test_span3(self):
 		splitter = HtmlSplitter('<p class="blah">abcdefghijkl</p>')
@@ -70,7 +70,7 @@ class TestHtmlSplitter(unittest.TestCase):
 
 		top_level_ranges = splitter._top_level_ranges
 		self.assertEqual(
-			[r["range"] for r in top_level_ranges],
+			[r['range'] for r in top_level_ranges],
 			[(0, 6), (6, 9), (9, 9), (9, 12), (12, 12)])
 		self.assertEqual(unicode(splitter.get_span(2, 5)),
 			u'<p class="blah">c<br/>de</p>')
