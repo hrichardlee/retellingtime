@@ -8,6 +8,7 @@ import datetime
 import json
 import wikipedia
 import itertools
+from enum import Enum
 import nltk.data
 from bs4 import BeautifulSoup
 import bs4
@@ -95,21 +96,29 @@ def _separate_events(events):
 	return new_events
 
 
+class LineTypes(Enum):
+	line = 1
+	table = 2
+
+
 def _html_to_string_blocks(html, 
 	block_elements = set(["address", "article", "aside", "blockquote", "section", "dd", "div", "dl", "p", "ol", "ul", "li"]),
 	header_elements = ["h2", "h3", "h4", "h5", "h6"]):
 	"""Given an html element as a BeautifulSoup, returns a list of string
 	blocks. Each string block represents a section in the html demarcated by a
-	header element. Each string block is {heading, lines}. Lines is a list of
-	strings where each block element in html is a string. Heading is a list
-	where the nth element represents the nth subheading applicable to the
-	current section. Empty lines are not retained.
+	header element. Each string block is {heading, lines: [{line_type,
+	line}]}. Lines is a list of objects. line_type = LineTypes.table indicates
+	that line is a BeautifulSoup table element. line_type = LineTypes.line
+	indicates that the line is a string where each block element in html is a
+	string. Heading is a list where the nth element represents the nth
+	subheading applicable to the current section. Empty lines are not
+	retained.
 	"""
 
 	def close_string(sb, s):
 		s = s.strip()
 		if s:
-			sb["lines"].append(s)
+			sb["lines"].append({'line_type': LineTypes.line, 'line': s})
 
 	def close_string_blocks(sbs, sb, s):
 		close_string(sb, s)
@@ -159,19 +168,20 @@ def _string_blocks_to_events(string_blocks, line_break = "<br />",
 
 	for string_block in string_blocks:
 		if string_block["heading"][0] not in ignore_sections:
-			for string in string_block["lines"]:
-				extract = parse_date_html(string)
-				if extract:
-					if curr_event:
-						events.append(curr_event)
-					curr_event = {
-						"date": extract[0].simple_year,
-						"date_string": extract[1],
-						"content": extract[2]
-					}
-				else:
-					if curr_event:
-						curr_event["content"] += line_break + string
+			for line in string_block["lines"]:
+				if line['line_type'] == LineTypes.line:
+					extract = parse_date_html(line['line'])
+					if extract:
+						if curr_event:
+							events.append(curr_event)
+						curr_event = {
+							"date": extract[0].simple_year,
+							"date_string": extract[1],
+							"content": extract[2]
+						}
+					else:
+						if curr_event:
+							curr_event["content"] += line_break + line['line']
 			if curr_event:
 				events.append(curr_event)
 				curr_event = None

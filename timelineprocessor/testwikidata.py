@@ -1,5 +1,7 @@
 # -*- coding: UTF-8 -*-
 
+from wikipediaprocess import LineTypes
+
 htmlone = """<h2><span class="mw-headline" id="Progressive_Era_.281890.E2.80.931919.29"><a href="/wiki/Progressive_Era" title="Progressive Era">Progressive Era</a> (1890–1919)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Timeline_of_United_States_inventions_(1890%E2%80%931945)&amp;action=edit&amp;section=1" title="Edit section: Progressive Era (1890–1919)">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
 <p><b>1890 <a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a></b></p>
 <p>A stop sign is a traffic sign, ...<sup id="cite_ref-13" class="reference"><a href="#cite_note-13"><span>[</span>13<span>]</span></a></sup></p>
@@ -11,30 +13,51 @@ htmlone = """<h2><span class="mw-headline" id="Progressive_Era_.281890.E2.80.931
 <ul>
 <li>Shredded wheat is a type of breakfast cereal made from whole <a href="/wiki/Wheat" title="Wheat">wheat</a>. Shredded wheat also comes in a <i>frosted</i> variety,...</li>
 </ul>"""
-stringblocksone = [{"heading": [u"Progressive Era (1890–1919)"],
-			"lines": [u'<b>1890 <a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a></b>',
-			u'A stop sign is a traffic sign, ...<sup class="reference" id="cite_ref-13"><a href="#cite_note-13"><span>[</span>13<span>]</span></a></sup>'
-			]},
-			{"heading": [u"Progressive Era (1890–1919)", u"Subheading"],
-			"lines": [u'<b>1890 <a href="/wiki/Tabulating_machine" title="Tabulating machine">Tabulating machine</a></b>',
-			u'The tabulating machine is an ...']},
-			{"heading": [u"Blah blah"],
-			"lines": [u'<b>1890 <a href="/wiki/Shredded_wheat" title="Shredded wheat">Shredded wheat</a></b>',
-			u'Shredded wheat is a type of breakfast cereal made from whole <a href="/wiki/Wheat" title="Wheat">wheat</a>. Shredded wheat also comes in a <i>frosted</i> variety,...'
-			]}]
+stringblocksone = [
+	{
+		"heading": [u"Progressive Era (1890–1919)"],
+		"lines": [
+			{'line_type': LineTypes.line, 'line': u'<b>1890 <a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a></b>'},
+			{'line_type': LineTypes.line, 'line': u'A stop sign is a traffic sign, ...<sup class="reference" id="cite_ref-13"><a href="#cite_note-13"><span>[</span>13<span>]</span></a></sup>'}
+		]
+	},
+	{
+		"heading": [u"Progressive Era (1890–1919)", u"Subheading"],
+		"lines": [
+			{'line_type': LineTypes.line, 'line': u'<b>1890 <a href="/wiki/Tabulating_machine" title="Tabulating machine">Tabulating machine</a></b>'},
+			{'line_type': LineTypes.line, 'line': u'The tabulating machine is an ...'}
+		]
+	},
+	{
+		"heading": [u"Blah blah"],
+		"lines": [
+			{'line_type': LineTypes.line, 'line': u'<b>1890 <a href="/wiki/Shredded_wheat" title="Shredded wheat">Shredded wheat</a></b>'},
+			{'line_type': LineTypes.line, 'line': u'Shredded wheat is a type of breakfast cereal made from whole <a href="/wiki/Wheat" title="Wheat">wheat</a>. Shredded wheat also comes in a <i>frosted</i> variety,...'}
+		]
+	}
+]
 htmltwo = """<p><b>1890 <a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a></b></p>
 <p>A stop sign is a traffic sign, ...<sup id="cite_ref-13" class="reference"><a href="#cite_note-13"><span>[</span>13<span>]</span></a></sup></p>
 <h3><span class="mw-headline">Subheading</span></h3>
 <p><b>1890 <a href="/wiki/Tabulating_machine" title="Tabulating machine">Tabulating machine</a></b></p>
 <p>The tabulating machine is an ...</p>
 </ul>"""
-stringblockstwo = [{"heading": [u""],
-			"lines": [u'<b>1890 <a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a></b>',
-			u'A stop sign is a traffic sign, ...<sup class="reference" id="cite_ref-13"><a href="#cite_note-13"><span>[</span>13<span>]</span></a></sup>'
-			]},
-			{"heading": [u"", u"Subheading"],
-			"lines": [u'<b>1890 <a href="/wiki/Tabulating_machine" title="Tabulating machine">Tabulating machine</a></b>',
-			u'The tabulating machine is an ...']}]
+stringblockstwo = [
+	{
+		"heading": [u""],
+		"lines": [
+			{'line_type': LineTypes.line, 'line': u'<b>1890 <a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a></b>'},
+			{'line_type': LineTypes.line, 'line': u'A stop sign is a traffic sign, ...<sup class="reference" id="cite_ref-13"><a href="#cite_note-13"><span>[</span>13<span>]</span></a></sup>'}
+		]
+	},
+	{
+		"heading": [u"", u"Subheading"],
+		"lines": [
+			{'line_type': LineTypes.line, 'line': u'<b>1890 <a href="/wiki/Tabulating_machine" title="Tabulating machine">Tabulating machine</a></b>'},
+			{'line_type': LineTypes.line, 'line': u'The tabulating machine is an ...'}
+		]
+	}
+]
 html_modernhist = """<div class="dablink">For earlier times, see <a href="/wiki/Timeline_of_early_modern_history" title="Timeline of early modern history">Timeline of early modern history</a>.</div>
 <dl>
 <dd><div class="notice plainlinks"><i>This list is <a href="/wiki/Wikipedia:WikiProject_Lists#Incomplete_lists" title="Wikipedia:WikiProject Lists">incomplete</a>; you can help by <a class="external text" href="//en.wikipedia.org/w/index.php?title=Timeline_of_modern_history&amp;action=edit">expanding it</a></i>.</div>
