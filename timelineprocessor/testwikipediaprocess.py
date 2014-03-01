@@ -63,17 +63,19 @@ class TestWpPageToEvents(unittest.TestCase):
 		# thinks it looks like a filename. We can safely ignore these warnings
 		warnings.filterwarnings('ignore', module='bs4')
 
-		print('validating ' + title + '...')
+		print('---Validating ' + title + '---')
 
 		raw_events = wikipediaprocess._wp_page_to_events_raw(title, separate)
-		print('first and last events:')
-		self.print_event(raw_events[0])
-		self.print_event(raw_events[-1])
+
 
 		if len(raw_events) < 3:
 			print('fewer than 3 events:')
 			for e in raw_events:
 				self.print_event(e)
+		else:
+			print('first and last events:')
+			self.print_event(raw_events[0])
+			self.print_event(raw_events[-1])
 
 		for e in [e for e in raw_events if len(e['content']) < 5]:
 			print ('short event:')
@@ -91,12 +93,26 @@ class TestWpPageToEvents(unittest.TestCase):
 				self.print_event(nexte)
 				print('')
 
+	def validate_pages(self, titles, separate = False):
+		for t in titles:
+			self.validate_page(t, separate)
+
 	def test_one(self):
-		self.validate_page('timeline of particle physics')
-		self.validate_page('timeline of ancient history')
-		self.validate_page('Timeline_of_modern_history', separate = True)
-	def test_two(self):
-		self.validate_page('timeline of natural history')
+		self.validate_pages([
+			'Timeline of natural history',
+			'Timeline of human prehistory',
+			'Timeline of ancient history',
+		])
+		self.validate_pages([
+			'Timeline of modern history',
+		], separate = True)
+	def test_failing(self):
+		self.validate_pages([
+			'Timeline of the Middle Ages',
+			'Timeline of early modern history',
+			'Timeline of country and capital changes',
+			'Timeline of European exploration',
+		])
 
 
 @unittest.skip("skipping perf tests")
