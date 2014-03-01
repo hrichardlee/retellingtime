@@ -256,10 +256,10 @@ def parse_date_text(text):
 
 
 def parse_date_html(html_string):
-	"""Takes a string that contains html, and returns (date, content) as a
-	tuple. For now, date is an int that represents the year. Negative numbers
-	are B.C. and positive are A.D. years. If there is no date that can be
-	parsed, returns None.
+	"""Takes a string that contains html, and returns (date, date_string,
+	content) as a tuple. For now, date is an int that represents the year.
+	Negative numbers are B.C. and positive are A.D. years. If there is no date
+	that can be parsed, returns None.
 	"""
 
 	html_splitter = HtmlSplitter(html_string)
