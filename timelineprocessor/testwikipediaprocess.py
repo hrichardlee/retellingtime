@@ -92,9 +92,12 @@ class TestWpPageToEvents(unittest.TestCase):
 			'18th century',
 			'19th century'
 		], single_section = 'events')
-	def failing(self):
+	def test_three(self):
 		self.validate_pages([
 			'Timeline of country and capital changes',
+		])
+	def failing(self):
+		self.validate_pages([
 			'Timeline of European exploration',
 		])
 

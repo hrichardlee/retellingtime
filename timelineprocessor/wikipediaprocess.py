@@ -8,6 +8,7 @@ import datetime
 import json
 import wikipedia
 import itertools
+from exceptions import ValueError
 from enum import Enum
 import nltk.data
 from bs4 import BeautifulSoup
@@ -223,6 +224,21 @@ def _bs_inner_html(soup):
 def _table_to_events(table):
 	"""Given a table html element as a BeautifulSoup, returns a list of
 	"""
+	def get_rowspan(td):
+		s = td.get('rowspan')
+		if not s:
+			return None
+
+		try:
+			i = int(s)
+		except ValueError:
+			return None
+
+		if i >= 1:
+			return i
+		else:
+			return None
+
 	events = []
 
 	year_col_candidates = []
@@ -237,8 +253,25 @@ def _table_to_events(table):
 	if year_col_candidates:
 		year_col_index = max(set(year_col_candidates), key=year_col_candidates.count)
 
+		# a td that has a rowspan will be stored as (col_index, cell) The
+		# rowspan number essentially gets decremented in the td element each
+		# time it is added to the subsequent row
+		rowspans = []
+
 		for row in table.find_all('tr'):
 			cells = row.find_all('td')
+
+			# first, apply existing rowspans
+			for (i, cell) in rowspans:
+				if get_rowspan(cell) > 0:
+					cells.insert(i, cell)
+			# then, recollect existing and new rowspans
+			rowspans = []
+			for (i, cell) in enumerate(cells):
+				rs = get_rowspan(cell)
+				if rs:
+					cell['rowspan'] = rs - 1
+					rowspans.append((i, cell))
 
 			if len(cells) > year_col_index:
 				extract = parse_date_html(_bs_inner_html(cells[year_col_index]))
