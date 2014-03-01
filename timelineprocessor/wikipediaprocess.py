@@ -29,20 +29,21 @@ def wikipedia_timeline_page_titles():
 		if a['href'].startswith('/wiki/') and a.has_attr('title') and ':' not in a['title'] and 'disambiguation' not in a['title'].lower()]
 
 
-def _wp_page_to_events_raw(title, separate = False):
+def _wp_page_to_events_raw(title, separate = False, single_section = None):
 	"""Without the post_processing in wp_page_to_events"""
 	article = BeautifulSoup(get_wp_page(title).html())
 
-	events = _string_blocks_to_events(_html_to_string_blocks(article))
+	string_blocks = _html_to_string_blocks(article)
+	events = _string_blocks_to_events(string_blocks, single_section = single_section)
 	if separate:
 		events = _separate_events(events)
 	return events
 
 
-def wp_page_to_events(title, separate = False):
+def wp_page_to_events(title, separate = False, single_section = None):
 	"""Takes the title of a timeline page on Wikipedia and returns a list of
 	events {date: number, date_string: string, content: string}"""
-	events = _wp_page_to_events_raw(title, separate = False)
+	events = _wp_page_to_events_raw(title, separate, single_section)
 	_add_importance_to_events(events)
 	events.sort(key=lambda e: e['date'], reverse=True)
 	events = _filter_bad_events(events)
@@ -159,22 +160,29 @@ def _html_to_string_blocks(html,
 	return string_blocks
 
 
-def _string_blocks_to_events(string_blocks, line_break = '<br />',
-	ignore_sections = set(['', 'Contents', 'See also', 'References'])):
+def _string_blocks_to_events(string_blocks,
+	line_break = '<br />', single_section = None,
+	ignore_sections = set(['', 'contents', 'see also', 'references'])):
 	"""Given a set of string blocks (as produced by _html_to_string_blocks,
 	expects that all strings are non-empty), returns a list of timeline
 	events. A timeline event is {date: number, date_string: string, content: string}
 	"""
 
-	curr_event = None
-	events = []
+	def section_test(name):
+		if single_section:
+			return name.strip().lower() == single_section.strip().lower()
+		else:
+			return name.strip().lower() not in ignore_sections
 
 	def close_event(es, e):
 		if e:
 			es.append(e)
 
+	curr_event = None
+	events = []
+
 	for string_block in string_blocks:
-		if string_block['heading'][0] not in ignore_sections:
+		if section_test(string_block['heading'][0]):
 			for line in string_block['lines']:
 				if line['line_type'] == LineTypes.line:
 					extract = parse_date_html(line['line'])
@@ -226,21 +234,22 @@ def _table_to_events(table):
 	# we would like to pick the lowest index that is the max, and this happens
 	# with cPython's implementation of max, but is not in the spec. So this is
 	# a quick hack
-	year_col_index = max(set(year_col_candidates), key=year_col_candidates.count)
+	if year_col_candidates:
+		year_col_index = max(set(year_col_candidates), key=year_col_candidates.count)
 
-	for row in table.find_all('tr'):
-		cells = row.find_all('td')
+		for row in table.find_all('tr'):
+			cells = row.find_all('td')
 
-		if len(cells) > year_col_index:
-			extract = parse_date_html(_bs_inner_html(cells[year_col_index]))
-			if extract:
-				del cells[year_col_index]
-				content = ''.join(_bs_inner_html(cell) for cell in cells)
-				events.append({
-					'date': extract[0].simple_year,
-					'date_string': extract[1],
-					'content': content
-				})
+			if len(cells) > year_col_index:
+				extract = parse_date_html(_bs_inner_html(cells[year_col_index]))
+				if extract:
+					del cells[year_col_index]
+					content = ''.join(_bs_inner_html(cell) for cell in cells)
+					events.append({
+						'date': extract[0].simple_year,
+						'date_string': extract[1],
+						'content': content
+					})
 
 	return events
 

@@ -85,9 +85,15 @@ class TestWpPageToEvents(unittest.TestCase):
 		], separate = True)
 	def test_two(self):
 		self.validate_pages(['Timeline of the Middle Ages'])
+
+		self.validate_pages([
+			'16th century',
+			'17th century',
+			'18th century',
+			'19th century'
+		], single_section = 'events')
 	def failing(self):
 		self.validate_pages([
-			'Timeline of early modern history',
 			'Timeline of country and capital changes',
 			'Timeline of European exploration',
 		])
@@ -95,14 +101,14 @@ class TestWpPageToEvents(unittest.TestCase):
 	def print_event(self, event):
 		print('%d: %s: %s' % (event['date'], event['date_string'], event['content'][:20]))
 
-	def validate_page(self, title, separate = False):
+	def validate_page(self, title, separate = False, single_section = None):
 		# beautifulSoup warns about parsing strings like '. blah' because it
 		# thinks it looks like a filename. We can safely ignore these warnings
 		warnings.filterwarnings('ignore', module='bs4')
 
 		print('---Validating ' + title + '---')
 
-		raw_events = wikipediaprocess._wp_page_to_events_raw(title, separate)
+		raw_events = wikipediaprocess._wp_page_to_events_raw(title, separate, single_section)
 
 
 		if len(raw_events) < 3:
@@ -130,9 +136,9 @@ class TestWpPageToEvents(unittest.TestCase):
 				self.print_event(nexte)
 				print('')
 
-	def validate_pages(self, titles, separate = False):
+	def validate_pages(self, titles, separate = False, single_section = None):
 		for t in titles:
-			self.validate_page(t, separate)
+			self.validate_page(t, separate, single_section)
 
 
 @unittest.skip('skipping perf tests')
