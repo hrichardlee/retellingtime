@@ -64,7 +64,6 @@ class TestHtmlSplitter(unittest.TestCase):
 		self.assertEqual(unicode(splitter.get_span(5, 12)),
 			u'<p class="blah">fghijkl</p>')
 
-
 	def test_span4(self):
 		splitter = HtmlSplitter('<p class="blah">abc<br/>def</p>ghi<br/>jkl<br/>')
 
@@ -78,3 +77,28 @@ class TestHtmlSplitter(unittest.TestCase):
 			u'<p class="blah">d</p>')
 		self.assertEqual(unicode(splitter.get_span(5, 12)),
 			u'<p class="blah">f</p>ghi<br/>jkl')
+
+	def test_out_of_range(self):
+		splitter = HtmlSplitter('<p>blah</p>')
+
+		self.assertEqual(splitter.get_span(0, 200), u'<p>blah</p>')
+		self.assertEqual(splitter.get_span(-5, 3), u'<p>bla</p>')
+
+	def test_empty(self):
+		splitter = HtmlSplitter('')
+
+		self.assertEqual(splitter.get_span(0, 0), u'')
+		self.assertEqual(splitter.get_span(0, 5), u'')
+		self.assertEqual(splitter.get_span(-5, 5), u'')
+
+		splitter = HtmlSplitter('<p></p>')
+
+		self.assertEqual(splitter.get_span(0, 0), u'')
+		self.assertEqual(splitter.get_span(0, 5), u'<p></p>')
+		self.assertEqual(splitter.get_span(-5, 5), u'<p></p>')
+
+		splitter = HtmlSplitter('<p>hello</p><p></p><p>there</p>')
+
+		self.assertEqual(splitter.get_span(0, 0), u'')
+		self.assertEqual(splitter.get_span(0, 5), u'<p>hello</p>')
+		self.assertEqual(splitter.get_span(-5, 7), u'<p>hello</p><p></p><p>th</p>')

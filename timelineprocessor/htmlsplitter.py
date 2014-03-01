@@ -43,10 +43,13 @@ class HtmlSplitter:
 			for r, prevr in zip(top_level_ranges, [{'el': None, 'range': (0, 0)}] + top_level_ranges):
 				if not r['range']:
 					r['range'] = (prevr['range'][1], prevr['range'][1])
-		else:
+		elif len(soup.contents) == 1:
 			# the actual text is probably much smaller than html_string, but we
 			# just need an upper bound
 			top_level_ranges = [{'el': soup.contents[0], 'range': (0, len(html_string))}]
+		else:
+			top_level_ranges = []
+
 		self._top_level_ranges = top_level_ranges
 
 	def _get_text_indices(self, soup):
@@ -102,6 +105,10 @@ class HtmlSplitter:
 					sib.extract()
 				remove_siblings(el.parent, direction)
 
+		if not ranges:
+			# this means we have an empty element
+			return
+
 		# remove text from before the first and after the last element
 		if start != None: remove_siblings(ranges[0]['el'], 'prev')
 		if end != None: remove_siblings(ranges[-1]['el'], 'next')
@@ -136,7 +143,9 @@ class HtmlSplitter:
 		for r in top_level_ranges:
 			result.append(r['el'])
 
-		if len(top_level_ranges) == 1:
+		if len(top_level_ranges) == 0:
+			return u''
+		elif len(top_level_ranges) == 1:
 			range_offset = top_level_ranges[0]['range'][0]
 			inner_start = start - range_offset
 			inner_end = end - range_offset

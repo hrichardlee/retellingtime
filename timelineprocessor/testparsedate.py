@@ -9,6 +9,14 @@ from pprint import pprint
 
 
 class TestParseDate(unittest.TestCase):
+	def test_misc(self):
+		self.assertEqual(parse_date_html(u''),							None)
+		self.assertEqual(parse_date_html(u'  '),						None)
+		self.assertEqual(parse_date_html(u'<p></p>'),					None)
+		self.assertEqual(parse_date_html(u'<p>  </p>'),					None)
+		self.assertEqual(parse_date_html(u'lkjdr3f'),					None)
+		self.assertEqual(parse_date_html(u'900–929')[0].simple_year,	900)
+
 	def test_pure_dates(self):
 		self.assertEqual(parse_date_html(u'1245'),						(TimelineDate(1245, False),				u'1245',			u''))
 		self.assertEqual(parse_date_html(u' 1245 '),					(TimelineDate(1245, False),				u'1245',			u''))
@@ -29,9 +37,6 @@ class TestParseDate(unittest.TestCase):
 		self.assertEqual(parse_date_html(u'86 bc –c. 34 bc blah'),		(TimelineDate(-86, False, -34, True),	u'86 bc –c. 34 bc',	u'blah'))
 		self.assertEqual(parse_date_html(u'86 -   34 bc blah'),			(TimelineDate(-86, False, -34, False),	u'86 -   34 bc',	u'blah'))
 
-		self.assertEqual(parse_date_html(u'lkjdr3f'),					None)
-
-		self.assertEqual(parse_date_html(u'900–929')[0].simple_year,	900)
 
 	def test_periods(self):
 		self.assertEqual(parse_date_html(u'2nd century b.c.'),						(TimelineDate(-200, False, -100, False),	u'2nd century b.c.'							,u''))
