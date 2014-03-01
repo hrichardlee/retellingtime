@@ -25,17 +25,28 @@ class TestHtmlToStringBlocks(unittest.TestCase):
 		strings = wikipediaprocess._html_to_string_blocks(html)
 		self.assertEqual(strings, stringblockstwo)
 
+
 class TestStringBlocksToEvents(unittest.TestCase):
 	def p(self, data):
 		pprint([str(x["date"]) + ":::" + x["content"][:60] for x in data])
 	def testOne(self):
-		self.p(wikipediaprocess._string_blocks_to_events(stringblocksone))
+		evs = wikipediaprocess._string_blocks_to_events(stringblocksone)
+		self.p(evs)
+		self.assertEqual(len(evs), 3)
 	def testTwo(self):
-		article = BeautifulSoup(html_particlephysics)
-		self.p(wikipediaprocess._string_blocks_to_events(wikipediaprocess._html_to_string_blocks(article)))
+		evs = wikipediaprocess._string_blocks_to_events(stringblockstwo)
+		self.p(evs)
+		self.assertEqual(len(evs), 1)
 	def testThree(self):
+		article = BeautifulSoup(html_particlephysics)
+		evs = wikipediaprocess._string_blocks_to_events(wikipediaprocess._html_to_string_blocks(article))
+		self.p(evs)
+		self.assertEqual(len(evs), 31)
+	def testFour(self):
 		article = BeautifulSoup(html_modernhist)
-		self.p(wikipediaprocess._string_blocks_to_events(wikipediaprocess._html_to_string_blocks(article)))
+		evs = wikipediaprocess._string_blocks_to_events(wikipediaprocess._html_to_string_blocks(article))
+		self.p(evs)
+		self.assertEqual(len(evs), 113)
 
 
 class TestAddImportanceToEvents(unittest.TestCase):

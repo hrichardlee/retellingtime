@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 from wikipediaprocess import LineTypes
+from bs4 import BeautifulSoup
 
 htmlone = """<h2><span class="mw-headline" id="Progressive_Era_.281890.E2.80.931919.29"><a href="/wiki/Progressive_Era" title="Progressive Era">Progressive Era</a> (1890–1919)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Timeline_of_United_States_inventions_(1890%E2%80%931945)&amp;action=edit&amp;section=1" title="Edit section: Progressive Era (1890–1919)">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
 <p><b>1890 <a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a></b></p>
@@ -38,10 +39,11 @@ stringblocksone = [
 ]
 htmltwo = """<p><b>1890 <a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a></b></p>
 <p>A stop sign is a traffic sign, ...<sup id="cite_ref-13" class="reference"><a href="#cite_note-13"><span>[</span>13<span>]</span></a></sup></p>
-<h3><span class="mw-headline">Subheading</span></h3>
+<h2><span class="mw-headline">Subheading</span></h2>
 <p><b>1890 <a href="/wiki/Tabulating_machine" title="Tabulating machine">Tabulating machine</a></b></p>
+<table></table>
 <p>The tabulating machine is an ...</p>
-</ul>"""
+"""
 stringblockstwo = [
 	{
 		"heading": [u""],
@@ -51,9 +53,10 @@ stringblockstwo = [
 		]
 	},
 	{
-		"heading": [u"", u"Subheading"],
+		"heading": [u"Subheading"],
 		"lines": [
 			{'line_type': LineTypes.line, 'line': u'<b>1890 <a href="/wiki/Tabulating_machine" title="Tabulating machine">Tabulating machine</a></b>'},
+			{'line_type': LineTypes.table, 'line': BeautifulSoup('<table></table>').table},
 			{'line_type': LineTypes.line, 'line': u'The tabulating machine is an ...'}
 		]
 	}
