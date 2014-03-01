@@ -270,18 +270,18 @@ def parse_date_html(html_string):
 	# strip out all non-letter/digit characters from the beginning
 	m = re.search('^[^\d\w]+', s)
 	if m:
-		s = s[m.end():]
 		content_offset += m.end()
 	if not s:
 		return None
 
 	# get the date
-	extract = parse_date_text(s)
+	extract = parse_date_text(s[content_offset:])
 	if not extract:
 		return None
 	(date, date_index) = extract
+	date_string = html_splitter.get_span(content_offset, date_index + content_offset)
+
 	content_offset += date_index
-	date_string = html_splitter.get_span(0, date_index)
 
 	# strip out any transition characters between the date and the content
 	m = re.search(u'^[\s\-–—:\.]+', s[content_offset:])

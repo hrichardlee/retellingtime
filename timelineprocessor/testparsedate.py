@@ -10,6 +10,9 @@ from pprint import pprint
 
 class TestParseDate(unittest.TestCase):
 	def test_pure_dates(self):
+		self.assertEqual(parse_date_html(u'1245'),						(TimelineDate(1245, False),				u'1245',			u''))
+		self.assertEqual(parse_date_html(u' 1245 '),					(TimelineDate(1245, False),				u'1245',			u''))
+		self.assertEqual(parse_date_html(u' 1245 hello'),				(TimelineDate(1245, False),				u'1245',			u'hello'))
 		self.assertEqual(parse_date_html(u'ca 1850 50'),				(TimelineDate(1850, True),				u'ca 1850',			u'50'))
 		self.assertEqual(parse_date_html(u'ca 70,000 BC'),				(TimelineDate(-70000, True),			u'ca 70,000 BC',	u''))
 		self.assertEqual(parse_date_html(u'70,000 a.d.'),				(TimelineDate(70000),					u'70,000 a.d.',		u''))
