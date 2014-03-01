@@ -29,12 +29,6 @@ def wikipedia_timeline_page_titles():
 		if a['href'].startswith('/wiki/') and a.has_attr('title') and ':' not in a['title'] and 'disambiguation' not in a['title'].lower()]
 
 
-def wp_page_to_json(title, separate = False):
-	"""Takes the title of a timeline page on Wikipedia and returns a json
-	string that represents the events in that timeline"""
-	return json.dumps(wp_page_to_events(title, separate))
-
-
 def _wp_page_to_events_raw(title, separate = False):
 	"""Without the post_processing in wp_page_to_events"""
 	article = BeautifulSoup(get_wp_page(title).html())
@@ -304,7 +298,7 @@ def main():
 
 	for t in args.titles:
 		with open(''.join([c for c in t if c.isalpha() or c.isdigit() or c==' ']).rstrip() + '.json', 'w') as f:
-			f.write(wp_page_to_json(t, args.separate).encode('utf-8'))
+			f.write(json.dumps(wp_page_to_events(t, args.separate)).encode('utf-8'))
 
 if __name__ == '__main__':
 	main()
