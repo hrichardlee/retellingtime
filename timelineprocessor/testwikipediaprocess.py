@@ -102,7 +102,7 @@ class TestWpPageToEvents(unittest.TestCase):
 		])
 
 	def print_event(self, event):
-		print('%d: %s: %s' % (event['date'], event['date_string'], event['content'][:20]))
+		print('%d: %s: %s' % (event['date'], event['date_string'], BeautifulSoup(event['content']).get_text()[:50]))
 
 	def validate_page(self, title, separate = False, single_section = None):
 		# beautifulSoup warns about parsing strings like '. blah' because it
@@ -128,8 +128,13 @@ class TestWpPageToEvents(unittest.TestCase):
 			self.print_event(e)
 
 		# look for out of order events
+		if raw_events[0]['date'] < raw_events[-1]['date']:
+			bad_cmp = lambda x, y: x > y
+		else:
+			bad_cmp = lambda x, y: x < y
+
 		for i, (curre, nexte) in enumerate(zip(raw_events[:-1], raw_events[1:])):
-			if curre['date'] > nexte['date']:
+			if bad_cmp(curre['date'], nexte['date']):
 				print('out of order events:')
 				if (i == 0):
 					print('---')
