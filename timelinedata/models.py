@@ -105,6 +105,7 @@ class Timeline(CommonTimelineMetadata):
 class WpPageProcess(CommonTimelineMetadata):
 	first_and_last = models.CharField(max_length = 1000)
 	errors = models.CharField(max_length = 1000000)
+	banned = models.BooleanField(default = False)
 
 	def metadata(self):
 		s = ''

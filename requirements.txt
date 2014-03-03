@@ -1,6 +1,7 @@
 Django==1.6.1
 Fabric==1.8.2
 PyYAML==3.10
+South==0.8.4
 amqp==1.4.3
 anyjson==0.3.3
 argparse==1.2.1
