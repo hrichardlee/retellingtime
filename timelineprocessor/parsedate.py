@@ -162,25 +162,43 @@ def parse_date_text(text):
 	def _has_child_node(n, label):
 		return [i for i, c in enumerate(n) if hasattr(c, 'node') and c.node == label]
 	def daterange(r):
-		if r[0].node == 'DATE' and r[0][0].node != 'YAD' and r[0][0].node != 'PERIODAD':
+		if r[0][0].node == 'YAD' and r[2][0].node == 'YAD':
+			# for cases like 1832-34. gets parsed as YAD to YAD, but we need
+			# to modify the second node
 			first = date(r[0])
+			second = date(r[2])
+			first_str = str(first.start_year)
+			second_str = str(second.start_year)
+			if len(second_str) < len(first_str):
+				second.start_year = int(
+					first_str[:len(first_str) - len(second_str)] + second_str)
+		elif r[0].node == 'DATE' and r[0][0].node != 'YAD' and r[0][0].node != 'PERIODAD':
+			# these cases should work without any modification to either node
+			first = date(r[0])
+			second = date(r[2])
 		else:
-			# this if/else deals with interpretations of 12-34 b.c. as YAD TO YBC
+			# for cases like 34-12 b.c. or 12 century to 10th century bc. Gets
+			# parsed as YAD to YBC or NUM to YBC. replacement_node finds the
+			# '34' in the AST for YAD, and puts it in the corresponding
+			# location for a copy of the YBC ast. This gets us a fully
+			# qualified date for '34' that we can use to create the range
 			if r[0][0].node == 'YAD':
 				replacement_node = r[0][0][0]
 			elif r[0][0].node == 'PERIODAD':
 				replacement_node = r[0][0][0][0]
-			else:
+			elif r[0].node == 'ORD':
 				replacement_node = r[0]
-			# replacement_node will always be a NUM or ORD we need to copy the
-			# tree for the second part of the range and use that intepretation
-			# on this ord/num
+			else:
+				raise RuntimeError('unexpected node type in date AST')
+			# copy the second date's AST, replace, and get the date
 			first_mock = r[2].copy(True) #deepcopy
 			parent = next(first_mock.subtrees(lambda t: _has_child_node(t, replacement_node.node)))
 			parent[_has_child_node(parent, replacement_node.node)[0]] = replacement_node
 			first = date(first_mock)
 
-		return TimelineDate.span_from_dates(first, date(r[2]))
+			second = date(r[2])
+
+		return TimelineDate.span_from_dates(first, second)
 	def date(date):
 		if date[0].node == 'YAD' or date[0].node == 'YBC':
 			return year(date[0])
@@ -205,7 +223,7 @@ def parse_date_text(text):
 		result = daterange(parse[0])
 	return (result, len(date_text))
 
-	
+
 def parse_date_html(html_string):
 	"""Takes a string that contains html, and returns (date, date_string,
 	content) as a tuple. For now, date is an int that represents the year.

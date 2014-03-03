@@ -31,7 +31,7 @@ date_grammar_string = u"""
 	YAD -> NUM osp AD | NUM
 	PERIODAD ->  PERIOD osp AD | PERIOD
 
-	DATERANGE -> DATE TO DATE | NUM TO DATE | ORD TO DATE
+	DATERANGE -> DATE TO DATE | ORD TO DATE
 
 	TO -> osp dash osp | sp to sp
 

@@ -43,7 +43,6 @@ class TestParseDate(unittest.TestCase):
 		self.assertEqual(parse_date_html(u'20 Mastodon'),			(TimelineDate(20, False),		u'20',				u'Mastodon'))
 
 
-
 	def test_ranges(self):
 		self.assertEqual(parse_date_html(u'12 to 34 AD: blah'),			(TimelineDate(12, False, 34, False),	u'12 to 34 AD',		u'blah'))
 		self.assertEqual(parse_date_html(u'12 a.d. - 34 AD - blah'),	(TimelineDate(12, False, 34, False),	u'12 a.d. - 34 AD',	u'blah'))
@@ -51,6 +50,7 @@ class TestParseDate(unittest.TestCase):
 		self.assertEqual(parse_date_html(u'12? bc—34 A.D    blah'),		(TimelineDate(-12, True, 34, False),	u'12? bc—34 A.D',	u'blah'))
 		self.assertEqual(parse_date_html(u'86 bc –c. 34 bc blah'),		(TimelineDate(-86, False, -34, True),	u'86 bc –c. 34 bc',	u'blah'))
 		self.assertEqual(parse_date_html(u'86 -   34 bc blah'),			(TimelineDate(-86, False, -34, False),	u'86 -   34 bc',	u'blah'))
+		self.assertEqual(parse_date_html(u'1819-23 blah'),				(TimelineDate(1819, False, 1823, False),u'1819-23',			u'blah'))
 
 
 	def test_periods(self):
