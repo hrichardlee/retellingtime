@@ -295,7 +295,7 @@ def _add_importance_to_events(events):
 
 	links_lists = [
 		[a['title'] for a in BeautifulSoup(event['content']).find_all('a')
-			if a['href'].startswith('/wiki/')]
+			if a.has_key('title') and a['href'].startswith('/wiki/')]
 		for event in events]
 	counts = (len(l) for l in links_lists)
 	# flatten and get importances
