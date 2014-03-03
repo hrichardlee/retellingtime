@@ -38,7 +38,7 @@ date_grammar_string = u"""
 	PERIOD -> ORD osp century | ORD osp millenium
 	ORD -> NUM th
 
-	CA -> c a | c
+	CA -> c a | c | about
 
 	BC -> b c | b c e
 	AD -> a d | c e
@@ -58,6 +58,7 @@ date_grammar_string = u"""
 
 	n -> '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
 
+	about -> 'a' 'b' 'o' 'u' 't'
 	to -> 't' 'o'
 	years -> 'y' 'e' 'a' 'r' 's' | 'y' 'r' 's' | 'y' 'r' 's' x
 	ago -> 'a' 'g' 'o'
@@ -69,6 +70,7 @@ date_grammar_string = u"""
 	"""
 
 date_grammar_words = [
+	u'about',
 	u'to',
 	u'years', u'yrs', 
 	u'ago',
@@ -76,7 +78,8 @@ date_grammar_words = [
 	u'th', u'st', u'nd', u'rd',
 	u'century',
 	u'millenium', 'millennium',
-	u'ca', u'bc', u'bce', u'ad', u'ce',
+	u'ca',
+	u'bc', u'bce', u'ad', u'ce',
 	u'a', u'b', u'c', u'd', u'e'
 ]
 

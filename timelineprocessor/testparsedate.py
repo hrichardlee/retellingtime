@@ -35,6 +35,7 @@ class TestParseDate(unittest.TestCase):
 		self.assertEqual(parse_date_html(u'70,000 a.d.'),			(TimelineDate(70000),			u'70,000 a.d.',		u''))
 		self.assertEqual(parse_date_html(u'c.a. 1850'),				(TimelineDate(1850, True),		u'c.a. 1850',		u''))
 		self.assertEqual(parse_date_html(u'c. 1850 BC'),			(TimelineDate(-1850, True),		u'c. 1850 BC',		u''))
+		self.assertEqual(parse_date_html(u'about 1850 BC'),			(TimelineDate(-1850, True),		u'about 1850 BC',	u''))
 		self.assertEqual(parse_date_html(u'1850? b.c.e asdlkj'),	(TimelineDate(-1850, True),		u'1850? b.c.e',		u'asdlkj'))
 		self.assertEqual(parse_date_html(u'4 b.c.e c.e. c.e.'),		(TimelineDate(-4, False),		u'4 b.c.e',			u'c.e. c.e.'))
 		self.assertEqual(parse_date_html(u'4 AD blah'),				(TimelineDate(4, False),		u'4 AD',			u'blah'))
