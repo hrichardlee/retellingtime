@@ -73,7 +73,8 @@ class Timeline(models.Model):
 		If found, (optionally) refreshes it and returns it. If it is not
 		found, tries to parse the wikipedia page. If successful, returns the
 		result. Otherwise returns None."""
-		objs = cls.objects.filter(title=page_title)
+		page_title = wikipediaprocess.normalize_title(page_title)
+		objs = cls.objects.filter(title__iexact=page_title)
 		if objs:
 			if refresh:
 				objs[0].get_events()

@@ -19,6 +19,12 @@ from parsedate import parse_date_html
 import pdb
 
 
+def normalize_title(title):
+	# this is done automatically by the wikipedia servers, but if we want to
+	# compare titles locally, we need to call this
+	return title.replace('_', ' ')
+
+
 def wikipedia_timeline_page_titles():
 	"""Looks at the List of timelines page and gets all of the page titles
 	that are linked"""
