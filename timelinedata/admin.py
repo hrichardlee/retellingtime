@@ -23,7 +23,14 @@ class TimelineAdmin(admin.ModelAdmin):
 	actions = ['refresh']
 
 class WpPageProcessAdmin(admin.ModelAdmin):
+	def refresh(modeladmin, request, queryset):
+		for p in queryset:
+			Timeline.process_wikipedia_page(p.title, refresh = True,
+				separate = p.separate, single_section = p.single_section)
+
 	list_display = ('title', 'metadata',
 		'first_and_last_formatted', 'errors_formatted')
+
+	actions = ['refresh']
 admin.site.register(Timeline, TimelineAdmin)
 admin.site.register(WpPageProcess, WpPageProcessAdmin)
