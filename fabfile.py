@@ -136,3 +136,6 @@ def devresetdb():
 	local('rm db.sqlite3 --force')
 	local('python manage.py syncdb --noinput')
 	local('python manage.py loaddata deployment/fixtures/*.json')
+
+def devbg():
+	local('celery -A timelinedata worker -l info')
