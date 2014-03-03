@@ -1,5 +1,5 @@
 from django.contrib import admin
-from timelinedata.models import Timeline
+from timelinedata.models import Timeline, WpPageProcess
 from timelineprocessor import wikipediaprocess
 from timelinedata.views import admin_populate
 from django.conf.urls import patterns, url
@@ -22,4 +22,8 @@ class TimelineAdmin(admin.ModelAdmin):
 
 	actions = ['refresh']
 
+class WpPageProcessAdmin(admin.ModelAdmin):
+	list_display = ('title', 'metadata',
+		'first_and_last_formatted', 'errors_formatted')
 admin.site.register(Timeline, TimelineAdmin)
+admin.site.register(WpPageProcess, WpPageProcessAdmin)
