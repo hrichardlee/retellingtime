@@ -2,7 +2,7 @@
 from bs4 import BeautifulSoup
 import re
 from htmlsplitter import HtmlSplitter
-from dategrammar import date_grammar_string
+from dategrammar import date_grammar_string, date_grammar_words, date_valid_nonwords_re_string
 from nltk import parse_cfg
 from nltk.parse import BottomUpChartParser
 import itertools
@@ -76,8 +76,32 @@ class TimelineDate:
 		return 'TimelineDate(%r, %r, %r, %r)' % \
 			(self.start_year, self.start_year_approx, self.end_year, self.end_year_approx)
 
+_splitter_re = re.compile(ur'([^a-zA-Z0-9]|\d+)')
+_valid_nonwords_re = re.compile(date_valid_nonwords_re_string)
+_date_grammar_words_set = set(date_grammar_words)
+_whitespace_re = re.compile(ur'^\s+$')
 
-_date_regex = re.compile(ur'^(millenium|millennium|th|st|nd|rd|century|ma|to|years|yrs|ago|[\dbcead,±\.\?\-–— ])+')
+def _possible_texts(text):
+	"""Given a string, returns a generator of strings which are all possible
+	date_text strings for the given input, anchored at the first character"""
+	# warning: this will only work as long as there are no cases where
+	# concatenating multiple words in date_grammar_words could form another
+	# valid word. ad/bc/ce/bce are an exception, they will work fine
+
+	# this step is not particularly efficient, especially with long content,
+	# but not worrying about it for now
+	tokens = _splitter_re.split(text)
+	# find the first token that cannot be part of a date string, and remove
+	# that token and all subsequent tokens
+	for i, t in enumerate(tokens):
+		if _valid_nonwords_re.search(t) == None and t not in _date_grammar_words_set:
+			tokens = tokens[:i]
+			break
+	# generate all possible strings	
+	for i, t in reversed(list(enumerate(tokens))):
+		if t and _whitespace_re.search(t) == None:
+			yield ''.join(tokens[:i + 1])
+
 
 def parse_date_text(text):
 	"""Parses a date from some text, returns (TimelineDate, index) where
@@ -85,27 +109,21 @@ def parse_date_text(text):
 	found, returns None. Assumes that date is at the beginning of the string
 	with no superfluous characters.
 	"""
+	# replace non-breaking spaces
 	text = text.replace(u'\xa0', u' ')
+	text = text.lower()
 
 	date_parser = BottomUpChartParser(parse_cfg(date_grammar_string))
 
-	date_text = text.lower()
-	m = _date_regex.search(date_text)
-	if not m: return None
-	date_text = m.group().strip()
 	parse = None
 
-	while True:
+	for date_text in _possible_texts(text):
 		parse = date_parser.parse(date_text)
 		if parse:
 			break
-		else:
-			# this is a pretty big hack. Really need the parser to expand the
-			# matches as far as possible and return that
-			if len(date_text) <= 1: return None
-			m = _date_regex.search(date_text[:-1])
-			if not m: return None
-			date_text = m.group().strip()
+
+	if not parse:
+		return None
 	
 	# these are all very closely tied to date_grammar
 	def numetostring(nume):
@@ -179,8 +197,6 @@ def parse_date_text(text):
 		elif yearsago[0].node == 'MAR':
 			return TimelineDate.span_from_years(-dec(yearsago[0][0]), -dec(yearsago[0][2])) * 1000000
 
-
-	# pdb.set_trace()
 	if parse[0].node == 'DATE':
 		result = date(parse[0])
 	elif parse[0].node == 'YEARSAGO':
@@ -189,7 +205,7 @@ def parse_date_text(text):
 		result = daterange(parse[0])
 	return (result, len(date_text))
 
-
+	
 def parse_date_html(html_string):
 	"""Takes a string that contains html, and returns (date, date_string,
 	content) as a tuple. For now, date is an int that represents the year.

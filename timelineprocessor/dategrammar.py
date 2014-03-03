@@ -33,15 +33,15 @@ date_grammar_string = u"""
 
 	DATERANGE -> DATE TO DATE | NUM TO DATE | ORD TO DATE
 
-	CA -> c a | c
-
-	BC -> b c | b c e
-	AD -> a d | c e
-
 	TO -> osp dash osp | sp to sp
 
 	PERIOD -> ORD osp century | ORD osp millenium
 	ORD -> NUM th
+
+	CA -> c a | c
+
+	BC -> b c | b c e
+	AD -> a d | c e
 
 	b -> 'b' | 'b' x
 	c -> 'c' | 'c' x
@@ -52,11 +52,13 @@ date_grammar_string = u"""
 
 	q -> '?'
 	dash -> '-' | '–' | '—'
-	to -> 't' 'o'
-	n -> '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
 	sp -> sp ' ' | ' '
 	osp -> sp | 
 	comma -> ','
+
+	n -> '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+
+	to -> 't' 'o'
 	years -> 'y' 'e' 'a' 'r' 's' | 'y' 'r' 's' | 'y' 'r' 's' x
 	ago -> 'a' 'g' 'o'
 	ma -> 'm' 'a'
@@ -65,3 +67,17 @@ date_grammar_string = u"""
 	century -> 'c' 'e' 'n' 't' 'u' 'r' 'y'
 	millenium -> 'm' 'i' 'l' 'l' 'e' 'n' 'i' 'u' 'm' | 'm' 'i' 'l' 'l' 'e' 'n' 'n' 'i' 'u' 'm'
 	"""
+
+date_grammar_words = [
+	u'to',
+	u'years', u'yrs', 
+	u'ago',
+	u'ma',
+	u'th', u'st', u'nd', u'rd',
+	u'century',
+	u'millenium', 'millennium',
+	u'ca', u'bc', u'bce', u'ad', u'ce',
+	u'a', u'b', u'c', u'd', u'e'
+]
+
+date_valid_nonwords_re_string = ur'^[\d,±\.\?\-–— ]*$'

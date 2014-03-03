@@ -3,9 +3,18 @@
 
 from bs4 import BeautifulSoup
 from parsedate import parse_date_html, TimelineDate
+import parsedate
 import unittest
 import pdb
 from pprint import pprint
+
+
+class TestPossibleTexts(unittest.TestCase):
+	def test_one(self):
+		pprint(list(parsedate._possible_texts(u'1845 a.d. century ago')))
+		pprint(list(parsedate._possible_texts(u'1845 march blah')))
+		pprint(list(parsedate._possible_texts(u'1845 ma: march')))
+		pprint(list(parsedate._possible_texts(u'2nd century b.c.')))
 
 
 class TestParseDate(unittest.TestCase):
@@ -18,18 +27,23 @@ class TestParseDate(unittest.TestCase):
 		self.assertEqual(parse_date_html(u'900–929')[0].simple_year,	900)
 
 	def test_pure_dates(self):
-		self.assertEqual(parse_date_html(u'1245'),						(TimelineDate(1245, False),				u'1245',			u''))
-		self.assertEqual(parse_date_html(u' 1245 '),					(TimelineDate(1245, False),				u'1245',			u''))
-		self.assertEqual(parse_date_html(u' 1245 hello'),				(TimelineDate(1245, False),				u'1245',			u'hello'))
-		self.assertEqual(parse_date_html(u'ca 1850 50'),				(TimelineDate(1850, True),				u'ca 1850',			u'50'))
-		self.assertEqual(parse_date_html(u'ca 70,000 BC'),				(TimelineDate(-70000, True),			u'ca 70,000 BC',	u''))
-		self.assertEqual(parse_date_html(u'70,000 a.d.'),				(TimelineDate(70000),					u'70,000 a.d.',		u''))
-		self.assertEqual(parse_date_html(u'c.a. 1850'),					(TimelineDate(1850, True),				u'c.a. 1850',		u''))
-		self.assertEqual(parse_date_html(u'c. 1850 BC'),				(TimelineDate(-1850, True),				u'c. 1850 BC',		u''))
-		self.assertEqual(parse_date_html(u'1850? b.c.e asdlkj'),		(TimelineDate(-1850, True),				u'1850? b.c.e',		u'asdlkj'))
-		self.assertEqual(parse_date_html(u'4 b.c.e c.e. c.e.'),			(TimelineDate(-4, False),				u'4 b.c.e',			u'c.e. c.e.'))
-		self.assertEqual(parse_date_html(u'4 AD blah'),					(TimelineDate(4, False),				u'4 AD',			u'blah'))
-		self.assertEqual(parse_date_html(u'4 cblah'),					(TimelineDate(4, False),				u'4',				u'cblah'))
+		self.assertEqual(parse_date_html(u'1245'),					(TimelineDate(1245, False),		u'1245',			u''))
+		self.assertEqual(parse_date_html(u' 1245 '),				(TimelineDate(1245, False),		u'1245',			u''))
+		self.assertEqual(parse_date_html(u' 1245 hello'),			(TimelineDate(1245, False),		u'1245',			u'hello'))
+		self.assertEqual(parse_date_html(u'ca 1850 50'),			(TimelineDate(1850, True),		u'ca 1850',			u'50'))
+		self.assertEqual(parse_date_html(u'ca 70,000 BC'),			(TimelineDate(-70000, True),	u'ca 70,000 BC',	u''))
+		self.assertEqual(parse_date_html(u'70,000 a.d.'),			(TimelineDate(70000),			u'70,000 a.d.',		u''))
+		self.assertEqual(parse_date_html(u'c.a. 1850'),				(TimelineDate(1850, True),		u'c.a. 1850',		u''))
+		self.assertEqual(parse_date_html(u'c. 1850 BC'),			(TimelineDate(-1850, True),		u'c. 1850 BC',		u''))
+		self.assertEqual(parse_date_html(u'1850? b.c.e asdlkj'),	(TimelineDate(-1850, True),		u'1850? b.c.e',		u'asdlkj'))
+		self.assertEqual(parse_date_html(u'4 b.c.e c.e. c.e.'),		(TimelineDate(-4, False),		u'4 b.c.e',			u'c.e. c.e.'))
+		self.assertEqual(parse_date_html(u'4 AD blah'),				(TimelineDate(4, False),		u'4 AD',			u'blah'))
+		self.assertEqual(parse_date_html(u'4 cblah'),				(TimelineDate(4, False),		u'4',				u'cblah'))
+		self.assertEqual(parse_date_html(u'20 Mastodon'),			(TimelineDate(20, False),		u'20',				u'Mastodon'))
+
+
+
+	def test_ranges(self):
 		self.assertEqual(parse_date_html(u'12 to 34 AD: blah'),			(TimelineDate(12, False, 34, False),	u'12 to 34 AD',		u'blah'))
 		self.assertEqual(parse_date_html(u'12 a.d. - 34 AD - blah'),	(TimelineDate(12, False, 34, False),	u'12 a.d. - 34 AD',	u'blah'))
 		self.assertEqual(parse_date_html(u'12   to   34:: blah'),		(TimelineDate(12, False, 34, False),	u'12   to   34',	u'blah'))
