@@ -111,7 +111,7 @@ class TestWpPageToEvents(unittest.TestCase):
 
 		print('---Validating ' + title + '---')
 
-		raw_events = wikipediaprocess._wp_page_to_events_raw(title, separate, single_section)
+		raw_events = wikipediaprocess.wp_page_to_events_raw(title, separate, single_section)
 
 
 		if len(raw_events) < 3:
