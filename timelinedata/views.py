@@ -21,8 +21,9 @@ def search(request, page_title):
 	except wikipedia.PageError:
 		# this is a quick hack. should be symmetric with Timeline.short_title
 		page_title = 'Timeline of ' + page_title
-	separate = request.GET.get('separate', 'no') == 'yes'
-	result = Timeline.process_wikipedia_page(page_title, separate=separate)
+	separate = request.GET.get('separate', None) == 'yes'
+	single_section = request.GET.get('single_section', '')
+	result = Timeline.process_wikipedia_page(page_title, separate = separate, single_section = single_section)
 	if not result:
 		raise Http404
 	else:

@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 class Timeline(models.Model):
 	title = models.CharField(max_length = 500)
 	events = models.CharField(max_length = 1000000)
+	single_section = models.CharField(max_length = 500, default = '')
 	separate = models.BooleanField()
 	url = models.CharField(max_length = 500)
 
@@ -30,7 +31,7 @@ class Timeline(models.Model):
 		return self.title
 
 	def get_events(self):
-		events = wikipediaprocess.wp_page_to_events(self.title, self.separate)
+		events = wikipediaprocess.wp_page_to_events(self.title, self.separate, self.single_section)
 		if len(events) > 2:
 			self.events = json.dumps(events)
 			self.url = wikipediaprocess.get_wp_page(self.title).url
@@ -63,11 +64,11 @@ class Timeline(models.Model):
 
 	def __unicode__(self):
 		return "Timeline(id: %d, title: %s, separate: %s, events: %s)" \
-			% (self.id, self.title, self.separate, self.events[:30])
+			% (self.id or -1, self.title, self.separate, self.events[:30])
 			
 
 	@classmethod
-	def process_wikipedia_page(cls, page_title, refresh=False, separate=False):
+	def process_wikipedia_page(cls, page_title, refresh=False, separate=False, single_section=''):
 		"""Looks for the wikipedia page with the given title in the database.
 		If found, (optionally) refreshes it and returns it. If it is not
 		found, tries to parse the wikipedia page. If successful, returns the
@@ -80,7 +81,7 @@ class Timeline(models.Model):
 				logger.info('Refreshed ' + page_title)
 			return objs[0]
 		else:
-			timeline = cls(title=page_title, separate=separate)
+			timeline = cls(title=page_title, separate=separate, single_section=single_section)
 			if timeline.get_events():
 				timeline.save()
 				logger.info('Added ' + page_title + ' successfully')
