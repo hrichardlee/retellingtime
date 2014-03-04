@@ -54,8 +54,8 @@ class WpPageProcessAdmin(admin.ModelAdmin):
 			p.unban()
 
 	list_display = ('title', 'banned', 'metadata',
-		'first_and_last_formatted', 'errors_formatted')
-	list_filter = ('banned', ErrorsNonEmptyFilter)
+		'first_and_last_formatted', 'fewer_than_threshold', 'errors_formatted')
+	list_filter = ('banned', 'fewer_than_threshold', ErrorsNonEmptyFilter)
 
 	actions = ['refresh', 'ban', 'unban']
 

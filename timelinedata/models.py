@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class CommonTimelineMetadata(models.Model):
 	title = models.CharField(max_length = 500)
-	single_section = models.CharField(max_length = 500, default = '')
+	single_section = models.CharField(max_length = 500, default = '', blank = True)
 	separate = models.BooleanField()
 	url = models.CharField(max_length = 500)
 
@@ -109,8 +109,9 @@ class Timeline(CommonTimelineMetadata):
 
 
 class WpPageProcess(CommonTimelineMetadata):
-	first_and_last = models.CharField(max_length = 1000)
-	errors = models.CharField(max_length = 1000000)
+	first_and_last = models.CharField(max_length = 1000, blank = True)
+	fewer_than_threshold = models.BooleanField(default = False)
+	errors = models.CharField(max_length = 1000000, blank = True)
 	banned = models.BooleanField(default = False)
 
 	def ban(self):
@@ -155,10 +156,10 @@ class WpPageProcess(CommonTimelineMetadata):
 		# delete any data about previous runs on this page
 		objs = cls.objects.filter(title__iexact = timeline.title).delete()
 
-		(first_and_last, errors) = cls.get_errors(raw_events)
+		(first_and_last, errors, fewer_than_threshold) = cls.get_errors(raw_events)
 		proc = cls(title = timeline.title, single_section = timeline.single_section,
 			separate = timeline.separate, url = timeline.url,
-			first_and_last = first_and_last, errors = errors)
+			first_and_last = first_and_last, errors = errors, fewer_than_threshold = fewer_than_threshold)
 		proc.save()
 
 	@classmethod
@@ -166,11 +167,12 @@ class WpPageProcess(CommonTimelineMetadata):
 		line_break = '\n<br/>\n'
 		errors = ''
 		first_and_last = ''
+		fewer_than_threshold = False
 
-		if len(raw_events) < 4:
-			errors += 'fewer than 4 events:' + line_break
+		if len(raw_events) < _event_threshold:
+			fewer_than_threshold = True
 			for e in raw_events:
-				errors += cls.event_to_str(e) + line_break
+				first_and_last += cls.event_to_str(e) + line_break
 		else:
 			first_and_last += \
 				cls.event_to_str(raw_events[0]) + line_break + \
@@ -197,4 +199,4 @@ class WpPageProcess(CommonTimelineMetadata):
 					errors += \
 						cls.event_to_str(curre) + line_break + \
 						cls.event_to_str(nexte) + line_break
-		return (first_and_last, errors)
+		return (first_and_last, errors, fewer_than_threshold)
