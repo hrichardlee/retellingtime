@@ -65,5 +65,7 @@ class WpPageProcessAdmin(admin.ModelAdmin):
 
 	actions = ['refresh', 'ban', 'unban']
 
+	readonly_fields = ['first_and_last_formatted', 'errors_formatted']
+
 admin.site.register(Timeline, TimelineAdmin)
 admin.site.register(WpPageProcess, WpPageProcessAdmin)
