@@ -7,6 +7,7 @@ from nltk import parse_cfg
 from nltk.parse import BottomUpChartParser
 import itertools
 import operator
+import warnings
 
 import pdb
 
@@ -141,7 +142,6 @@ def parse_date_text(text):
 	parses = []
 
 	for date_text in _possible_texts(text):
-		# parse = date_parser.parse(date_text)
 		parses = date_parser.nbest_parse(date_text)
 		if parses:
 			break
@@ -260,7 +260,36 @@ def parse_date_text(text):
 		elif yearsago[0].node == 'MAR':
 			return TimelineDate.span_from_years(-dec(yearsago[0][0]), -dec(yearsago[0][2])) * 1000000
 
-	parse = parses[0]
+	parse = None
+	if len(parses) > 1:
+		# the only ambiguous parses should be
+		# December 3
+		#	S -> MONTHDAY (prefer)
+		#	S -> DATE -> YAD -> MONTHDAYYEAR -> NUM ocommadotsp MONTHDAY
+		# 3 December
+		#	S -> MONTHDAY (prefer)
+		#	S -> DATE -> YAD -> MONTHDAYYEAR -> NUM ocommadotsp MONTHDAY
+		# 3 December 4 (this should be extremely rare)
+		#	MONTHDAYYEAR -> NUM ocommadotsp MONTHDAY
+		#	MONTHDAYYEAR -> MONTHDAY ocommadotsp NUM (prefer)
+
+		temp = [p for p in parses if p[0].node == 'MONTHDAY']
+		if len(temp) == 1:
+			parse = temp[0]
+		else:
+			if len([p for p in parses \
+					if p[0].node == 'DATE' \
+					and p[0][0].node == 'YAD' \
+					and p[0][0][0].node == 'MONTHDAYYEAR']) == len(parses):
+				temp = [p for p in parses if p[0][0][0][0].node == 'MONTHDAY']
+				if len(temp) == 1:
+					parse = temp[0]
+		if not parse:
+			warnings.warn('not sure how to decide between multiple parses %s' % date_text)
+			parse = parses[0]
+	else:
+		parse = parses[0]
+
 
 	if parse[0].node == 'DATE':
 		result = date(parse[0])
