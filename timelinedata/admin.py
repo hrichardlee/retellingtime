@@ -28,9 +28,14 @@ class WpPageProcessAdmin(admin.ModelAdmin):
 			Timeline.process_wikipedia_page(p.title, refresh = True,
 				separate = p.separate, single_section = p.single_section)
 
-	list_display = ('title', 'metadata',
+	def ban(modeladmin, request, queryset):
+		for p in queryset:
+			p.ban()
+
+	list_display = ('title', 'banned', 'metadata',
 		'first_and_last_formatted', 'errors_formatted')
 
-	actions = ['refresh']
+	actions = ['refresh', 'ban']
+	
 admin.site.register(Timeline, TimelineAdmin)
 admin.site.register(WpPageProcess, WpPageProcessAdmin)

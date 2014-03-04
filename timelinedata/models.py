@@ -91,6 +91,8 @@ class Timeline(CommonTimelineMetadata):
 				objs[0].save()
 				logger.info('Refreshed ' + page_title)
 			return objs[0]
+		elif WpPageProcess.objects.filter(title__iexact = page_title, banned = True).exists():
+			return None
 		else:
 			timeline = cls(title=page_title, separate=separate, single_section=single_section)
 			if timeline.get_events():
@@ -106,6 +108,13 @@ class WpPageProcess(CommonTimelineMetadata):
 	first_and_last = models.CharField(max_length = 1000)
 	errors = models.CharField(max_length = 1000000)
 	banned = models.BooleanField(default = False)
+
+	def ban(self):
+		# banned pages will not be processed until the ban is lifted
+		self.banned = True
+		# remove the timeline data if it's been processed
+		Timeline.objects.filter(title__iexact = self.title).delete()
+		self.save()
 
 	def metadata(self):
 		s = ''
@@ -128,7 +137,10 @@ class WpPageProcess(CommonTimelineMetadata):
 
 	@classmethod
 	def event_to_str(self, event):
-		return '%d: %s: %s' % (event['date'], event['date_string'], BeautifulSoup(event['content']).get_text()[:50])
+		return '%d: %s: %s' % (
+			event['date'],
+			BeautifulSoup(event['date_string']).get_text(),
+			BeautifulSoup(event['content']).get_text()[:50])
 
 	@classmethod
 	def from_raw_events(cls, raw_events, timeline):
