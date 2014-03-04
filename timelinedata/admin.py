@@ -58,7 +58,7 @@ class WpPageProcessAdmin(admin.ModelAdmin):
 		for p in queryset:
 			p.unban()
 
-	list_display = ('title', 'banned', 'metadata',
+	list_display = ('title', 'banned', 'metadata', 'timestamp',
 		'first_and_last_formatted', 'fewer_than_threshold', 'errors_formatted')
 	list_filter = ('banned', 'fewer_than_threshold', ErrorsNonEmptyFilter)
 	search_fields = ['title']
