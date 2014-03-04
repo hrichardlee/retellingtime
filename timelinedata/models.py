@@ -21,6 +21,10 @@ class CommonTimelineMetadata(models.Model):
 		abstract = True
 
 
+# a timeline must have at least this many events before it will be shown
+_event_threshold = 4
+
+
 class Timeline(CommonTimelineMetadata):
 	events = models.CharField(max_length = 1000000)
 
@@ -43,7 +47,7 @@ class Timeline(CommonTimelineMetadata):
 		self.url = wikipediaprocess.get_wp_page(self.title).url
 		WpPageProcess.from_raw_events(raw_events, self)
 		events = wikipediaprocess.wp_post_process(raw_events)
-		if len(events) > 2:
+		if len(events) > _event_threshold:
 			self.events = json.dumps(events)
 			return True
 		else:
