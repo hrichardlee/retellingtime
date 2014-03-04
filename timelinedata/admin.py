@@ -22,6 +22,23 @@ class TimelineAdmin(admin.ModelAdmin):
 
 	actions = ['refresh']
 
+
+class ErrorsNonEmptyFilter(admin.SimpleListFilter):
+	title = 'has errors?'
+	parameter_name = 'has_errors'
+
+	def lookups(self, request, model_admin):
+		return (
+			('yes', 'yes'),
+			('no', 'no'),
+		)
+	def queryset(self, request, queryset):
+		if self.value() == 'yes':
+			return queryset.exclude(errors__exact='')
+		if self.value() == 'no':
+			return queryset.filter(errors__exact='')
+
+
 class WpPageProcessAdmin(admin.ModelAdmin):
 	def refresh(modeladmin, request, queryset):
 		for p in queryset:
@@ -32,10 +49,15 @@ class WpPageProcessAdmin(admin.ModelAdmin):
 		for p in queryset:
 			p.ban()
 
+	def unban(modeladmin, request, queryset):
+		for p in queryset:
+			p.unban()
+
 	list_display = ('title', 'banned', 'metadata',
 		'first_and_last_formatted', 'errors_formatted')
+	list_filter = ('banned', ErrorsNonEmptyFilter)
 
-	actions = ['refresh', 'ban']
-	
+	actions = ['refresh', 'ban', 'unban']
+
 admin.site.register(Timeline, TimelineAdmin)
 admin.site.register(WpPageProcess, WpPageProcessAdmin)

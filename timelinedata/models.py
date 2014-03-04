@@ -116,6 +116,10 @@ class WpPageProcess(CommonTimelineMetadata):
 		Timeline.objects.filter(title__iexact = self.title).delete()
 		self.save()
 
+	def unban(self):
+		self.banned = False
+		self.save()
+
 	def metadata(self):
 		s = ''
 		if self.separate:
