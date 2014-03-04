@@ -173,7 +173,7 @@ def _html_to_string_blocks(html,
 
 def _string_blocks_to_events(string_blocks,
 	line_break = '<br />', single_section = None,
-	ignore_sections = set(['', 'contents', 'see also', 'references', 'external links', 'notes', 'further reading'])):
+	ignore_sections = set(['', 'contents', 'see also', 'references', 'external links', 'notes', 'further reading', 'related media'])):
 	"""Given a set of string blocks (as produced by _html_to_string_blocks,
 	expects that all strings are non-empty), returns a list of timeline
 	events. A timeline event is {date: number, date_string: string, content: string}
