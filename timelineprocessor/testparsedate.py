@@ -99,7 +99,18 @@ class TestParseDate(unittest.TestCase):
 		
 
 	def test_monthday(self):
-		print(parse_date_html(u'December 3 1980'))
+		self.helper((
+			(u'December 3 1980',			(TimelineDate(1980, month = 12, day = 3),	u'December 3 1980',	u'')),
+			(u'June 30, 1923',				(TimelineDate(1923, month = 6, day = 30),	u'June 30, 1923',	u'')),
+			(u'December 3',					(TimelineDate(month = 12, day = 3),			u'December 3',		u'')),
+			(u'December 1980',				(TimelineDate(1980, month = 12),			u'December 1980',	u'')),
+			(u'December',					(TimelineDate(month = 12),					u'December',		u'')),
+			(u'23 March 1933 Adolf Hitler',	(TimelineDate(1933, month = 3, day = 23),	u'23 March 1933',	u'Adolf Hitler')),
+			# (u'23 March blah',				(TimelineDate(month = 3, day = 23),			u'23 March',		u'blah')),
+		))
+
+		# this will be problematic, but hopefully should not occur too often (month/day added to years between 0 and 31 AD without AD appelation)
+		# '3 December 3'
 
 
 	def test_html_parsing(self):

@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 date_grammar_string = u"""
-	S -> MONTH | MONTHDAY | DATE | YEARSAGO | DATERANGE
+	S -> MONTHDAY | DATE | YEARSAGO | DATERANGE
 
 
 	YEARSAGO -> YAS | YAR | MAS | MAR
@@ -29,7 +29,8 @@ date_grammar_string = u"""
 	
 	YBC -> NUM osp BC
 	PERIODBC -> PERIOD osp BC
-	YAD -> NUM osp AD | NUM
+	YAD -> MONTHDAYYEAR osp AD | MONTHDAYYEAR | NUM AD ocommadotsp MONTHDAY
+	MONTHDAYYEAR -> NUM | NUM ocommadotsp MONTHDAY | MONTHDAY ocommadotsp NUM
 	PERIODAD ->  PERIOD osp AD | PERIOD
 
 	PERIOD -> ORD osp century | ORD osp millenium
@@ -41,11 +42,9 @@ date_grammar_string = u"""
 	TO -> osp dash osp | sp to sp
 
 
-	MONTH -> jan | feb | march | apr | may | jun | jul | aug | sep | oct | nov | dec
-
+	MONTHDAY -> DAY sp MONTH | MONTH ocomma sp DAY | MONTH
+	MONTH -> jan | feb | mar | apr | may | jun | jul | aug | sep | oct | nov | dec
 	DAY -> n | '0' n | '1' n | '2' n | '3' '0' | '3' '1'
-
-	MONTHDAY -> DAY sp MONTH | MONTH ocomma sp DAY
 
 
 	CA -> c a | c | about
@@ -65,7 +64,8 @@ date_grammar_string = u"""
 	sp -> sp ' ' | ' '
 	osp -> sp | 
 	comma -> ','
-	ocomma -> ',' | 
+	ocomma -> comma | 
+	ocommadotsp -> comma osp | x osp | sp
 
 	n -> '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
 

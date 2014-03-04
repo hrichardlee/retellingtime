@@ -16,8 +16,12 @@ class TimelineDate:
 	best single number approximation of the time of the event
 	"""
 
-	def __init__(self, start_year,
-		start_year_approx = False, end_year = None, end_year_approx = False):
+	def __init__(self, start_year = None, start_year_approx = False,
+		end_year = None, end_year_approx = False,
+		month = None, day = None):
+
+		self.month = month
+		self.day = day
 
 		self.start_year = start_year
 		self.start_year_approx = start_year_approx
@@ -48,6 +52,10 @@ class TimelineDate:
 		max_year, max_approx = max(years, key=operator.itemgetter(0))
 		return TimelineDate(min_year, min_approx, max_year, max_approx)
 
+	def monthday_from(self, other):
+		self.month = other.month
+		self.day = other.day
+
 	def __neg__(self):
 		return TimelineDate(-self.start_year,
 			self.start_year_approx,
@@ -73,8 +81,16 @@ class TimelineDate:
 		return self.__dict__ == other.__dict__
 
 	def __repr__(self):
-		return 'TimelineDate(%r, %r, %r, %r)' % \
-			(self.start_year, self.start_year_approx, self.end_year, self.end_year_approx)
+		return 'TimelineDate(%r, %r, %r, %r, %r, %r)' % \
+			(self.start_year, self.start_year_approx, self.end_year, self.end_year_approx, self.month, self.day)
+
+
+def month_to_num(text):
+	"""This takes a month node name as defined in the date grammar and
+	converts it to a number"""
+	months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+	return months.index(text) + 1
+
 
 _splitter_re = re.compile(ur'([^a-zA-Z0-9]|\d+)')
 _valid_nonwords_re = re.compile(date_valid_nonwords_re_string)
@@ -122,29 +138,41 @@ def parse_date_text(text):
 
 	date_parser = BottomUpChartParser(parse_cfg(date_grammar_string))
 
-	parse = None
+	parses = []
 
 	for date_text in _possible_texts(text):
-		parse = date_parser.parse(date_text)
-		if parse:
+		# parse = date_parser.parse(date_text)
+		parses = date_parser.nbest_parse(date_text)
+		if parses:
 			break
 
-	if not parse:
+	if not parses:
 		return None
 	
 	# these are all very closely tied to date_grammar
-	def numetostring(nume):
+	def numstr(nume):
 		return ''.join(l for l in nume.leaves() if l.isdigit())
+
+	def monthday(monthday):
+		d = None
+		for n in monthday:
+			if n.node == 'DAY':
+				d = int(numstr(n))
+			elif n.node == 'MONTH':
+				m = TimelineDate(month = month_to_num(n[0].node))
+		m.day = d
+		return m
+
 	def num(num):
 		if num[0].node == 'NUME':
-			return TimelineDate(int(numetostring(num[0])), False)
+			return TimelineDate(int(numstr(num[0])), False)
 		elif num[0].node == 'NUMQ':
 			return TimelineDate(
-				[int(numetostring(n)) for n in num[0] if n.node == 'NUME'][0],
+				[int(numstr(n)) for n in num[0] if n.node == 'NUME'][0],
 				True)
 	def dece(dece):
-		if len(dece) == 1: return int(numetostring(dece[0]))
-		else: return float(numetostring(dece[0]) + '.' + numetostring(dece[2]))
+		if len(dece) == 1: return int(numstr(dece[0]))
+		else: return float(numstr(dece[0]) + '.' + numstr(dece[2]))
 	def dec(dec):
 		if dec[0].node == 'DECE':
 			return TimelineDate(dece(dec[0]), False)
@@ -165,7 +193,17 @@ def parse_date_text(text):
 			return TimelineDate.span_from_years(-n * factor, -n * factor + factor)
 	def year(year):
 		if year.node == 'YBC': return -num(year[0])
-		elif year.node == 'YAD': return num(year[0])
+		elif year.node == 'YAD':
+			if year[0].node == 'MONTHDAYYEAR':
+				mdynode = year[0]
+			else:
+				mdynode = year
+			mddate = None
+			for n in mdynode:
+				if n.node == 'NUM': yeardate = num(n)
+				elif n.node == 'MONTHDAY': mddate = monthday(n)
+			if mddate: yeardate.monthday_from(mddate)
+			return yeardate
 	def _has_child_node(n, label):
 		return [i for i, c in enumerate(n) if hasattr(c, 'node') and c.node == label]
 	def daterange(r):
@@ -190,7 +228,7 @@ def parse_date_text(text):
 			# location for a copy of the YBC ast. This gets us a fully
 			# qualified date for '34' that we can use to create the range
 			if r[0][0].node == 'YAD':
-				replacement_node = r[0][0][0]
+				replacement_node = r[0][0].subtrees(filter = lambda x: x.node == 'NUM').next()
 			elif r[0][0].node == 'PERIODAD':
 				replacement_node = r[0][0][0][0]
 			elif r[0].node == 'ORD':
@@ -222,12 +260,18 @@ def parse_date_text(text):
 		elif yearsago[0].node == 'MAR':
 			return TimelineDate.span_from_years(-dec(yearsago[0][0]), -dec(yearsago[0][2])) * 1000000
 
+	parse = parses[0]
+
 	if parse[0].node == 'DATE':
 		result = date(parse[0])
 	elif parse[0].node == 'YEARSAGO':
 		result = yearsago(parse[0])
 	elif parse[0].node == 'DATERANGE':
 		result = daterange(parse[0])
+	elif parse[0].node == 'MONTH':
+		result = month(parse[0])
+	elif parse[0].node == 'MONTHDAY':
+		result = monthday(parse[0])
 	return (result, len(date_text))
 
 
