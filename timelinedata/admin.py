@@ -20,7 +20,12 @@ class TimelineAdmin(admin.ModelAdmin):
 			timeline.get_events()
 			timeline.save()
 
+	list_display = ('title', 'metadata', 'short_events')
+	search_fields = ('title',)
+
 	actions = ['refresh']
+
+	readonly_fields = ('pretty_events',)
 
 
 class ErrorsNonEmptyFilter(admin.SimpleListFilter):
@@ -56,6 +61,7 @@ class WpPageProcessAdmin(admin.ModelAdmin):
 	list_display = ('title', 'banned', 'metadata',
 		'first_and_last_formatted', 'fewer_than_threshold', 'errors_formatted')
 	list_filter = ('banned', 'fewer_than_threshold', ErrorsNonEmptyFilter)
+	search_fields = ['title']
 
 	actions = ['refresh', 'ban', 'unban']
 

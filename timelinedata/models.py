@@ -1,5 +1,6 @@
 from django.db import models
-from django.utils.html import format_html
+from django.utils.html import format_html, escape
+from django.utils.safestring import mark_safe
 import logging
 import json
 from bs4 import BeautifulSoup
@@ -16,6 +17,15 @@ class CommonTimelineMetadata(models.Model):
 	single_section = models.CharField(max_length = 500, default = '', blank = True)
 	separate = models.BooleanField()
 	url = models.CharField(max_length = 500)
+
+	def metadata(self):
+		s = ''
+		if self.separate:
+			s += 'sep '
+		if self.single_section:
+			s += '#' + self.single_section + ' '
+		s += '<a href="%s">orig</a>' % self.url
+		return format_html(s)
 
 	class Meta:
 		abstract = True
@@ -64,6 +74,15 @@ class Timeline(CommonTimelineMetadata):
 			'url': self.url,
 			'events': self.events
 		}
+
+	def short_events(self):
+		return self.events[:50]
+
+	def pretty_events(self):
+		# way too lazy to put this in a css file...
+		return mark_safe('<pre style="white-space: pre-wrap; font-size: medium">' +
+			escape(json.dumps(json.loads(self.events), indent = 4)) +
+			'</pre>')
 
 	def details_json(self):
 		# this is a massive hack, but will work as long as 3021621274449386 does not
@@ -124,15 +143,6 @@ class WpPageProcess(CommonTimelineMetadata):
 	def unban(self):
 		self.banned = False
 		self.save()
-
-	def metadata(self):
-		s = ''
-		if self.separate:
-			s += 'sep '
-		if self.single_section:
-			s += '#' + self.single_section + ' '
-		s += '<a href="%s">orig</a>' % self.url
-		return format_html(s)
 
 	def first_and_last_formatted(self):
 		return format_html(self.first_and_last)
