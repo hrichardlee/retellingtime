@@ -84,6 +84,10 @@ class TestParseDate(unittest.TestCase):
 		# self.assertEqual(parse_date_html('.24 Ma'), (TimelineDate(-240000), ''))
 		
 
+	def test_monthday(self):
+		print(parse_date_html(u'December 3 1980'))
+
+
 	def test_html_parsing(self):
 		h1 = u'1890 <a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a>'
 		d1 = u'1890'
