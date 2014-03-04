@@ -15,6 +15,7 @@ class TestPossibleTexts(unittest.TestCase):
 		pprint(list(parsedate._possible_texts(u'1845 march blah')))
 		pprint(list(parsedate._possible_texts(u'1845 ma: march')))
 		pprint(list(parsedate._possible_texts(u'2nd century b.c.')))
+		pprint(list(parsedate._possible_texts(u'1967 - 12th street massacre')))
 
 
 class TestParseDate(unittest.TestCase):
@@ -25,6 +26,9 @@ class TestParseDate(unittest.TestCase):
 		self.assertEqual(parse_date_html(u'<p>  </p>'),					None)
 		self.assertEqual(parse_date_html(u'lkjdr3f'),					None)
 		self.assertEqual(parse_date_html(u'900–929')[0].simple_year,	900)
+
+		self.assertEqual(parse_date_html(u'1967 - 12th street massacre'),	(TimelineDate(1967, False),	u'1967', u'12th street massacre'))
+
 
 	def test_pure_dates(self):
 		self.assertEqual(parse_date_html(u'1245'),					(TimelineDate(1245, False),		u'1245',			u''))

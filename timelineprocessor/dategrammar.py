@@ -84,3 +84,6 @@ date_grammar_words = [
 ]
 
 date_valid_nonwords_re_string = ur'^[\d,±\.\?\-–— ]*$'
+# the subset of characters that are valid in a date string that can also be a
+# character that ends the date string
+date_valid_end_char = ur'^[,\.\?\-–— ]$'

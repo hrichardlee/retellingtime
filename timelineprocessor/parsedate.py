@@ -2,7 +2,7 @@
 from bs4 import BeautifulSoup
 import re
 from htmlsplitter import HtmlSplitter
-from dategrammar import date_grammar_string, date_grammar_words, date_valid_nonwords_re_string
+from dategrammar import date_grammar_string, date_grammar_words, date_valid_nonwords_re_string, date_valid_end_char
 from nltk import parse_cfg
 from nltk.parse import BottomUpChartParser
 import itertools
@@ -80,6 +80,7 @@ _splitter_re = re.compile(ur'([^a-zA-Z0-9]|\d+)')
 _valid_nonwords_re = re.compile(date_valid_nonwords_re_string)
 _date_grammar_words_set = set(date_grammar_words)
 _whitespace_re = re.compile(ur'^\s+$')
+_valid_end_char_re = re.compile(date_valid_end_char)
 
 def _possible_texts(text):
 	"""Given a string, returns a generator of strings which are all possible
@@ -97,10 +98,16 @@ def _possible_texts(text):
 		if _valid_nonwords_re.search(t) == None and t not in _date_grammar_words_set:
 			tokens = tokens[:i]
 			break
+	prev_is_break_char = True
 	# generate all possible strings	
 	for i, t in reversed(list(enumerate(tokens))):
-		if t and _whitespace_re.search(t) == None:
+		if t and _whitespace_re.search(t) == None and prev_is_break_char:
 			yield ''.join(tokens[:i + 1])
+		if t:
+			# this is to make sure we only end the date string on valid
+			# characters
+			prev_is_break_char = _valid_end_char_re.search(t[0]) != None
+		# if t is an empty string, don't change prev_is_break_char
 
 
 def parse_date_text(text):
