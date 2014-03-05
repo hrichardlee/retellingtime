@@ -1,5 +1,8 @@
 # -*- coding: UTF-8 -*-
 
+# note: any time a leaf node is added to the grammar, it must be added to one
+# of the strings at the bottom of this file
+
 # note: YADPRECISEYEAR needs to be updated as the centuries go on...
 
 date_grammar_string = u"""
@@ -16,7 +19,7 @@ date_grammar_string = u"""
 
 	NUM -> NUME | NUMQ
 	NUME -> NUMLEADGROUP NUMGROUPS
-	NUMQ -> CA osp NUME | NUME q
+	NUMQ -> CA osp NUME | NUME q | NUME s | CA osp NUME s
 	NUMLEADGROUP -> n | n n | n n n
 	NUMGROUP -> NUMGROUPSEP n n n
 	NUMGROUPSEP -> comma |
@@ -62,7 +65,7 @@ date_grammar_string = u"""
 	MONTHDAYYEARRANGE -> MONTHDAY TO DAY ocommadotsp YADPRECISEYEAR
 
 
-	CA -> c a | c | about
+	CA -> c a | c | about | '~' | EARLYMIDLATE
 
 	BC -> b c | b c e
 	AD -> a d | c e
@@ -73,6 +76,12 @@ date_grammar_string = u"""
 	a -> 'a' | 'a' x
 	d -> 'd' | 'd' x
 	x -> '.'
+	s -> 's'
+
+	early -> 'e' 'a' 'r' 'l' 'y'
+	mid -> 'm' 'i' 'd'
+	late -> 'l' 'a' 't' 'e'
+	EARLYMIDLATE -> early | early osp dash osp | mid | mid osp dash osp | late | late osp dash osp
 
 	q -> '?'
 	dash -> '-' | '–' | '—'
@@ -109,6 +118,7 @@ date_grammar_string = u"""
 	"""
 
 date_grammar_words = [
+	u'early', u'mid', u'late',
 	u'about',
 	u'to',
 	u'years', u'yrs', 
@@ -120,13 +130,14 @@ date_grammar_words = [
 	u'ca',
 	u'bc', u'bce', u'ad', u'ce',
 	u'a', u'b', u'c', u'd', u'e',
+	u's',
 	u'jan', u'january', u'feb', u'february', u'mar', u'march',
 	u'apr', u'april', u'may', u'jun', u'june', u'jul', u'july',
 	u'aug', u'august', u'sep', u'sept', u'september',
 	u'oct', u'october', u'nov',u'november', u'dec', u'december',
 ]
 
-date_valid_nonwords_re_string = ur'^[\d,±\.\?\-–— ]*$'
+date_valid_nonwords_re_string = ur'^[\d,±\.\?\-–—~ ]*$'
 # the subset of characters that are valid in a date string that can also be a
 # character that ends the date string
 date_valid_end_char = ur'^[,\.\?\-–— ]$'
