@@ -259,18 +259,19 @@ def _table_to_events(table):
 
 	events = []
 
-	year_col_candidates = []
+	year_col_index = None
+	date_col_index = None
 	for row in table.find_all('tr'):
 		cells = row.find_all('th')
 		for i, cell in enumerate(cells):
-			if cell.get_text().strip().lower() == 'year':
-				year_col_candidates.append(i)
-	# we would like to pick the lowest index that is the max, and this happens
-	# with cPython's implementation of max, but is not in the spec. So this is
-	# a quick hack
-	if year_col_candidates:
-		year_col_index = max(set(year_col_candidates), key=year_col_candidates.count)
+			cell_text = cell.get_text().strip().lower()
+			if cell_text == 'year': year_col_index = i
+			elif cell_text == 'date': date_col_index = i
+	if date_col_index != None and year_col_index == None:
+		year_col_index = date_col_index
+		date_col_index = None
 
+	if year_col_index != None or date_col_index != None:
 		# a td that has a rowspan will be stored as (col_index, cell) The
 		# rowspan number essentially gets decremented in the td element each
 		# time it is added to the subsequent row
@@ -294,11 +295,18 @@ def _table_to_events(table):
 			if len(cells) > year_col_index:
 				extract = parse_date_html(_bs_inner_html(cells[year_col_index]))
 				if extract:
-					del cells[year_col_index]
-					content = ''.join(_bs_inner_html(cell) for cell in cells)
+					date = extract[0]
+					date_string = extract[1]
+					if date_col_index != None and len(cells) > date_col_index:
+						extract2 = parse_date_html(_bs_inner_html(cells[date_col_index]))
+						if extract2:
+							date = TimelineDate.combine(date, extract2[0])
+							date_string += ' ' + extract2[1]
+					content = ''.join(_bs_inner_html(cell) for (i, cell) in \
+						enumerate(cells) if i != year_col_index and i != date_col_index)
 					events.append({
-						'date': extract[0].simple_year(),
-						'date_string': extract[1],
+						'date': date.simple_year(),
+						'date_string': date_string,
 						'content': content
 					})
 
