@@ -189,6 +189,14 @@ def _string_blocks_to_events(string_blocks,
 		if e:
 			es.append(e)
 
+	if len(string_blocks) == 1:
+		# allow the first section to be processed if it is the only section.
+		# usually this section is just an intro paragraph
+		try:
+			ignore_sections.remove('')
+		except KeyError:
+			pass
+
 	curr_event = None
 	events = []
 
