@@ -463,6 +463,28 @@ html_particlephysics = """
 </ul>
 """
 
+html_iraqwar = """
+<h2><span class="mw-headline" id="2003">2003</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Timeline_of_the_Iraq_War&amp;action=edit&amp;section=1" title="Edit section: 2003">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="March">March</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Timeline_of_the_Iraq_War&amp;action=edit&amp;section=2" title="Edit section: March">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul>
+<li>March 20: The <a href="/wiki/United_States" title="United States">United States</a> begins the <a href="/wiki/Invasion_of_Iraq" title="Invasion of Iraq" class="mw-redirect">Invasion of Iraq</a>; coordinating a satellite-guided <a href="/wiki/Tomahawk_cruise_missile" title="Tomahawk cruise missile" class="mw-redirect">tomahawk cruise missile</a> strike on Baghdad.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1"><span>[</span>1<span>]</span></a></sup> American, <a href="/wiki/United_Kingdom" title="United Kingdom">British</a>, <a href="/wiki/Australia" title="Australia">Australian</a>, <a href="/wiki/Poland" title="Poland">Polish</a>, and <a href="/wiki/Denmark" title="Denmark">Danish</a> military operations begin; moving ground troops move into <a href="/wiki/Iraq" title="Iraq">Iraq</a>.<sup id="cite_ref-2" class="reference"><a href="#cite_note-2"><span>[</span>2<span>]</span></a></sup></li>
+</ul>
+<h3><span class="mw-headline" id="April">April</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Timeline_of_the_Iraq_War&amp;action=edit&amp;section=3" title="Edit section: April">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul>
+<li>April 10: <a href="/wiki/Battle_of_Baghdad_(2003)" title="Battle of Baghdad (2003)">Fall of Baghdad</a>: <a href="/wiki/Coalition_Forces_Land_Component_Command" title="Coalition Forces Land Component Command">Coalition forces</a> moved into Baghdad, symbolically ending the end of the twenty-four year reign of <a href="/wiki/President_of_Iraq" title="President of Iraq">Iraqi President</a> <a href="/wiki/Saddam_Hussein" title="Saddam Hussein">Saddam Hussein</a>.<sup id="cite_ref-3" class="reference"><a href="#cite_note-3"><span>[</span>3<span>]</span></a></sup></li>
+</ul>
+<h3><span class="mw-headline" id="May">May</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Timeline_of_the_Iraq_War&amp;action=edit&amp;section=4" title="Edit section: May">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul>
+<li>May 1: President George W. Bush <a href="/wiki/2003_Mission_Accomplished_Speech" title="2003 Mission Accomplished Speech" class="mw-redirect">declares major combat operations over</a>.</li>
+</ul>
+<ul>
+<li>May 15 - U.S forces launch <a href="/wiki/Operation_Planet_X" title="Operation Planet X">Operation Planet X</a>, capturing hundreds of people.</li>
+</ul>
+<ul>
+<li>May 23 - <a href="/wiki/L._Paul_Bremer" title="L. Paul Bremer" class="mw-redirect">L. Paul Bremer</a> issues <a href="/wiki/Coalition_Provisional_Authority_Order_Number_2" title="Coalition Provisional Authority Order Number 2" class="mw-redirect">Coalition Provisional Authority Order Number 2</a>, dissolving the Iraqi army and other entities of the Baathist state.<sup id="cite_ref-4" class="reference"><a href="#cite_note-4"><span>[</span>4<span>]</span></a></sup></li>
+</ul>
+"""
+
 events = [
 {'date': 1815, 'date_string': '1815', 'content': u"""<a href="/wiki/William_Prout" title="William Prout">William Prout</a> <a href="/wiki/Prout%27s_hypothesis" title="Prout\'s hypothesis">hypothesizes</a> that all matter is built up from <a href="/wiki/Hydrogen" title="Hydrogen">hydrogen</a>, adumbrating the <a href="/wiki/Proton" title="Proton">proton</a>;"""},
 {'date': 1838, 'date_string': '1838', 'content': u"""<a href="/wiki/Richard_Laming" title="Richard Laming">Richard Laming</a> hypothesized a subatomic particle carrying <a href="/wiki/Electric_charge" title="Electric charge">electric charge</a>;"""},

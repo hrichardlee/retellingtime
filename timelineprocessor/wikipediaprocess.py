@@ -14,7 +14,7 @@ import nltk.data
 from bs4 import BeautifulSoup
 import bs4
 from htmlsplitter import HtmlSplitter
-from parsedate import parse_date_html
+from parsedate import parse_date_html, TimelineDate, TimePoint
 
 import pdb
 
@@ -194,18 +194,26 @@ def _string_blocks_to_events(string_blocks,
 
 	for string_block in string_blocks:
 		if section_test(string_block['heading'][0]):
+			# create base date based on headings:
+			# possible perf improvement by caching results for headings across string_blocks
+			base_date = TimelineDate(TimePoint())
+			for h in string_block['heading']:
+				parse = parse_date_html(h)
+				if parse:
+					base_date = TimelineDate.combine(base_date, parse[0])
+
 			for line in string_block['lines']:
 				if line['line_type'] == LineTypes.line:
-					extract = parse_date_html(line['line'])
-					# if we can extract a date, create a new event
-					if extract:
+					parse = parse_date_html(line['line'])
+					# if we can parse a date, create a new event
+					if parse:
 						close_event(events, curr_event)
 						curr_event = {
-							'date': extract[0].simple_year,
-							'date_string': extract[1],
-							'content': extract[2]
+							'date': TimelineDate.combine(base_date, parse[0]).simple_year,
+							'date_string': parse[1],
+							'content': parse[2]
 						}
-					# if we can't extract a date, append the line to the
+					# if we can't parse a date, append the line to the
 					# current event if there is one
 					elif curr_event:
 						curr_event['content'] += line_break + line['line']

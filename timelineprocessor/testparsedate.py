@@ -10,6 +10,13 @@ import pdb
 from pprint import pprint
 
 
+class TestCombine(unittest.TestCase):
+	def test_one(self):
+		print(TimePoint.combine(TimePoint(1920, 4), TimePoint(None, 5, 3)))
+		print(TimePoint.combine(TimePoint(1920), TimePoint(None, 4)))
+		print(TimelineDate.combine(TimelineDate(TimePoint(1920, 8)), TimelineDate(TimePoint(4))))
+
+
 class TestPossibleTexts(unittest.TestCase):
 	def test_one(self):
 		pprint(list(parsedate._possible_texts(u'1845 a.d. century ago')))

@@ -47,6 +47,11 @@ class TestStringBlocksToEvents(unittest.TestCase):
 		evs = wikipediaprocess._string_blocks_to_events(wikipediaprocess._html_to_string_blocks(article))
 		self.p(evs)
 		self.assertEqual(len(evs), 113)
+	def test_combine(self):
+		article = BeautifulSoup(html_iraqwar)
+		evs = wikipediaprocess._string_blocks_to_events(wikipediaprocess._html_to_string_blocks(article))
+		self.p(evs)
+		self.assertEqual(len(evs), 5)
 
 
 class TestAddImportanceToEvents(unittest.TestCase):

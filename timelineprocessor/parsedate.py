@@ -54,6 +54,22 @@ class TimePoint:
 		return 'TimePoint(%r, %r, %r, %r)' % \
 			(self.year, self.month, self.day, self.year_approx)
 
+	@classmethod
+	def combine(cls, a, b):
+		"""Given TimePoints a and b, returns a new TimePoint that self takes
+		on b's attributes, except if b does not have that attribute, in which
+		case a's are taken."""
+		if b.year:
+			year = b.year
+			year_approx = b.year_approx
+		else:
+			year = a.year
+			year_approx = a.year_approx
+		if b.month: month = b.month
+		else: month = a.month
+		if b.day: day = b.day
+		else: day = a.day
+		return cls(year, month, day, year_approx = year_approx)
 
 class TimelineDate:
 	"""Represents either a year or a range of years. simple_year returns the
@@ -73,9 +89,31 @@ class TimelineDate:
 		# in case of overlap, tighter approx should be taken
 		return TimelineDate(min(years), max(years))
 
-	def monthday_from(self, other):
-		self.start_month = other.start_month
-		self.start_day = other.start_day
+	@classmethod
+	def combine(cls, a, b):
+		"""Given two TimelineDates a and b, returns a new TimelineDate. The
+		result's start will be a's start combined with b's start and the
+		result's end will be a's end combined with b's end. (It doesn't really
+		make sense for a to have an end, but we're not going to deal with that
+		here.)
+
+		The only exception is that if a and b both do not have ends, and a has
+		year and month but not day and b has only year and self, and its value
+		for year is between 1 and 31 the result will be combining a with b but
+		interpreting b to only have a day value."""
+		if not a.end and not b.end \
+			and a.start.year and a.start.month and not a.start.day \
+			and b.start.year and not b.start.month and not b.start.day \
+			and b.start.year >= 1 and b.start.year <= 31:
+
+			return cls(TimePoint(a.start.year, a.start.month, b.start.year, a.start.year_approx))
+		else:
+			start = TimePoint.combine(a.start, b.start)
+			end = None
+			if b.end: end = TimePoint.combine(a.start, b.end)
+
+			return cls(start, end)
+
 
 	def __eq__(self, other):
 		return self.__dict__ == other.__dict__
