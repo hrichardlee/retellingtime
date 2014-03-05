@@ -24,7 +24,7 @@ class TimePoint:
 		self.year_approx = year_approx
 
 	def simple_year(self):
-		if not self.year:
+		if self.year == None:
 			return None
 
 		if self.year < 1 or self.year > datetime.MAXYEAR:
