@@ -158,8 +158,8 @@ class WpPageProcess(CommonTimelineMetadata):
 
 	@classmethod
 	def event_to_str(self, event):
-		return '%d: %s: %s' % (
-			event['date'],
+		return '%s: %s: %s' % (
+			str(event['date']),
 			BeautifulSoup(event['date_string']).get_text(),
 			BeautifulSoup(event['content']).get_text()[:50])
 
@@ -179,6 +179,10 @@ class WpPageProcess(CommonTimelineMetadata):
 		errors = ''
 		first_and_last = ''
 		fewer_than_threshold = False
+
+		for e in raw_events:
+			if e['date'] == None:
+				errors += 'event without date:\n' + cls.event_to_str(e) + '\n'
 
 		if len(raw_events) < _event_threshold:
 			fewer_than_threshold = True
