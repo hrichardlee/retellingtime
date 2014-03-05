@@ -48,6 +48,7 @@ class TestParseDate(unittest.TestCase):
 	def test_pure_dates(self):
 		self.helper((
 			(u'1245',				(TimelineDate(TimePoint(1245)),							u'1245',			u'')),
+			(u'AD1245',				(TimelineDate(TimePoint(1245)),							u'AD1245',			u'')),
 			(u' 1245 ',				(TimelineDate(TimePoint(1245)),							u'1245',			u'')),
 			(u' 1245 hello',		(TimelineDate(TimePoint(1245)),							u'1245',			u'hello')),
 			(u'ca 1850 50',			(TimelineDate(TimePoint(1850, year_approx = True)),		u'ca 1850',			u'50')),
@@ -65,7 +66,6 @@ class TestParseDate(unittest.TestCase):
 
 
 	def test_ranges(self):
-		# pdb.set_trace()
 		self.helper((
 			(u'12 to 34 AD: blah',		(TimelineDate(TimePoint(12),						TimePoint(34)),							u'12 to 34 AD',		u'blah')),
 			(u'12 a.d. - 34 AD - blah',	(TimelineDate(TimePoint(12),						TimePoint(34)),							u'12 a.d. - 34 AD',	u'blah')),

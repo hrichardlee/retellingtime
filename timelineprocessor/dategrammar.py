@@ -38,7 +38,7 @@ date_grammar_string = u"""
 	
 	YBC -> NUM osp BC
 	YAD -> YADYEAR | YADYEARMONTH | YADYEARMONTHDAY
-	YADYEAR -> NUM | NUM osp AD
+	YADYEAR -> NUM | NUM osp AD | AD osp NUM
 	YADPRECISEYEAR -> '5' n n | '1' n n n | '2' '0' n n | '2' '1' n n | '2' '2' n n
 	YADYEARMONTH -> MONTH ocommadotsp YADPRECISEYEAR | YADPRECISEYEAR ocommadotsp MONTH | YADPRECISEYEAR ocommadotsp MONTH sp AD
 	YADYEARMONTHDAY -> MONTHDAY ocommadotsp YADPRECISEYEAR | YADPRECISEYEAR ocommadotsp MONTHDAY | YADPRECISEYEAR ocommadotsp MONTHDAY osp AD
@@ -111,7 +111,7 @@ date_grammar_string = u"""
 	th -> 't' 'h' | 's' 't' | 'n' 'd' | 'r' 'd'
 	century -> 'c' 'e' 'n' 't' 'u' 'r' 'y'
 	millenium -> 'm' 'i' 'l' 'l' 'e' 'n' 'i' 'u' 'm' | 'm' 'i' 'l' 'l' 'e' 'n' 'n' 'i' 'u' 'm'
-
+ 
 	jan -> 'j' 'a' 'n' | 'j' 'a' 'n' x | 'j' 'a' 'n' 'u' 'a' 'r' 'y'
 	feb -> 'f' 'e' 'b' | 'f' 'e' 'b' x | 'f' 'e' 'b' 'r' 'u' 'a' 'r' 'y'
 	mar -> 'm' 'a' 'r' | 'm' 'a' 'r' x | 'm' 'a' 'r' 'c' 'h'
