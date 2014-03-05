@@ -4,6 +4,7 @@
 from bs4 import BeautifulSoup
 from parsedate import parse_date_html, TimelineDate
 import parsedate
+import warnings
 import unittest
 import pdb
 from pprint import pprint
@@ -20,6 +21,7 @@ class TestPossibleTexts(unittest.TestCase):
 
 class TestParseDate(unittest.TestCase):
 	def helper(self, data):
+		warnings.filterwarnings('ignore', module='bs4')
 		for row in data:
 			self.assertEqual(parse_date_html(row[0]), row[1])
 
@@ -56,6 +58,7 @@ class TestParseDate(unittest.TestCase):
 
 
 	def test_ranges(self):
+		# pdb.set_trace()
 		self.helper((
 			(u'12 to 34 AD: blah',		(TimelineDate(12, False, 34, False),	u'12 to 34 AD',		u'blah')),
 			(u'12 a.d. - 34 AD - blah',	(TimelineDate(12, False, 34, False),	u'12 a.d. - 34 AD',	u'blah')),
@@ -109,12 +112,14 @@ class TestParseDate(unittest.TestCase):
 			# these test the ambiguous resolution code
 			(u'23 March blah',				(TimelineDate(month = 3, day = 23),			u'23 March',		u'blah')),
 			(u'December 3',					(TimelineDate(month = 12, day = 3),			u'December 3',		u'')),
-			# this should maybe just assume that 23 is part of the content, no?
-			(u'3 December 23',				(TimelineDate(23, month = 12, day = 3),		u'3 December 23',	u'')),
+
+			# this decision is made arbitrarilly by the parser. we're just not going to worry about it
+			# (u'3 December 23',				(TimelineDate(3, month = 12, day = 23),		u'3 December 23',	u'')),
 		))
 
-		# this will be problematic, but hopefully should not occur too often (month/day added to years between 0 and 31 AD without AD appelation)
-		# '3 December 3'
+	def test_monthday_ranges(self):
+		# pdb.set_trace()
+		print(parse_date_html('16 June - 9 July 1932 blah'))
 
 
 	def test_html_parsing(self):

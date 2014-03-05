@@ -152,17 +152,17 @@ def parse_date_text(text):
 	# these are all very closely tied to date_grammar
 	def numstr(nume):
 		return ''.join(l for l in nume.leaves() if l.isdigit())
-
+	def month(month):
+		return TimelineDate(month = month_to_num(month[0].node))
 	def monthday(monthday):
 		d = None
 		for n in monthday:
 			if n.node == 'DAY':
 				d = int(numstr(n))
 			elif n.node == 'MONTH':
-				m = TimelineDate(month = month_to_num(n[0].node))
+				m = month(n)
 		m.day = d
 		return m
-
 	def num(num):
 		if num[0].node == 'NUME':
 			return TimelineDate(int(numstr(num[0])), False)
@@ -194,16 +194,18 @@ def parse_date_text(text):
 	def year(year):
 		if year.node == 'YBC': return -num(year[0])
 		elif year.node == 'YAD':
-			if year[0].node == 'MONTHDAYYEAR':
-				mdynode = year[0]
-			else:
-				mdynode = year
-			mddate = None
-			for n in mdynode:
-				if n.node == 'NUM': yeardate = num(n)
-				elif n.node == 'MONTHDAY': mddate = monthday(n)
-			if mddate: yeardate.monthday_from(mddate)
-			return yeardate
+			monthobj = None
+			dayobj = None
+			for s in year.subtrees():
+				if s.node == 'NUM':
+					yearobj = num(s)
+				elif s.node == 'MONTH':
+					monthobj = month(s)
+				elif s.node == 'DAY':
+					dayobj = int(numstr(s))
+			if monthobj: yearobj.month = monthobj.month
+			if dayobj: yearobj.day = dayobj
+			return yearobj
 	def _has_child_node(n, label):
 		return [i for i, c in enumerate(n) if hasattr(c, 'node') and c.node == label]
 	def daterange(r):
@@ -259,31 +261,34 @@ def parse_date_text(text):
 			return -dec(yearsago[0][0]) * 1000000
 		elif yearsago[0].node == 'MAR':
 			return TimelineDate.span_from_years(-dec(yearsago[0][0]), -dec(yearsago[0][2])) * 1000000
+	def monthdayrange(r):
+		# pdb.set_trace()
+		pass
 
 	parse = None
 	if len(parses) > 1:
-		# the only ambiguous parses should be
-		# December 3
-		#	S -> MONTHDAY (prefer)
-		#	S -> DATE -> YAD -> MONTHDAYYEAR -> NUM ocommadotsp MONTHDAY
-		# 3 December
-		#	S -> MONTHDAY (prefer)
-		#	S -> DATE -> YAD -> MONTHDAYYEAR -> NUM ocommadotsp MONTHDAY
-		# 3 December 4 (this should be extremely rare)
+		# ambiguous parses will fall into two categories
+		# 1. DATE/MONTHDAY ambiguity
+		# for a string like December 3:
+		#	MONTHDAY (prefer)
+		#	DATE -> YAD -> MONTHDAYYEAR -> NUM ocommadotsp MONTHDAY
+		# or 3 December
+		#	MONTHDAY (prefer)
+		#	DATE -> YAD -> MONTHDAYYEAR -> NUM ocommadotsp MONTHDAY
+		# this happens in S and DATERANGE
+		#
+		# The other category is something like 3 December 4
 		#	MONTHDAYYEAR -> NUM ocommadotsp MONTHDAY
 		#	MONTHDAYYEAR -> MONTHDAY ocommadotsp NUM (prefer)
+		# this should be extremely rare, and we will not bother dealing with them
 
 		temp = [p for p in parses if p[0].node == 'MONTHDAY']
 		if len(temp) == 1:
 			parse = temp[0]
-		else:
-			if len([p for p in parses \
-					if p[0].node == 'DATE' \
-					and p[0][0].node == 'YAD' \
-					and p[0][0][0].node == 'MONTHDAYYEAR']) == len(parses):
-				temp = [p for p in parses if p[0][0][0][0].node == 'MONTHDAY']
-				if len(temp) == 1:
-					parse = temp[0]
+		if not parse and all(p[0].node == 'DATERANGE' for p in parses):
+			temp = [p for p in parses if p[0][0].node == 'MONTHDAY']
+			if len(temp) == 1:
+				parse = temp[0]
 		if not parse:
 			warnings.warn('not sure how to decide between multiple parses %s' % date_text)
 			parse = parses[0]
