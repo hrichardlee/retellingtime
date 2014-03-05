@@ -415,13 +415,13 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				}
 
 				var scaledImportance = Math.max(0, event.importance / this.maxImportance);
-				var intensity = Math.min(1, scaledImportance * 0.8 + 0.5);
+				var intensity = Math.min(1, scaledImportance * 0.9 + 0.15);
 
 				var hidden = event.hidden || event.date <= this.x.domain()[0] || event.date >= this.x.domain()[1];
 
 				return hidden
-					? 'rgba(' + C.FGDARK_RGB + ', ' + scaledImportance + ')'
-					: 'rgba(' + C.CYAN_RGB + ', ' + scaledImportance + ')';
+					? 'rgba(' + C.FGDARK_RGB + ', ' + intensity + ')'
+					: 'rgba(' + C.CYAN_RGB + ', ' + intensity + ')';
 			}
 		}
 
