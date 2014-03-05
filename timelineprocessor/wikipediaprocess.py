@@ -189,9 +189,11 @@ def _string_blocks_to_events(string_blocks,
 		if e:
 			es.append(e)
 
-	if len(string_blocks) == 1:
-		# allow the first section to be processed if it is the only section.
-		# usually this section is just an intro paragraph
+	if all(not section_test(sb['heading'][0]) for sb in string_blocks):
+		# allow the first section to be processed if it is the only section,
+		# excluding excluded sections like see also, etc. Usually this section
+		# is just an intro paragraph, but if this if statement is true, it is
+		# probably the entire content of the article
 		try:
 			ignore_sections.remove('')
 		except KeyError:
@@ -278,6 +280,10 @@ def _table_to_events(table):
 	if date_col_index != None and year_col_index == None:
 		year_col_index = date_col_index
 		date_col_index = None
+	if year_col_index == None and date_col_index == None:
+		# just try using the first column. could be a bit smarter about giving
+		# up early to save some cycles...
+		year_col_index = 0
 
 	if year_col_index != None or date_col_index != None:
 		# a td that has a rowspan will be stored as (col_index, cell) The
