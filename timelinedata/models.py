@@ -131,7 +131,7 @@ class WpPageProcess(CommonTimelineMetadata):
 	fewer_than_threshold = models.BooleanField(default = False)
 	errors = models.CharField(max_length = 1000000, blank = True)
 	banned = models.BooleanField(default = False)
-	timestamp = models.DateField(auto_now = True)
+	timestamp = models.DateTimeField(auto_now = True)
 
 	def ban(self):
 		# banned pages will not be processed until the ban is lifted
