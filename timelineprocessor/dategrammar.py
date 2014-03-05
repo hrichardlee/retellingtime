@@ -9,10 +9,13 @@ date_grammar_string = u"""
 	S -> MONTH | MONTHDAY | DATE | YEARSAGO | DATERANGE | MONTHDAYRANGE | MONTHDAYYEARRANGE
 
 
-	YEARSAGO -> YAS | YAR | MAS | MAR
+	YEARSAGO -> YAS | YAR | KAS | KAR | MAS | MAR
 
-	YAS -> NUM osp years sp ago
-	YAR -> NUM TO NUM osp years sp ago
+	YAS -> NUM osp years sp ago | NUM osp bp
+	YAR -> NUM TO NUM osp years sp ago | NUM TO NUM osp bp
+
+	KAS -> DEC osp ka ago | DEC osp ka
+	KAR -> DEC TO DEC ka ago | DEC TO DEC osp ka
 
 	MAS -> DEC osp ma ago | DEC osp ma
 	MAR -> DEC TO DEC ma ago | DEC TO DEC osp ma
@@ -97,7 +100,9 @@ date_grammar_string = u"""
 	to -> 't' 'o'
 	years -> 'y' 'e' 'a' 'r' 's' | 'y' 'r' 's' | 'y' 'r' 's' x
 	ago -> 'a' 'g' 'o'
+	bp -> 'b' 'p'
 	ma -> 'm' 'a'
+	ka -> 'k' 'a'
 	pm -> '±'
 	th -> 't' 'h' | 's' 't' | 'n' 'd' | 'r' 'd'
 	century -> 'c' 'e' 'n' 't' 'u' 'r' 'y'
@@ -121,9 +126,8 @@ date_grammar_words = [
 	u'early', u'mid', u'late',
 	u'about',
 	u'to',
-	u'years', u'yrs', 
-	u'ago',
-	u'ma',
+	u'years', u'yrs', u'ago', u'bp',
+	u'ma', u'ka',
 	u'th', u'st', u'nd', u'rd',
 	u'century',
 	u'millenium', 'millennium',

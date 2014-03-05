@@ -328,6 +328,10 @@ def parse_date_text(text):
 			return TimelineDate(-num(yearsago[0][0]))
 		elif yearsago[0].node == 'YAR':
 			return TimelineDate(-num(yearsago[0][0]), -num(yearsago[0][2]))
+		elif yearsago[0].node == 'KAS':
+			return TimelineDate(-dec(yearsago[0][0]) * 1000)
+		elif yearsago[0].node == 'KAR':
+			return TimelineDate(-dec(yearsago[0][0]) * 1000, -dec(yearsago[0][2]) * 1000)
 		elif yearsago[0].node == 'MAS':
 			return TimelineDate(-dec(yearsago[0][0]) * 1000000)
 		elif yearsago[0].node == 'MAR':

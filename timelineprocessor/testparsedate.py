@@ -96,6 +96,10 @@ class TestParseDate(unittest.TestCase):
 	def test_yearsago(self):
 		self.helper((
 			(u'12,345 years ago ago',	(TimelineDate(TimePoint(-12345)),								u'12,345 years ago',u'ago')),
+			(u'12,345 BP',				(TimelineDate(TimePoint(-12345)),								u'12,345 BP',		u'')),
+			(u'13,600-13,500 BP',		(TimelineDate(TimePoint(-13600), TimePoint(-13500)),			u'13,600-13,500 BP',u'')),
+			(u'20 ka',					(TimelineDate(TimePoint(-20000)),								u'20 ka',			u'')),
+			(u'13-8 ka',				(TimelineDate(TimePoint(-13000), TimePoint(-8000)),				u'13-8 ka',u'')),
 			(u'13,600 Ma',				(TimelineDate(TimePoint(-13600000000)),							u'13,600 Ma',		u'')),
 			(u'13,600-13,500 Ma',		(TimelineDate(TimePoint(-13600000000), TimePoint(-13500000000)),u'13,600-13,500 Ma',u'')),
 			(u'c. 0.79 Ma',				(TimelineDate(TimePoint(-790000, year_approx = True)),			u'c. 0.79 Ma',		u'')),
