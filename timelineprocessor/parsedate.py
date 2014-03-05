@@ -264,6 +264,9 @@ def parse_date_text(text):
 		for s in yad.subtrees():
 			if s.node == 'NUM':
 				yeartp = num(s)
+			elif s.node == 'YADPRECISEYEAR':
+				# there should never be a NUM and a YADPRECISEYEAR
+				yeartp = TimePoint(int(numstr(s)))
 			elif s.node == 'MONTH':
 				monthtp = month(s)
 			elif s.node == 'DAY':
@@ -345,7 +348,7 @@ def parse_date_text(text):
 			first = TimePoint(second.year, temp.month, temp.day, year_approx = second.year_approx)
 		return TimelineDate(first, second)
 	def monthdayyearrange(r): # returns TimelineDate
-		yeartp = yadyymymd(r[4])
+		yeartp = TimePoint(int(numstr(r[4])))
 		monthdaytp = monthday(r[0])
 		return TimelineDate(
 			TimePoint(yeartp.year, monthdaytp.month, monthdaytp.day, year_approx = yeartp.year_approx),

@@ -1,4 +1,7 @@
 # -*- coding: UTF-8 -*-
+
+# note: YADPRECISEYEAR needs to be updated as the centuries go on...
+
 date_grammar_string = u"""
 	S -> MONTH | MONTHDAY | DATE | YEARSAGO | DATERANGE | MONTHDAYRANGE | MONTHDAYYEARRANGE
 
@@ -30,8 +33,9 @@ date_grammar_string = u"""
 	YBC -> NUM osp BC
 	YAD -> YADYEAR | YADYEARMONTH | YADYEARMONTHDAY
 	YADYEAR -> NUM | NUM osp AD
-	YADYEARMONTH -> MONTH ocommadotsp YADYEAR | YADYEAR ocommadotsp MONTH | NUM ocommadotsp MONTH sp AD
-	YADYEARMONTHDAY -> MONTHDAY ocommadotsp YADYEAR | YADYEAR ocommadotsp MONTHDAY | NUM ocommadotsp MONTHDAY osp AD
+	YADPRECISEYEAR -> '5' n n | '1' n n n | '2' '0' n n | '2' '1' n n | '2' '2' n n
+	YADYEARMONTH -> MONTH ocommadotsp YADPRECISEYEAR | YADPRECISEYEAR ocommadotsp MONTH | YADPRECISEYEAR ocommadotsp MONTH sp AD
+	YADYEARMONTHDAY -> MONTHDAY ocommadotsp YADPRECISEYEAR | YADPRECISEYEAR ocommadotsp MONTHDAY | YADPRECISEYEAR ocommadotsp MONTHDAY osp AD
 
 	PERIODBC -> PERIOD osp BC
 	PERIODAD ->  PERIOD osp AD | PERIOD
@@ -55,7 +59,7 @@ date_grammar_string = u"""
 	MONTHDAYRANGE -> MONTHDAY TO YADYEARMONTHDAY | MONTH TO YADYEARMONTHDAY  | DAY TO YADYEARMONTHDAY
 
 
-	MONTHDAYYEARRANGE -> MONTHDAY TO DAY ocommadotsp YADYEAR
+	MONTHDAYYEARRANGE -> MONTHDAY TO DAY ocommadotsp YADPRECISEYEAR
 
 
 	CA -> c a | c | about

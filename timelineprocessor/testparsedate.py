@@ -129,12 +129,13 @@ class TestParseDate(unittest.TestCase):
 			(u'16 June - 9 July 1932 blah',	(TimelineDate(TimePoint(1932, 6, 16),	TimePoint(1932, 7, 9)),	u'16 June - 9 July 1932', u'blah')),
 			(u'16 June - 9 July, 1932',		(TimelineDate(TimePoint(1932, 6, 16),	TimePoint(1932, 7, 9)),	u'16 June - 9 July, 1932', u'')),
 			(u'16 June - July 9 1932',		(TimelineDate(TimePoint(1932, 6, 16),	TimePoint(1932, 7, 9)),	u'16 June - July 9 1932', u'')),
-			(u'June 16 - July 9 27',		(TimelineDate(TimePoint(27, 6, 16),		TimePoint(27, 7, 9)),	u'June 16 - July 9 27', u'')),
+			(u'June 16 - July 9 27',		(TimelineDate(TimePoint(None, 6, 16),		TimePoint(None, 7, 9)),	u'June 16 - July 9', u'27')),
 			(u'June - 9 July 1932',			(TimelineDate(TimePoint(1932, 6),		TimePoint(1932, 7, 9)),	u'June - 9 July 1932', u'')),
 			(u'16 June - July 1932',		(TimelineDate(TimePoint(1932, 6, 16),	TimePoint(1932, 7)),	u'16 June - July 1932', u'')),
 			(u'June - July 1932',			(TimelineDate(TimePoint(1932, 6),		TimePoint(1932, 7)),	u'June - July 1932', u'')),
 			(u'6 - 8 July 1932',			(TimelineDate(TimePoint(1932, 7, 6),	TimePoint(1932, 7, 8)),	u'6 - 8 July 1932', u'')),
 			(u'June 6 - 8, 1932',			(TimelineDate(TimePoint(1932, 6, 6),	TimePoint(1932, 6, 8)),	u'June 6 - 8, 1932', u'')),
+			(u'Nov. 15 - 173 prisoners',	(TimelineDate(TimePoint(None, 11, 15)),							u'Nov. 15', u'173 prisoners')),
 		))
 		
 
