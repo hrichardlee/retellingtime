@@ -357,7 +357,9 @@ def parse_date_text(text):
 		return TimelineDate(
 			TimePoint(yeartp.year, monthdaytp.month, monthdaytp.day, year_approx = yeartp.year_approx),
 			TimePoint(yeartp.year, monthdaytp.month, int(numstr(r[2])), year_approx = yeartp.year_approx))
-
+	def timename(timename): # returns TimelineDate
+		if timename[0].node == 'antiquity':
+			return TimelineDate(TimePoint(-750), TimePoint(450))
 
 
 	parse = None
@@ -410,6 +412,9 @@ def parse_date_text(text):
 		result = monthdayrange(parse[0])
 	elif parse[0].node == 'MONTHDAYYEARRANGE':
 		result = monthdayyearrange(parse[0])
+	elif parse[0].node == 'TIMENAME':
+		result = timename(parse[0])
+
 	return (result, len(date_text))
 
 

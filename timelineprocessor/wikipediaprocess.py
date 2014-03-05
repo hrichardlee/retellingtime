@@ -84,7 +84,7 @@ def _filter_bad_events(events):
 	"""Eliminates events that are suspected to be incorrect, returns a new
 	list."""
 	#TODO add filtering based on order of dates
-	return [e for e in events if e['content'] and e['date']]
+	return [e for e in events if e['content'] and e['date'] != None]
 
 
 # requires running the nltk downloader: nltk.download() > d > punkt

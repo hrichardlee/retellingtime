@@ -6,7 +6,7 @@
 # note: YADPRECISEYEAR needs to be updated as the centuries go on...
 
 date_grammar_string = u"""
-	S -> MONTH | MONTHDAY | DATE | YEARSAGO | DATERANGE | MONTHDAYRANGE | MONTHDAYYEARRANGE
+	S -> MONTH | MONTHDAY | DATE | YEARSAGO | DATERANGE | MONTHDAYRANGE | MONTHDAYYEARRANGE | TIMENAME
 
 
 	YEARSAGO -> YAS | YAR | KAS | KAR | MAS | MAR
@@ -68,6 +68,10 @@ date_grammar_string = u"""
 	MONTHDAYYEARRANGE -> MONTHDAY TO DAY ocommadotsp YADPRECISEYEAR
 
 
+	TIMENAME -> antiquity
+	antiquity -> 'a' 'n' 't' 'i' 'q' 'u' 'i' 't' 'y'
+
+
 	CA -> c a | c | about | '~' | MODIFIER
 
 	BC -> b c | b c e
@@ -127,6 +131,7 @@ date_grammar_string = u"""
 	"""
 
 date_grammar_words = [
+	u'antiquity',
 	u'early', u'mid', u'late', u'prior', u'before', u'after',
 	u'about',
 	u'to',

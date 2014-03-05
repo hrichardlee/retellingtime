@@ -43,7 +43,13 @@ class TestParseDate(unittest.TestCase):
 		))
 
 		self.assertEqual(parse_date_html(u'900–929')[0].simple_year(),	900)
+		self.assertEqual(parse_date_html(u'1st century')[0].simple_year(),	0)
 
+
+	def test_timename(self):
+		self.helper((
+			(u'antiquity',	(TimelineDate(TimePoint(-750), TimePoint(450)), u'antiquity', u'')),
+		))
 
 	def test_pure_dates(self):
 		self.helper((
@@ -79,6 +85,7 @@ class TestParseDate(unittest.TestCase):
 
 	def test_periods(self):
 		self.helper((
+			(u'1st century',							(TimelineDate(TimePoint(0),							TimePoint(100)),						u'1st century'								,u'')),
 			(u'2nd century b.c.',						(TimelineDate(TimePoint(-200),						TimePoint(-100)),						u'2nd century b.c.'							,u'')),
 			(u'3rd century a.d.',						(TimelineDate(TimePoint(200),						TimePoint(300)),						u'3rd century a.d.'							,u'')),
 			(u'c. 2nd millenium b.c.',					(TimelineDate(TimePoint(-2000, year_approx = True),	TimePoint(-1000, year_approx = True)),	u'c. 2nd millenium b.c.'					,u'')),
