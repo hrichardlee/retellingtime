@@ -68,7 +68,7 @@ date_grammar_string = u"""
 	MONTHDAYYEARRANGE -> MONTHDAY TO DAY ocommadotsp YADPRECISEYEAR
 
 
-	CA -> c a | c | about | '~' | EARLYMIDLATE
+	CA -> c a | c | about | '~' | MODIFIER
 
 	BC -> b c | b c e
 	AD -> a d | c e
@@ -84,7 +84,11 @@ date_grammar_string = u"""
 	early -> 'e' 'a' 'r' 'l' 'y'
 	mid -> 'm' 'i' 'd'
 	late -> 'l' 'a' 't' 'e'
-	EARLYMIDLATE -> early | early osp dash osp | mid | mid osp dash osp | late | late osp dash osp
+	prior -> 'p' 'r' 'i' 'o' 'r'
+	before -> 'b' 'e' 'f' 'o' 'r' 'e'
+	after -> 'a' 'f' 't' 'e' 'r'
+	RAWMODIFIER -> early | mid | late | prior sp to | before | after
+	MODIFIER -> RAWMODIFIER | RAWMODIFIER osp dash osp
 
 	q -> '?'
 	dash -> '-' | '–' | '—'
@@ -123,7 +127,7 @@ date_grammar_string = u"""
 	"""
 
 date_grammar_words = [
-	u'early', u'mid', u'late',
+	u'early', u'mid', u'late', u'prior', u'before', u'after',
 	u'about',
 	u'to',
 	u'years', u'yrs', u'ago', u'bp',
