@@ -8,8 +8,51 @@ from nltk.parse import BottomUpChartParser
 import itertools
 import operator
 import warnings
+import copy
 
 import pdb
+
+
+class TimePoint:
+	"""Represents a point in time"""
+	def __init__(self, year = None, month = None, day = None, year_approx = False):
+		self.year = year
+		self.month = month
+		self.day = day
+		self.year_approx = year_approx
+
+	def __neg__(self):
+		return TimePoint(-self.year, self.month, self.day, self.year_approx)
+
+	def _basic_math(self, other, f):
+		return TimePoint(f(self.year, other),
+			self.month,
+			self.day,
+			f(self.year_approx, other) \
+				if not isinstance(self.year_approx, bool)
+				else self.year_approx
+			)
+	# scalar mul/add/sub
+	def __mul__(self, other):
+		return self._basic_math(other, operator.mul)
+	def __add__(self, other):
+		return self._basic_math(other, operator.add)
+	def __sub__(self, other):
+		return self._basic_math(other, operator.sub)
+	# comparison with other TimePoints
+	def __eq__(self, other):
+		return self.__dict__ == other.__dict__
+	def __lt__(self, other):
+		if self.year != other.year or not self.month or not other.month:
+			return self.year < other.year
+		elif self.month != other.month or not self.day or not other.day:
+			return self.month < other.month
+		else:
+			return self.day < other.day
+
+	def __repr__(self):
+		return 'TimePoint(%r, %r, %r, %r)' % \
+			(self.year, self.month, self.day, self.year_approx)
 
 
 class TimelineDate:
@@ -17,73 +60,27 @@ class TimelineDate:
 	best single number approximation of the time of the event
 	"""
 
-	def __init__(self, start_year = None, start_year_approx = False,
-		end_year = None, end_year_approx = False,
-		month = None, day = None):
+	def __init__(self, start, end = None):
+		self.start = start
+		self.end = end
 
-		self.month = month
-		self.day = day
-
-		self.start_year = start_year
-		self.start_year_approx = start_year_approx
-		self.end_year = end_year
-		self.end_year_approx = end_year_approx
-
-		if end_year:
-			# self.simple_year = (end_year - start_year) / 2 + start_year
-			self.simple_year = start_year
-		else:
-			self.simple_year = start_year
-
-	@classmethod
-	def span_from_years(cls, a, b):
-		return TimelineDate(a.start_year, a.start_year_approx,
-			b.start_year, b.start_year_approx)
+		self.simple_year = start.year
 
 	@classmethod
 	def span_from_dates(cls, a, b):
-		years = [(y, a) for y, a in \
-					[(a.start_year, a.start_year_approx),
-					(a.end_year, a.end_year_approx),
-					(b.start_year, b.start_year_approx),
-					(b.end_year, b.end_year_approx)] \
+		years = [y for y in [a.start, a.end, b.start, b.end] \
 				if y is not None]
 		# in case of overlap, tighter approx should be taken
-		min_year, min_approx = min(years, key=operator.itemgetter(0))
-		max_year, max_approx = max(years, key=operator.itemgetter(0))
-		return TimelineDate(min_year, min_approx, max_year, max_approx)
+		return TimelineDate(min(years), max(years))
 
 	def monthday_from(self, other):
-		self.month = other.month
-		self.day = other.day
-
-	def __neg__(self):
-		return TimelineDate(-self.start_year,
-			self.start_year_approx,
-			-self.end_year if self.end_year else None,
-			self.end_year_approx)
-
-	def _basic_math(self, other, f):
-		return TimelineDate(f(self.start_year, other),
-			f(self.start_year_approx, other) if not isinstance(self.start_year_approx, bool) else self.start_year_approx,
-			f(self.end_year, other) if self.end_year else None,
-			f(self.end_year_approx, other) if not isinstance(self.end_year_approx, bool) else self.end_year_approx)
-
-	def __mul__(self, other):
-		return self._basic_math(other, operator.mul)
-
-	def __add__(self, other):
-		return self._basic_math(other, operator.add)
-
-	def __sub__(self, other):
-		return self._basic_math(other, operator.sub)
+		self.start_month = other.start_month
+		self.start_day = other.start_day
 
 	def __eq__(self, other):
 		return self.__dict__ == other.__dict__
-
 	def __repr__(self):
-		return 'TimelineDate(%r, %r, %r, %r, %r, %r)' % \
-			(self.start_year, self.start_year_approx, self.end_year, self.end_year_approx, self.month, self.day)
+		return 'TimelineDate(%r, %r)' % (self.start, self.end)
 
 
 def month_to_num(text):
@@ -150,11 +147,11 @@ def parse_date_text(text):
 		return None
 	
 	# these are all very closely tied to date_grammar
-	def numstr(nume):
+	def numstr(nume): # returns string of digits
 		return ''.join(l for l in nume.leaves() if l.isdigit())
-	def month(month):
-		return TimelineDate(month = month_to_num(month[0].node))
-	def monthday(monthday):
+	def month(month): # returns TimePoint
+		return TimePoint(month = month_to_num(month[0].node))
+	def monthday(monthday): # returns TimePoint
 		d = None
 		for n in monthday:
 			if n.node == 'DAY':
@@ -163,24 +160,24 @@ def parse_date_text(text):
 				m = month(n)
 		m.day = d
 		return m
-	def num(num):
+	def num(num): # returns TimePoint
 		if num[0].node == 'NUME':
-			return TimelineDate(int(numstr(num[0])), False)
+			return TimePoint(int(numstr(num[0])))
 		elif num[0].node == 'NUMQ':
-			return TimelineDate(
+			return TimePoint(
 				[int(numstr(n)) for n in num[0] if n.node == 'NUME'][0],
-				True)
-	def dece(dece):
+				year_approx = True)
+	def dece(dece): # returns number
 		if len(dece) == 1: return int(numstr(dece[0]))
 		else: return float(numstr(dece[0]) + '.' + numstr(dece[2]))
-	def dec(dec):
+	def dec(dec): # returns TimePoint
 		if dec[0].node == 'DECE':
-			return TimelineDate(dece(dec[0]), False)
+			return TimePoint(dece(dec[0]))
 		elif dec[0].node == 'DECQ':
-			return TimelineDate([dece(n) for n in dec[0] if n.node == 'DECE'][0], True)
+			return TimePoint([dece(n) for n in dec[0] if n.node == 'DECE'][0], year_approx = True)
 		elif dec[0].node == 'DECQQ':
-			return TimelineDate(dece(dec[0][0]), dece(dec[0][4]))
-	def period(period):
+			return TimePoint(dece(dec[0][0]), year_approx = dece(dec[0][4]))
+	def period(period): # returns TimelineDate
 		isad = period.node == 'PERIODAD'
 
 		n = num(period[0][0][0])
@@ -188,36 +185,38 @@ def parse_date_text(text):
 		elif period[0][2].node == 'millenium': factor = 1000
 
 		if isad:
-			return TimelineDate.span_from_years(n * factor - factor, n * factor)
+			return TimelineDate(n * factor - factor, n * factor)
 		else:
-			return TimelineDate.span_from_years(-n * factor, -n * factor + factor)
-	def year(year):
+			return TimelineDate(-n * factor, -n * factor + factor)
+	def yadyymymd(yad): # returns TimePoint
+		# name stands for year AD: year, year month, year month day
+		monthtp = None
+		daynum = None
+		for s in yad.subtrees():
+			if s.node == 'NUM':
+				yeartp = num(s)
+			elif s.node == 'MONTH':
+				monthtp = month(s)
+			elif s.node == 'DAY':
+				daynum = int(numstr(s))
+		if monthtp: yeartp.month = monthtp.month
+		if daynum != None: yeartp.day = daynum
+		return yeartp
+	def year(year): # returns TimePoint
 		if year.node == 'YBC': return -num(year[0])
-		elif year.node == 'YAD':
-			monthobj = None
-			dayobj = None
-			for s in year.subtrees():
-				if s.node == 'NUM':
-					yearobj = num(s)
-				elif s.node == 'MONTH':
-					monthobj = month(s)
-				elif s.node == 'DAY':
-					dayobj = int(numstr(s))
-			if monthobj: yearobj.month = monthobj.month
-			if dayobj: yearobj.day = dayobj
-			return yearobj
+		elif year.node == 'YAD': return yadyymymd(year)
 	def _has_child_node(n, label):
 		return [i for i, c in enumerate(n) if hasattr(c, 'node') and c.node == label]
-	def daterange(r):
+	def daterange(r): # returns TimelineDate
 		if r[0][0].node == 'YAD' and r[2][0].node == 'YAD':
 			# for cases like 1832-34. gets parsed as YAD to YAD, but we need
 			# to modify the second node
 			first = date(r[0])
 			second = date(r[2])
-			first_str = str(first.start_year)
-			second_str = str(second.start_year)
+			first_str = str(first.start.year)
+			second_str = str(second.start.year)
 			if len(second_str) < len(first_str):
-				second.start_year = int(
+				second.start.year = int(
 					first_str[:len(first_str) - len(second_str)] + second_str)
 		elif r[0].node == 'DATE' and r[0][0].node != 'YAD' and r[0][0].node != 'PERIODAD':
 			# these cases should work without any modification to either node
@@ -246,50 +245,75 @@ def parse_date_text(text):
 			second = date(r[2])
 
 		return TimelineDate.span_from_dates(first, second)
-	def date(date):
+	def date(date): # returns TimelineDate
 		if date[0].node == 'YAD' or date[0].node == 'YBC':
-			return year(date[0])
+			return TimelineDate(year(date[0]))
 		elif date[0].node == 'PERIODAD' or date[0].node == 'PERIODBC':
 			return period(date[0])
-	def yearsago(yearsago):
+	def yearsago(yearsago): # returns TimelineDate
 		# not currently adjusting for the 2014 years since 0 A.D....
 		if yearsago[0].node == 'YAS':
-			return -num(yearsago[0][0])
+			return TimelineDate(-num(yearsago[0][0]))
 		elif yearsago[0].node == 'YAR':
-			return TimelineDate.span_from_years(-num(yearsago[0][0]), -num(yearsago[0][2]))
+			return TimelineDate(-num(yearsago[0][0]), -num(yearsago[0][2]))
 		elif yearsago[0].node == 'MAS':
-			return -dec(yearsago[0][0]) * 1000000
+			return TimelineDate(-dec(yearsago[0][0]) * 1000000)
 		elif yearsago[0].node == 'MAR':
-			return TimelineDate.span_from_years(-dec(yearsago[0][0]), -dec(yearsago[0][2])) * 1000000
-	def monthdayrange(r):
-		# pdb.set_trace()
-		pass
+			return TimelineDate(-dec(yearsago[0][0]) * 1000000, -dec(yearsago[0][2]) * 1000000)
+	def monthdayrange(r): # returns TimelineDate
+		second = None
+		if r[2].node == 'MONTHDAY':
+			second = monthday(r[2])
+		elif r[2].node == 'YADYEARMONTH' or r[2].node == 'YADYEARMONTHDAY':
+			second = yadyymymd(r[2])
+
+		if r[0].node == 'DAY':
+			first = TimePoint(second.year, second.month, int(numstr(r[0])), year_approx = second.year_approx)
+		elif r[0].node == 'MONTH':
+			first = TimePoint(second.year, month(r[0]).month, year_approx = second.year_approx)
+		elif r[0].node == 'MONTHDAY':
+			temp = monthday(r[0])
+			first = TimePoint(second.year, temp.month, temp.day, year_approx = second.year_approx)
+		return TimelineDate(first, second)
+	def monthdayyearrange(r): # returns TimelineDate
+		yeartp = yadyymymd(r[4])
+		monthdaytp = monthday(r[0])
+		return TimelineDate(
+			TimePoint(yeartp.year, monthdaytp.month, monthdaytp.day, year_approx = yeartp.year_approx),
+			TimePoint(yeartp.year, monthdaytp.month, int(numstr(r[2])), year_approx = yeartp.year_approx))
+
+
 
 	parse = None
 	if len(parses) > 1:
-		# ambiguous parses will fall into two categories
+		# ambiguous parses will fall into 3 categories
 		# 1. DATE/MONTHDAY ambiguity
 		# for a string like December 3:
 		#	MONTHDAY (prefer)
-		#	DATE -> YAD -> MONTHDAYYEAR -> NUM ocommadotsp MONTHDAY
+		#	DATE -> YAD -> YADYEARMONTH
 		# or 3 December
-		#	MONTHDAY (prefer)
-		#	DATE -> YAD -> MONTHDAYYEAR -> NUM ocommadotsp MONTHDAY
-		# this happens in S and DATERANGE
+		#
+		# 2. DATERANGE/MONTHDAYRANGE ambiguity
+		# for a string like 6 June - 3 October 2013
+		#	MONTHDAYRANGE -> MONTHDAY TO DATE (prefer)
+		#	DATERANGE -> DATE TO DATE -> YAD TO YAD -> YADYEARMONTH TO YADYEARMONTHDAY
+		# (this is almost the same thing as problem 1)
 		#
 		# The other category is something like 3 December 4
-		#	MONTHDAYYEAR -> NUM ocommadotsp MONTHDAY
-		#	MONTHDAYYEAR -> MONTHDAY ocommadotsp NUM (prefer)
-		# this should be extremely rare, and we will not bother dealing with them
+		#	YADYEARMONTHDAY -> MONTHDAY ocommadotsp YADYEAR (prefer)
+		#	YADYEARMONTHDAY -> YADYEAR ocommadotsp MONTHDAY
+		# this should be extremely rare, and we will not bother dealing with these issues
+		# this can also happen in DATERANGE
 
 		temp = [p for p in parses if p[0].node == 'MONTHDAY']
 		if len(temp) == 1:
 			parse = temp[0]
-		if not parse and all(p[0].node == 'DATERANGE' for p in parses):
-			temp = [p for p in parses if p[0][0].node == 'MONTHDAY']
+		if not parse:
+			temp = [p for p in parses if p[0].node == 'MONTHDAYRANGE']
 			if len(temp) == 1:
 				parse = temp[0]
 		if not parse:
+			pdb.set_trace()
 			warnings.warn('not sure how to decide between multiple parses %s' % date_text)
 			parse = parses[0]
 	else:
@@ -303,9 +327,13 @@ def parse_date_text(text):
 	elif parse[0].node == 'DATERANGE':
 		result = daterange(parse[0])
 	elif parse[0].node == 'MONTH':
-		result = month(parse[0])
+		result = TimelineDate(month(parse[0]))
 	elif parse[0].node == 'MONTHDAY':
-		result = monthday(parse[0])
+		result = TimelineDate(monthday(parse[0]))
+	elif parse[0].node == 'MONTHDAYRANGE':
+		result = monthdayrange(parse[0])
+	elif parse[0].node == 'MONTHDAYYEARRANGE':
+		result = monthdayyearrange(parse[0])
 	return (result, len(date_text))
 
 

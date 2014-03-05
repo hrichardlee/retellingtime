@@ -2,7 +2,7 @@
 
 
 from bs4 import BeautifulSoup
-from parsedate import parse_date_html, TimelineDate
+from parsedate import parse_date_html, TimelineDate, TimePoint
 import parsedate
 import warnings
 import unittest
@@ -32,7 +32,7 @@ class TestParseDate(unittest.TestCase):
 			(u'<p></p>',						None),
 			(u'<p>  </p>',						None),
 			(u'lkjdr3f',						None),
-			(u'1967 - 12th street massacre',	(TimelineDate(1967, False),	u'1967', u'12th street massacre'))
+			(u'1967 - 12th street massacre',	(TimelineDate(TimePoint(1967, year_approx = False)),	u'1967', u'12th street massacre')),
 		))
 
 		self.assertEqual(parse_date_html(u'900–929')[0].simple_year,	900)
@@ -40,61 +40,61 @@ class TestParseDate(unittest.TestCase):
 
 	def test_pure_dates(self):
 		self.helper((
-			(u'1245',				(TimelineDate(1245, False),		u'1245',			u'')),
-			(u' 1245 ',				(TimelineDate(1245, False),		u'1245',			u'')),
-			(u' 1245 hello',		(TimelineDate(1245, False),		u'1245',			u'hello')),
-			(u'ca 1850 50',			(TimelineDate(1850, True),		u'ca 1850',			u'50')),
-			(u'ca 70,000 BC',		(TimelineDate(-70000, True),	u'ca 70,000 BC',	u'')),
-			(u'70,000 a.d.',		(TimelineDate(70000),			u'70,000 a.d.',		u'')),
-			(u'c.a. 1850',			(TimelineDate(1850, True),		u'c.a. 1850',		u'')),
-			(u'c. 1850 BC',			(TimelineDate(-1850, True),		u'c. 1850 BC',		u'')),
-			(u'about 1850 BC',		(TimelineDate(-1850, True),		u'about 1850 BC',	u'')),
-			(u'1850? b.c.e asdlkj',	(TimelineDate(-1850, True),		u'1850? b.c.e',		u'asdlkj')),
-			(u'4 b.c.e c.e. c.e.',	(TimelineDate(-4, False),		u'4 b.c.e',			u'c.e. c.e.')),
-			(u'4 AD blah',			(TimelineDate(4, False),		u'4 AD',			u'blah')),
-			(u'4 cblah',			(TimelineDate(4, False),		u'4',				u'cblah')),
-			(u'20 Mastodon',		(TimelineDate(20, False),		u'20',				u'Mastodon')),
+			(u'1245',				(TimelineDate(TimePoint(1245)),							u'1245',			u'')),
+			(u' 1245 ',				(TimelineDate(TimePoint(1245)),							u'1245',			u'')),
+			(u' 1245 hello',		(TimelineDate(TimePoint(1245)),							u'1245',			u'hello')),
+			(u'ca 1850 50',			(TimelineDate(TimePoint(1850, year_approx = True)),		u'ca 1850',			u'50')),
+			(u'ca 70,000 BC',		(TimelineDate(TimePoint(-70000, year_approx = True)),	u'ca 70,000 BC',	u'')),
+			(u'70,000 a.d.',		(TimelineDate(TimePoint(70000)),						u'70,000 a.d.',		u'')),
+			(u'c.a. 1850',			(TimelineDate(TimePoint(1850, year_approx = True)),		u'c.a. 1850',		u'')),
+			(u'c. 1850 BC',			(TimelineDate(TimePoint(-1850, year_approx = True)),	u'c. 1850 BC',		u'')),
+			(u'about 1850 BC',		(TimelineDate(TimePoint(-1850, year_approx = True)),	u'about 1850 BC',	u'')),
+			(u'1850? b.c.e asdlkj',	(TimelineDate(TimePoint(-1850, year_approx = True)),	u'1850? b.c.e',		u'asdlkj')),
+			(u'4 b.c.e c.e. c.e.',	(TimelineDate(TimePoint(-4)),							u'4 b.c.e',			u'c.e. c.e.')),
+			(u'4 AD blah',			(TimelineDate(TimePoint(4)),							u'4 AD',			u'blah')),
+			(u'4 cblah',			(TimelineDate(TimePoint(4)),							u'4',				u'cblah')),
+			(u'20 Mastodon',		(TimelineDate(TimePoint(20)),							u'20',				u'Mastodon')),
 		))
 
 
 	def test_ranges(self):
 		# pdb.set_trace()
 		self.helper((
-			(u'12 to 34 AD: blah',		(TimelineDate(12, False, 34, False),	u'12 to 34 AD',		u'blah')),
-			(u'12 a.d. - 34 AD - blah',	(TimelineDate(12, False, 34, False),	u'12 a.d. - 34 AD',	u'blah')),
-			(u'12   to   34:: blah',	(TimelineDate(12, False, 34, False),	u'12   to   34',	u'blah')),
-			(u'12? bc—34 A.D    blah',	(TimelineDate(-12, True, 34, False),	u'12? bc—34 A.D',	u'blah')),
-			(u'86 bc –c. 34 bc blah',	(TimelineDate(-86, False, -34, True),	u'86 bc –c. 34 bc',	u'blah')),
-			(u'86 -   34 bc blah',		(TimelineDate(-86, False, -34, False),	u'86 -   34 bc',	u'blah')),
-			(u'1819-23 blah',			(TimelineDate(1819, False, 1823, False),u'1819-23',			u'blah')),
+			(u'12 to 34 AD: blah',		(TimelineDate(TimePoint(12),						TimePoint(34)),							u'12 to 34 AD',		u'blah')),
+			(u'12 a.d. - 34 AD - blah',	(TimelineDate(TimePoint(12),						TimePoint(34)),							u'12 a.d. - 34 AD',	u'blah')),
+			(u'12   to   34:: blah',	(TimelineDate(TimePoint(12),						TimePoint(34)),							u'12   to   34',	u'blah')),
+			(u'12? bc—34 A.D    blah',	(TimelineDate(TimePoint(-12, year_approx = True),	TimePoint(34)),							u'12? bc—34 A.D',	u'blah')),
+			(u'86 bc –c. 34 bc blah',	(TimelineDate(TimePoint(-86),						TimePoint(-34, year_approx = True)),	u'86 bc –c. 34 bc',	u'blah')),
+			(u'86 -   34 bc blah',		(TimelineDate(TimePoint(-86),						TimePoint(-34)),						u'86 -   34 bc',	u'blah')),
+			(u'1819-23 blah',			(TimelineDate(TimePoint(1819),						TimePoint(1823)),						u'1819-23',			u'blah')),
 		))
 
 
 	def test_periods(self):
 		self.helper((
-			(u'2nd century b.c.',						(TimelineDate(-200, False, -100, False),	u'2nd century b.c.'							,u'')),
-			(u'3rd century a.d.',						(TimelineDate(200, False, 300, False),		u'3rd century a.d.'							,u'')),
-			(u'c. 2nd millenium b.c.',					(TimelineDate(-2000, True, -1000, True),	u'c. 2nd millenium b.c.'					,u'')),
-			(u'16th century',							(TimelineDate(1500, False, 1600, False),	u'16th century'								,u'')),
-			(u'22nd century',							(TimelineDate(2100, False, 2200, False),	u'22nd century'								,u'')),
-			(u'c. 2nd millenium',						(TimelineDate(1000, True, 2000, True),		u'c. 2nd millenium'							,u'')),
-			(u'8th to 19th century',					(TimelineDate(700, False, 1900, False),		u'8th to 19th century'						,u'')),
-			(u'8th century to 19th century',			(TimelineDate(700, False, 1900, False),		u'8th century to 19th century'				,u'')),
-			(u'8th century B.C. to 19th century A.D.',	(TimelineDate(-800, False, 1900, False),	u'8th century B.C. to 19th century A.D.'	,u'')),
-			(u'12th to 3rd century b.c.',				(TimelineDate(-1200, False, -200, False),	u'12th to 3rd century b.c.'					,u'')),
-			(u'12th century b.c. to 3rd century b.c.',	(TimelineDate(-1200, False, -200, False),	u'12th century b.c. to 3rd century b.c.'	,u'')),
+			(u'2nd century b.c.',						(TimelineDate(TimePoint(-200),						TimePoint(-100)),						u'2nd century b.c.'							,u'')),
+			(u'3rd century a.d.',						(TimelineDate(TimePoint(200),						TimePoint(300)),						u'3rd century a.d.'							,u'')),
+			(u'c. 2nd millenium b.c.',					(TimelineDate(TimePoint(-2000, year_approx = True),	TimePoint(-1000, year_approx = True)),	u'c. 2nd millenium b.c.'					,u'')),
+			(u'16th century',							(TimelineDate(TimePoint(1500),						TimePoint(1600)),						u'16th century'								,u'')),
+			(u'22nd century',							(TimelineDate(TimePoint(2100),						TimePoint(2200)),						u'22nd century'								,u'')),
+			(u'c. 2nd millenium',						(TimelineDate(TimePoint(1000, year_approx = True),	TimePoint(2000, year_approx = True)),	u'c. 2nd millenium'							,u'')),
+			(u'8th to 19th century',					(TimelineDate(TimePoint(700),						TimePoint(1900)),						u'8th to 19th century'						,u'')),
+			(u'8th century to 19th century',			(TimelineDate(TimePoint(700),						TimePoint(1900)),						u'8th century to 19th century'				,u'')),
+			(u'8th century B.C. to 19th century A.D.',	(TimelineDate(TimePoint(-800),						TimePoint(1900)),						u'8th century B.C. to 19th century A.D.'	,u'')),
+			(u'12th to 3rd century b.c.',				(TimelineDate(TimePoint(-1200),						TimePoint(-200)),						u'12th to 3rd century b.c.'					,u'')),
+			(u'12th century b.c. to 3rd century b.c.',	(TimelineDate(TimePoint(-1200),						TimePoint(-200)),						u'12th century b.c. to 3rd century b.c.'	,u'')),
 		))
 
 
 	def test_yearsago(self):
 		self.helper((
-			(u'12,345 years ago ago',	(TimelineDate(-12345),										u'12,345 years ago',u'ago')),
-			(u'13,600 Ma',				(TimelineDate(-13600000000),								u'13,600 Ma',		u'')),
-			(u'13,600-13,500 Ma',		(TimelineDate(-13600000000, False, -13500000000, False),	u'13,600-13,500 Ma',u'')),
-			(u'c. 0.79 Ma',				(TimelineDate(-790000, True),								u'c. 0.79 Ma',		u'')),
-			(u'15 ±0.3 Ma',				(TimelineDate(-15000000, 300000),							u'15 ±0.3 Ma',		u'')),
-			(u'541 ±\xa00.3 Ma',		(TimelineDate(-541000000, 300000),							u'541 ±\xa00.3 Ma',	u'')),
-			(u'25? Ma',					(TimelineDate(-25000000, True),								u'25? Ma',			u'')),
+			(u'12,345 years ago ago',	(TimelineDate(TimePoint(-12345)),								u'12,345 years ago',u'ago')),
+			(u'13,600 Ma',				(TimelineDate(TimePoint(-13600000000)),							u'13,600 Ma',		u'')),
+			(u'13,600-13,500 Ma',		(TimelineDate(TimePoint(-13600000000), TimePoint(-13500000000)),u'13,600-13,500 Ma',u'')),
+			(u'c. 0.79 Ma',				(TimelineDate(TimePoint(-790000, year_approx = True)),			u'c. 0.79 Ma',		u'')),
+			(u'15 ±0.3 Ma',				(TimelineDate(TimePoint(-15000000, year_approx = 300000)),		u'15 ±0.3 Ma',		u'')),
+			(u'541 ±\xa00.3 Ma',		(TimelineDate(TimePoint(-541000000, year_approx = 300000)),		u'541 ±\xa00.3 Ma',	u'')),
+			(u'25? Ma',					(TimelineDate(TimePoint(-25000000, year_approx = True)),		u'25? Ma',			u'')),
 		))
 
 		# This case should be fixed so that it works
@@ -103,23 +103,33 @@ class TestParseDate(unittest.TestCase):
 
 	def test_monthday(self):
 		self.helper((
-			(u'December 3 1980',			(TimelineDate(1980, month = 12, day = 3),	u'December 3 1980',	u'')),
-			(u'June 30, 1923',				(TimelineDate(1923, month = 6, day = 30),	u'June 30, 1923',	u'')),
-			(u'December 1980',				(TimelineDate(1980, month = 12),			u'December 1980',	u'')),
-			(u'December',					(TimelineDate(month = 12),					u'December',		u'')),
-			(u'23 March 1933 Adolf Hitler',	(TimelineDate(1933, month = 3, day = 23),	u'23 March 1933',	u'Adolf Hitler')),
+			(u'December 3 1980',			(TimelineDate(TimePoint(1980, 12, 3)),			u'December 3 1980',	u'')),
+			(u'June 30, 1923',				(TimelineDate(TimePoint(1923, 6, 30)),			u'June 30, 1923',	u'')),
+			(u'December 1980',				(TimelineDate(TimePoint(1980, 12)),				u'December 1980',	u'')),
+			(u'December',					(TimelineDate(TimePoint(month = 12)),			u'December',		u'')),
+			(u'23 March 1933 Adolf Hitler',	(TimelineDate(TimePoint(1933, 3, 23)),			u'23 March 1933',	u'Adolf Hitler')),
 
 			# these test the ambiguous resolution code
-			(u'23 March blah',				(TimelineDate(month = 3, day = 23),			u'23 March',		u'blah')),
-			(u'December 3',					(TimelineDate(month = 12, day = 3),			u'December 3',		u'')),
+			(u'23 March blah',				(TimelineDate(TimePoint(month = 3, day = 23)),	u'23 March',		u'blah')),
+			(u'December 3',					(TimelineDate(TimePoint(month = 12, day = 3)),	u'December 3',		u'')),
 
-			# this decision is made arbitrarilly by the parser. we're just not going to worry about it
-			# (u'3 December 23',				(TimelineDate(3, month = 12, day = 23),		u'3 December 23',	u'')),
+			# this decision is made arbitrarily by the parser. we're just not going to worry about it
+			# (u'3 December 23',				(TimelineDate(3, month = 12, day = 23)),		u'3 December 23',	u'')),
 		))
 
 	def test_monthday_ranges(self):
-		# pdb.set_trace()
-		print(parse_date_html('16 June - 9 July 1932 blah'))
+		self.helper((
+			(u'16 June - 9 July 1932 blah',	(TimelineDate(TimePoint(1932, 6, 16),	TimePoint(1932, 7, 9)),	u'16 June - 9 July 1932', u'blah')),
+			(u'16 June - 9 July, 1932',		(TimelineDate(TimePoint(1932, 6, 16),	TimePoint(1932, 7, 9)),	u'16 June - 9 July, 1932', u'')),
+			(u'16 June - July 9 1932',		(TimelineDate(TimePoint(1932, 6, 16),	TimePoint(1932, 7, 9)),	u'16 June - July 9 1932', u'')),
+			(u'June 16 - July 9 27',		(TimelineDate(TimePoint(27, 6, 16),		TimePoint(27, 7, 9)),	u'June 16 - July 9 27', u'')),
+			(u'June - 9 July 1932',			(TimelineDate(TimePoint(1932, 6),		TimePoint(1932, 7, 9)),	u'June - 9 July 1932', u'')),
+			(u'16 June - July 1932',		(TimelineDate(TimePoint(1932, 6, 16),	TimePoint(1932, 7)),	u'16 June - July 1932', u'')),
+			(u'June - July 1932',			(TimelineDate(TimePoint(1932, 6),		TimePoint(1932, 7)),	u'June - July 1932', u'')),
+			(u'6 - 8 July 1932',			(TimelineDate(TimePoint(1932, 7, 6),	TimePoint(1932, 7, 8)),	u'6 - 8 July 1932', u'')),
+			(u'June 6 - 8, 1932',			(TimelineDate(TimePoint(1932, 6, 6),	TimePoint(1932, 6, 8)),	u'June 6 - 8, 1932', u'')),
+		))
+		
 
 
 	def test_html_parsing(self):
@@ -139,11 +149,11 @@ class TestParseDate(unittest.TestCase):
 		d4 = u'<p><b>1890</b></p>'
 		r4 = u'<p><b><a href="/wiki/Stop_sign" title="Stop sign">Stop sign</a></b>blergh</p>'
 		
-		self.assertEqual(parse_date_html(h1), (TimelineDate(1890, False), d1, r1))
-		self.assertEqual(parse_date_html(h2), (TimelineDate(1890, False), d2, r2))
-		self.assertEqual(parse_date_html(h3), (TimelineDate(1890, False), d3, r3))
-		self.assertEqual(parse_date_html(h4), (TimelineDate(1890, False), d4, r4))
+		self.assertEqual(parse_date_html(h1), (TimelineDate(TimePoint(1890)), d1, r1))
+		self.assertEqual(parse_date_html(h2), (TimelineDate(TimePoint(1890)), d2, r2))
+		self.assertEqual(parse_date_html(h3), (TimelineDate(TimePoint(1890)), d3, r3))
+		self.assertEqual(parse_date_html(h4), (TimelineDate(TimePoint(1890)), d4, r4))
 
 	def test_real_life(self):
 		d1 = u"""<li>613 BC, July – A <a href="/wiki/Comet" title="Comet">Comet</a>, possibly <a href="/wiki/Comet_Halley" title="Comet Halley" class="mw-redirect">Comet Halley</a>, is recorded in <a href="/wiki/Spring_and_Autumn_Annals" title="Spring and Autumn Annals">Spring and Autumn Annals</a> by the Chinese</li>"""
-		self.assertEqual(parse_date_html(d1)[0], TimelineDate(-613))
+		self.assertEqual(parse_date_html(d1)[0], TimelineDate(TimePoint(-613)))

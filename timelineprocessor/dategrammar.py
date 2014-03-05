@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 date_grammar_string = u"""
-	S -> MONTH | MONTHDAY | DATE | YEARSAGO | DATERANGE
+	S -> MONTH | MONTHDAY | DATE | YEARSAGO | DATERANGE | MONTHDAYRANGE | MONTHDAYYEARRANGE
 
 
 	YEARSAGO -> YAS | YAR | MAS | MAR
@@ -50,6 +50,14 @@ date_grammar_string = u"""
 	DAY -> n | '0' n | '1' n | '2' n | '3' '0' | '3' '1'
 
 
+	MONTHDAYRANGE -> MONTHDAY TO MONTHDAY | MONTH TO MONTHDAY | DAY TO MONTHDAY
+	MONTHDAYRANGE -> MONTHDAY TO YADYEARMONTH | MONTH TO YADYEARMONTH
+	MONTHDAYRANGE -> MONTHDAY TO YADYEARMONTHDAY | MONTH TO YADYEARMONTHDAY  | DAY TO YADYEARMONTHDAY
+
+
+	MONTHDAYYEARRANGE -> MONTHDAY TO DAY ocommadotsp YADYEAR
+
+
 	CA -> c a | c | about
 
 	BC -> b c | b c e
@@ -82,18 +90,18 @@ date_grammar_string = u"""
 	century -> 'c' 'e' 'n' 't' 'u' 'r' 'y'
 	millenium -> 'm' 'i' 'l' 'l' 'e' 'n' 'i' 'u' 'm' | 'm' 'i' 'l' 'l' 'e' 'n' 'n' 'i' 'u' 'm'
 
-	jan -> 'j' 'a' 'n' | 'j' 'a' 'n' 'u' 'a' 'r' 'y'
-	feb -> 'f' 'e' 'b' | 'f' 'e' 'b' 'r' 'u' 'a' 'r' 'y'
-	mar -> 'm' 'a' 'r' | 'm' 'a' 'r' 'c' 'h'
-	apr -> 'a' 'p' 'r' | 'a' 'p' 'r' 'i' 'l'
+	jan -> 'j' 'a' 'n' | 'j' 'a' 'n' x | 'j' 'a' 'n' 'u' 'a' 'r' 'y'
+	feb -> 'f' 'e' 'b' | 'f' 'e' 'b' x | 'f' 'e' 'b' 'r' 'u' 'a' 'r' 'y'
+	mar -> 'm' 'a' 'r' | 'm' 'a' 'r' x | 'm' 'a' 'r' 'c' 'h'
+	apr -> 'a' 'p' 'r' | 'a' 'p' 'r' x | 'a' 'p' 'r' 'i' 'l'
 	may -> 'm' 'a' 'y'
-	jun -> 'j' 'u' 'n' | 'j' 'u' 'n' 'e'
-	jul -> 'j' 'u' 'l' | 'j' 'u' 'l' 'y'
-	aug -> 'a' 'u' 'g' | 'a' 'u' 'g' 'u' 's' 't'
-	sep -> 's' 'e' 'p' | 's' 'e' 'p' 't' | 's' 'e' 'p' 't' 'e' 'm' 'b' 'e' 'r'
-	oct -> 'o' 'c' 't' | 'o' 'c' 't' 'o' 'b' 'e' 'r'
-	nov -> 'n' 'o' 'v' | 'n' 'o' 'v' 'e' 'm' 'b' 'e' 'r'
-	dec -> 'd' 'e' 'c' | 'd' 'e' 'c' 'e' 'm' 'b' 'e' 'r'
+	jun -> 'j' 'u' 'n' | 'j' 'u' 'n' x | 'j' 'u' 'n' 'e'
+	jul -> 'j' 'u' 'l' | 'j' 'u' 'l' x | 'j' 'u' 'l' 'y'
+	aug -> 'a' 'u' 'g' | 'a' 'u' 'g' x | 'a' 'u' 'g' 'u' 's' 't'
+	sep -> 's' 'e' 'p' | 's' 'e' 'p' x | 's' 'e' 'p' 't' | 's' 'e' 'p' 't' 'e' 'm' 'b' 'e' 'r'
+	oct -> 'o' 'c' 't' | 'o' 'c' 't' x | 'o' 'c' 't' 'o' 'b' 'e' 'r'
+	nov -> 'n' 'o' 'v' | 'n' 'o' 'v' x | 'n' 'o' 'v' 'e' 'm' 'b' 'e' 'r'
+	dec -> 'd' 'e' 'c' | 'd' 'e' 'c' x | 'd' 'e' 'c' 'e' 'm' 'b' 'e' 'r'
 	"""
 
 date_grammar_words = [

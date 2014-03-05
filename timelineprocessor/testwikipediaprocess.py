@@ -97,8 +97,9 @@ class TestWpPageToEvents(unittest.TestCase):
 			'Timeline of country and capital changes',
 			'Timeline of European exploration',
 		])
-	def failing(self):
+	def test_four(self):
 		self.validate_pages([
+			'Timeline of the Weimar Republic'
 		])
 
 	def print_event(self, event):
