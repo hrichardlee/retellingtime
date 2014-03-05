@@ -209,7 +209,7 @@ def _string_blocks_to_events(string_blocks,
 					if parse:
 						close_event(events, curr_event)
 						curr_event = {
-							'date': TimelineDate.combine(base_date, parse[0]).simple_year,
+							'date': TimelineDate.combine(base_date, parse[0]).simple_year(),
 							'date_string': parse[1],
 							'content': parse[2]
 						}
@@ -297,7 +297,7 @@ def _table_to_events(table):
 					del cells[year_col_index]
 					content = ''.join(_bs_inner_html(cell) for cell in cells)
 					events.append({
-						'date': extract[0].simple_year,
+						'date': extract[0].simple_year(),
 						'date_string': extract[1],
 						'content': content
 					})

@@ -9,6 +9,8 @@ import itertools
 import operator
 import warnings
 import copy
+import datetime
+import calendar
 
 import pdb
 
@@ -20,6 +22,34 @@ class TimePoint:
 		self.month = month
 		self.day = day
 		self.year_approx = year_approx
+
+	def simple_year(self):
+		if not self.year:
+			return None
+
+		if self.year < 1 or self.year > datetime.MAXYEAR:
+			# don't bother with month/day for these extreme dates
+			return self.year
+
+		datetimeobj = None
+		while not datetimeobj:
+			try:
+				datetimeobj = datetime.date(self.year, self.month or 1, self.day or 1)
+			except ValueError:
+				# we might pick up days that are not valid for the year/month.
+				# because of the complexities of historical time, we'll just fudge
+				# it if we can
+				if self.day == 1:
+					# the problem is not the day in this case, so we give up
+					return self.year
+				elif self.day > 28:
+					self.day = min(self.day - 1, 31)
+				else:
+					self.day = 1
+
+		if calendar.isleap(self.year): daysinyear = 366
+		else: daysinyear = 365
+		return self.year + (datetimeobj - datetime.date(self.year, 1, 1)).days / float(daysinyear)
 
 	def __neg__(self):
 		return TimePoint(-self.year, self.month, self.day, self.year_approx)
@@ -80,7 +110,8 @@ class TimelineDate:
 		self.start = start
 		self.end = end
 
-		self.simple_year = start.year
+	def simple_year(self):
+		return self.start.simple_year()
 
 	@classmethod
 	def span_from_dates(cls, a, b):
