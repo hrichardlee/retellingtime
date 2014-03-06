@@ -46,7 +46,7 @@ date_grammar_string = u"""
 	PERIODBC -> PERIOD osp BC
 	PERIODAD ->  PERIOD osp AD | PERIOD
 
-	PERIOD -> ORD osp century | ORD osp millenium
+	PERIOD -> ORD odashsp century | ORD odashsp millenium
 	ORD -> NUM th
 
 
@@ -101,6 +101,7 @@ date_grammar_string = u"""
 	comma -> ','
 	ocomma -> comma | 
 	ocommadotsp -> comma osp | x osp | sp
+	odashsp -> dash | osp
 
 	n -> '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
 
