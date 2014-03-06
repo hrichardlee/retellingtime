@@ -434,7 +434,15 @@ def parse_date_html(html_string):
 	that can be parsed, returns None.
 	"""
 
-	html_splitter = HtmlSplitter(html_string)
+	# preprocess to add newlines after <br />, or else get_text smushes things
+	# together
+	soup = BeautifulSoup(html_string)
+	for el in soup.descendants:
+		if el.name == 'br':
+			el.insert_after(soup.new_string('\n'))
+			el.insert_before(soup.new_string('\n'))
+
+	html_splitter = HtmlSplitter(unicode(soup))
 	s = html_splitter.text_string
 
 	content_offset = 0
