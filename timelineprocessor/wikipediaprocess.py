@@ -195,6 +195,7 @@ def _string_blocks_to_events(string_blocks,
 		# is just an intro paragraph, but if this if statement is true, it is
 		# probably the entire content of the article
 		try:
+			ignore_sections = ignore_sections.copy()
 			ignore_sections.remove('')
 		except KeyError:
 			pass

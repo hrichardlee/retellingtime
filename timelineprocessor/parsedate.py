@@ -163,6 +163,8 @@ _splitter_re = re.compile(ur'([^a-zA-Z0-9]|\d+)')
 _valid_nonwords_re = re.compile(date_valid_nonwords_re_string)
 _date_grammar_words_set = set(date_grammar_words)
 _whitespace_re = re.compile(ur'^\s+$')
+_non_anchored_whitespace_re = re.compile(ur'\s+')
+_nonvalid_whitespace_re = re.compile(ur'[\r\n\f]')
 _valid_end_char_re = re.compile(date_valid_end_char)
 
 def _possible_texts(text):
@@ -171,6 +173,15 @@ def _possible_texts(text):
 	# warning: this will only work as long as there are no cases where
 	# concatenating multiple words in date_grammar_words could form another
 	# valid word. ad/bc/ce/bce are an exception, they will work fine
+
+	# replace non-breaking spaces
+	text = text.replace(u'\xa0', u' ')
+
+	# cut off the string at any line breaks, replace any non-space whitespace
+	m = _nonvalid_whitespace_re.search(text)
+	if m:
+		text = text[:m.start()]
+		text = _non_anchored_whitespace_re.sub(' ', text)
 
 	# this step is not particularly efficient, especially with long content,
 	# but not worrying about it for now
@@ -199,8 +210,6 @@ def parse_date_text(text):
 	found, returns None. Assumes that date is at the beginning of the string
 	with no superfluous characters.
 	"""
-	# replace non-breaking spaces
-	text = text.replace(u'\xa0', u' ')
 	text = text.lower()
 
 	date_parser = BottomUpChartParser(parse_cfg(date_grammar_string))

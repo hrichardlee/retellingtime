@@ -40,6 +40,7 @@ class TestParseDate(unittest.TestCase):
 			(u'<p>  </p>',						None),
 			(u'lkjdr3f',						None),
 			(u'1967 - 12th street massacre',	(TimelineDate(TimePoint(1967, year_approx = False)),	u'1967', u'12th street massacre')),
+			(u'1245\xa0AD',				(TimelineDate(TimePoint(1245)),							u'1245\xa0AD',			u'')),
 		))
 
 		self.assertEqual(parse_date_html(u'900–929')[0].simple_year(),	900)
