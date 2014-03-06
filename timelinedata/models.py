@@ -15,17 +15,21 @@ class CommonTimelineMetadata(models.Model):
 	title = models.CharField(max_length = 500)
 	single_section = models.CharField(max_length = 500, default = '', blank = True)
 	separate = models.BooleanField()
+	continuations = models.BooleanField()
 	url = models.CharField(max_length = 500)
 
-	def metadata(self):
+	def metadata_str(self):
 		s = ''
 		if self.separate:
 			s += 'sep '
+		if self.continuations:
+			s += 'cont '
 		if self.single_section:
 			s += '#' + self.single_section + ' '
 		s += format_html('<a href="{0}">orig</a>', self.url)
 		return s
-	metadata.allow_tags = True
+	metadata_str.allow_tags = True
+	metadata_str.short_description = 'metadata'
 
 	class Meta:
 		abstract = True
@@ -53,7 +57,7 @@ class Timeline(CommonTimelineMetadata):
 		return self.title
 
 	def get_events(self):
-		raw_events = wikipediaprocess.wp_page_to_events_raw(self.title, self.separate, self.single_section)
+		raw_events = wikipediaprocess.wp_page_to_events_raw(self.title, self.separate, self.single_section, self.continuations)
 		self.url = wikipediaprocess.get_wp_page(self.title).url
 		WpPageProcess.from_raw_events(raw_events, self)
 		events = wikipediaprocess.wp_post_process(raw_events)
@@ -100,7 +104,8 @@ class Timeline(CommonTimelineMetadata):
 			
 
 	@classmethod
-	def process_wikipedia_page(cls, page_title, refresh=False, separate=False, single_section=''):
+	def process_wikipedia_page(cls, page_title, refresh=False,
+		separate=False, single_section='', continuations=False):
 		"""Looks for the wikipedia page with the given title in the database.
 		If found, (optionally) refreshes it and returns it. If it is not
 		found, tries to parse the wikipedia page. If successful, returns the
@@ -116,7 +121,7 @@ class Timeline(CommonTimelineMetadata):
 		elif WpPageProcess.objects.filter(title__iexact = page_title, banned = True).exists():
 			return None
 		else:
-			timeline = cls(title=page_title, separate=separate, single_section=single_section)
+			timeline = cls(title=page_title, separate=separate, single_section=single_section, continuations=continuations)
 			if timeline.get_events():
 				timeline.save()
 				logger.info('Added ' + page_title + ' successfully')
@@ -170,7 +175,7 @@ class WpPageProcess(CommonTimelineMetadata):
 
 		(first_and_last, errors, fewer_than_threshold) = cls.get_errors(raw_events)
 		proc = cls(title = timeline.title, single_section = timeline.single_section,
-			separate = timeline.separate, url = timeline.url,
+			separate = timeline.separate, continuations = timeline.continuations, url = timeline.url,
 			first_and_last = first_and_last, errors = errors, fewer_than_threshold = fewer_than_threshold)
 		proc.save()
 

@@ -20,7 +20,7 @@ class TimelineAdmin(admin.ModelAdmin):
 			timeline.get_events()
 			timeline.save()
 
-	list_display = ('title', 'metadata', 'short_events')
+	list_display = ('title', 'metadata_str', 'short_events')
 	search_fields = ('title',)
 
 	actions = ['refresh']
@@ -48,7 +48,7 @@ class WpPageProcessAdmin(admin.ModelAdmin):
 	def refresh(modeladmin, request, queryset):
 		for p in queryset:
 			Timeline.process_wikipedia_page(p.title, refresh = True,
-				separate = p.separate, single_section = p.single_section)
+				separate = p.separate, single_section = p.single_section, continuations = p.continuations)
 
 	def ban(modeladmin, request, queryset):
 		for p in queryset:
@@ -58,7 +58,7 @@ class WpPageProcessAdmin(admin.ModelAdmin):
 		for p in queryset:
 			p.unban()
 
-	list_display = ('title', 'banned', 'metadata', 'timestamp',
+	list_display = ('title', 'banned', 'metadata_str', 'timestamp',
 		'first_and_last_formatted', 'fewer_than_threshold', 'errors_formatted')
 	list_filter = ('banned', 'fewer_than_threshold', ErrorsNonEmptyFilter)
 	search_fields = ['title']

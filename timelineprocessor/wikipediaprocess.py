@@ -36,12 +36,12 @@ def wikipedia_timeline_page_titles():
 		if a['href'].startswith('/wiki/') and a.has_attr('title') and ':' not in a['title'] and 'disambiguation' not in a['title'].lower()]
 
 
-def wp_page_to_events_raw(title, separate = False, single_section = None):
+def wp_page_to_events_raw(title, separate = False, single_section = None, continuations = False):
 	"""Without the post_processing in wp_page_to_events"""
 	article = BeautifulSoup(get_wp_page(title).html())
 
 	string_blocks = _html_to_string_blocks(article)
-	events = _string_blocks_to_events(string_blocks, single_section = single_section)
+	events = _string_blocks_to_events(string_blocks, single_section = single_section, continuations = continuations)
 	if separate:
 		events = _separate_events(events)
 	return events
