@@ -172,7 +172,7 @@ def _html_to_string_blocks(html,
 
 
 def _string_blocks_to_events(string_blocks,
-	line_break = '<br />', single_section = None,
+	line_break = '<br />', single_section = None, continuations = False,
 	ignore_sections = set(['', 'contents', 'see also', 'references', 'external links', 'notes', 'further reading', 'related media'])):
 	"""Given a set of string blocks (as produced by _html_to_string_blocks,
 	expects that all strings are non-empty), returns a list of timeline
@@ -203,6 +203,7 @@ def _string_blocks_to_events(string_blocks,
 	events = []
 
 	for string_block in string_blocks:
+		prev_date = None
 		if section_test(string_block['heading'][0]):
 			# create base date based on headings:
 			# possible perf improvement by caching results for headings across string_blocks
@@ -218,15 +219,30 @@ def _string_blocks_to_events(string_blocks,
 					# if we can parse a date, create a new event
 					if parse:
 						close_event(events, curr_event)
+						date = TimelineDate.combine(base_date, parse[0])
+						if date.simple_year() == None and prev_date:
+							# this is the case where we have a month or
+							# monthday but no year. in this case, take it from
+							# the previous event
+							date = TimelineDate.combine(prev_date, date)
 						curr_event = {
-							'date': TimelineDate.combine(base_date, parse[0]).simple_year(),
+							'date': date.simple_year(),
 							'date_string': parse[1],
 							'content': parse[2]
 						}
+						prev_date = date
 					# if we can't parse a date, append the line to the
 					# current event if there is one
 					elif curr_event:
-						curr_event['content'] += line_break + line['line']
+						if continuations:
+							curr_event['content'] += line_break + line['line']
+						else:
+							close_event(events, curr_event)
+							curr_event = {
+								'date': curr_event['date'],
+								'date_string': curr_event['date_string'],
+								'content': line['line']
+							}
 				elif line['line_type'] == LineTypes.table:
 					close_event(events, curr_event)
 					events += _table_to_events(line['line'])
