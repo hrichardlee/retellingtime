@@ -107,9 +107,13 @@ class LineTypes(Enum):
 	table = 2
 
 
-def _html_to_string_blocks(html, 
-	block_elements = set(['address', 'article', 'aside', 'blockquote', 'section', 'dd', 'div', 'dl', 'p', 'ol', 'ul', 'li']),
-	header_elements = ['h2', 'h3', 'h4', 'h5', 'h6']):
+_block_elements = set([
+	'address', 'article', 'aside', 'blockquote', 'section',
+	'dd', 'div', 'dl', 'p', 'ol', 'ul', 'li'
+])
+_header_elements = ['h2', 'h3', 'h4', 'h5', 'h6']
+
+def _html_to_string_blocks(html):
 	"""Given an html element as a BeautifulSoup, returns a list of string
 	blocks. Each string block represents a section in the html demarcated by a
 	header element. Each string block is {heading, lines: [{line_type,
@@ -137,11 +141,11 @@ def _html_to_string_blocks(html,
 	curr_string_block = {'lines': [], 'heading': curr_heading}
 	curr_string = ''
 	for el in html.children:
-		if el.name in header_elements:
+		if el.name in _header_elements:
 			# close the previous block
 			close_string_blocks(string_blocks, curr_string_block, curr_string)
 
-			heading_index = header_elements.index(el.name)
+			heading_index = _header_elements.index(el.name)
 			curr_heading = curr_heading[:heading_index]
 			if len(curr_heading) < heading_index:
 				curr_heading += [''] * (heading_index - len(curr_heading)) 
@@ -150,10 +154,12 @@ def _html_to_string_blocks(html,
 
 			curr_string_block = {'lines': [], 'heading': curr_heading}
 			curr_string = ''
-		elif el.name in block_elements:
+		elif el.name in _block_elements:
 			close_string(curr_string_block, curr_string)
 
-			# assumes no header elements under block elements
+			# assumes no header elements under block elements, which implies
+			# that child_string_blocks will never have more than one
+			# string_block
 			child_string_blocks = _html_to_string_blocks(el)
 			if child_string_blocks:
 				curr_string_block['lines'] += child_string_blocks[0]['lines']
@@ -170,10 +176,14 @@ def _html_to_string_blocks(html,
 
 	return string_blocks
 
+_line_break = '<br />'
+_ignore_sections = set([
+	'',
+	'contents', 'see also',	'references', 'external links',	'notes',
+	'further reading', 'related media', 'notes and citations'
+])
 
-def _string_blocks_to_events(string_blocks,
-	line_break = '<br />', single_section = None, continuations = False,
-	ignore_sections = set(['', 'contents', 'see also', 'references', 'external links', 'notes', 'further reading', 'related media', 'notes and citations'])):
+def _string_blocks_to_events(string_blocks, single_section = None, continuations = False):
 	"""Given a set of string blocks (as produced by _html_to_string_blocks,
 	expects that all strings are non-empty), returns a list of timeline
 	events. A timeline event is {date: number, date_string: string, content: string}
@@ -183,20 +193,21 @@ def _string_blocks_to_events(string_blocks,
 		if single_section:
 			return name.strip().lower() == single_section.strip().lower()
 		else:
-			return name.strip().lower() not in ignore_sections
+			return name.strip().lower() not in curr_ignore_sections
 
 	def close_event(es, e):
 		if e:
 			es.append(e)
 
+	curr_ignore_sections = _ignore_sections
 	if all(not section_test(sb['heading'][0]) for sb in string_blocks):
 		# allow the first section to be processed if it is the only section,
 		# excluding excluded sections like see also, etc. Usually this section
 		# is just an intro paragraph, but if this if statement is true, it is
 		# probably the entire content of the article
 		try:
-			ignore_sections = ignore_sections.copy()
-			ignore_sections.remove('')
+			curr_ignore_sections = _ignore_sections.copy()
+			curr_ignore_sections.remove('')
 		except KeyError:
 			pass
 
