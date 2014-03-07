@@ -225,16 +225,37 @@ def _string_blocks_to_events(string_blocks, single_section = None, continuations
 			# create base date based on headings:
 			# possible perf improvement by caching results for headings across string_blocks
 			base_date = TimelineDate(TimePoint())
+			base_date_string = ''
 			for h in string_block['heading']:
 				parse = parse_date_html(h)
 				if parse:
 					base_date = TimelineDate.combine(base_date, parse[0])
+					base_date_string = parse[1]
+
+			# if there's a year specified in the headings, we create a fuzzy
+			# range that child elements of those headings need to fall in
+			base_date_range = None
+			if base_date.simple_year() != None:
+				delta_minus = 10
+				delta_plus = 20
+				m = re.search(ur'0+$', str(base_date.start.year))
+				if m:
+					delta_minus = int('1' + ('0' * (m.end() - m.start())))
+					delta_plus = delta_minus * 2
+				base_date_range = (base_date.simple_year() - delta_minus, base_date.simple_year() + delta_plus)
 
 			for line in string_block['lines']:
 				if line['line_type'] == LineTypes.line:
 					parse = parse_date_html(line['line'])
 					# if we can parse a date, create a new event
-					if parse:
+					if parse and \
+						((not base_date_range) or \
+						 (parse[0].simple_year() == None) or \
+						 (parse[0].simple_year() >= base_date_range[0] and \
+						 	parse[0].simple_year() <= base_date_range[1]) or \
+						 (TimelineDate.can_combine_as_day(base_date, parse[0]))
+						 ):
+
 						close_event(events, curr_event)
 						date = TimelineDate.combine(base_date, parse[0])
 						if date.simple_year() == None and prev_date:
@@ -260,6 +281,15 @@ def _string_blocks_to_events(string_blocks, single_section = None, continuations
 								'date_string': curr_event['date_string'],
 								'content': line['line']
 							}
+					# if there's no parse and no current event, see if we can
+					# use the base_date
+					elif base_date.simple_year() != None:
+						# no need to close events because curr_event is None
+						curr_event = {
+							'date': base_date.simple_year(),
+							'date_string': base_date_string,
+							'content': line['line']
+						}
 				elif line['line_type'] == LineTypes.table:
 					close_event(events, curr_event)
 					events += _table_to_events(line['line'])

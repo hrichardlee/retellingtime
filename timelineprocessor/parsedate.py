@@ -121,6 +121,13 @@ class TimelineDate:
 		return TimelineDate(min(years), max(years))
 
 	@classmethod
+	def can_combine_as_day(cls, a, b):
+		return not a.end and not b.end \
+			and a.start.year and a.start.month and not a.start.day \
+			and b.start.year and not b.start.month and not b.start.day \
+			and b.start.year >= 1 and b.start.year <= 31
+
+	@classmethod
 	def combine(cls, a, b):
 		"""Given two TimelineDates a and b, returns a new TimelineDate. The
 		result's start will be a's start combined with b's start and the
@@ -132,11 +139,7 @@ class TimelineDate:
 		year and month but not day and b has only year and self, and its value
 		for year is between 1 and 31 the result will be combining a with b but
 		interpreting b to only have a day value."""
-		if not a.end and not b.end \
-			and a.start.year and a.start.month and not a.start.day \
-			and b.start.year and not b.start.month and not b.start.day \
-			and b.start.year >= 1 and b.start.year <= 31:
-
+		if cls.can_combine_as_day(a, b):
 			return cls(TimePoint(a.start.year, a.start.month, b.start.year, a.start.year_approx))
 		else:
 			start = TimePoint.combine(a.start, b.start)
