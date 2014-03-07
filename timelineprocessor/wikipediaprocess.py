@@ -36,15 +36,74 @@ def wikipedia_timeline_page_titles():
 		if a['href'].startswith('/wiki/') and a.has_attr('title') and ':' not in a['title'] and 'disambiguation' not in a['title'].lower()]
 
 
-def wp_page_to_events_raw(title, separate = False, single_section = None, continuations = False):
+def param_defaults(p):
+	p['separate'] = p.get('separate') or False
+	p['single_section'] = p.get('single_section') or ''
+	p['continuations'] = p.get('continuations') or False
+	return p
+
+
+def wp_page_to_events_raw(title, p = None):
 	"""Without the post_processing in wp_page_to_events"""
+	p = param_defaults(p or {})
+
 	article = BeautifulSoup(get_wp_page(title).html())
 
 	string_blocks = _html_to_string_blocks(article)
-	events = _string_blocks_to_events(string_blocks, single_section = single_section, continuations = continuations)
-	if separate:
+	events = _string_blocks_to_events(string_blocks, p)
+	if p['separate']:
 		events = _separate_events(events)
 	return events
+
+
+
+def event_to_str(event):
+	return '%s: %s: %s' % (
+		str(event['date']),
+		BeautifulSoup(event['date_string']).get_text(),
+		BeautifulSoup(event['content']).get_text()[:50])
+
+def get_errors(raw_events, event_threshold):
+	errors = ''
+	first_and_last = ''
+	fewer_than_threshold = False
+
+	for e in raw_events:
+		if e['date'] == None:
+			errors += 'event without date:\n' + event_to_str(e) + '\n'
+
+	if len(raw_events) < event_threshold:
+		fewer_than_threshold = True
+		for e in raw_events:
+			first_and_last += event_to_str(e) + '\n'
+	else:
+		first_and_last += \
+			event_to_str(raw_events[0]) + '\n' + \
+			event_to_str(raw_events[1]) + '\n' + \
+			event_to_str(raw_events[-2]) + '\n' + \
+			event_to_str(raw_events[-1])
+
+		for e in [e for e in raw_events if len(e['content']) < 5]:
+			errors += 'short event:' + '\n' + event_to_str(e)
+
+		# look for out of order events
+		if raw_events[0]['date'] < raw_events[-1]['date']:
+			bad_cmp = lambda x, y: x > y
+		else:
+			bad_cmp = lambda x, y: x < y
+
+		for i, (curre, nexte) in enumerate(zip(raw_events[:-1], raw_events[1:])):
+			if bad_cmp(curre['date'], nexte['date']):
+				errors += 'out of order events:' + '\n'
+				if (i == 0):
+					errors += '---' + '\n'
+				else:
+					errors += event_to_str(raw_events[i-1]) + '\n'
+				errors += \
+					event_to_str(curre) + '\n' + \
+					event_to_str(nexte) + '\n'
+	return (first_and_last, errors, fewer_than_threshold)
+
 
 def wp_post_process(raw_events):
 	_add_importance_to_events(raw_events)
@@ -55,12 +114,10 @@ def wp_post_process(raw_events):
 	return raw_events
 
 
-def wp_page_to_events(title, separate = False, single_section = None):
+def wp_page_to_events(title, p = None):
 	"""Takes the title of a timeline page on Wikipedia and returns a list of
 	events {date: number, date_string: string, content: string}"""
-	return wp_post_process(
-		wp_page_to_events_raw(
-			title, separate, single_section))
+	return wp_post_process(wp_page_to_events_raw(title, p))
 
 
 def get_wp_page(title):
@@ -188,15 +245,17 @@ _ignore_sections = set([
 	'further reading', 'related media', 'notes and citations'
 ])
 
-def _string_blocks_to_events(string_blocks, single_section = None, continuations = False):
+def _string_blocks_to_events(string_blocks, p = None):
 	"""Given a set of string blocks (as produced by _html_to_string_blocks,
 	expects that all strings are non-empty), returns a list of timeline
 	events. A timeline event is {date: number, date_string: string, content: string}
 	"""
 
+	curr_ignore_sections = _ignore_sections
+
 	def section_test(name):
-		if single_section:
-			return name.strip().lower() == single_section.strip().lower()
+		if p['single_section']:
+			return name.strip().lower() == p['single_section'].strip().lower()
 		else:
 			return name.strip().lower() not in curr_ignore_sections
 
@@ -204,7 +263,8 @@ def _string_blocks_to_events(string_blocks, single_section = None, continuations
 		if e:
 			es.append(e)
 
-	curr_ignore_sections = _ignore_sections
+	p = param_defaults(p or {})
+
 	if all(not section_test(sb['heading'][0]) for sb in string_blocks):
 		# allow the first section to be processed if it is the only section,
 		# excluding excluded sections like see also, etc. Usually this section
@@ -272,7 +332,7 @@ def _string_blocks_to_events(string_blocks, single_section = None, continuations
 					# if we can't parse a date, append the line to the
 					# current event if there is one
 					elif curr_event:
-						if continuations:
+						if p['continuations']:
 							curr_event['content'] += line_break + line['line']
 						else:
 							close_event(events, curr_event)
@@ -292,7 +352,7 @@ def _string_blocks_to_events(string_blocks, single_section = None, continuations
 						}
 				elif line['line_type'] == LineTypes.table:
 					close_event(events, curr_event)
-					events += _table_to_events(line['line'], base_date)
+					events += _table_to_events(line['line'], base_date, p)
 					curr_event = None
 			close_event(events, curr_event)
 			curr_event = None
@@ -331,9 +391,11 @@ def _lines_from_html(html):
 		if line['line_type'] == LineTypes.line)
 
 
-def _table_to_events(table, base_date, keep_row_together = True):
+def _table_to_events(table, base_date, p = None):
 	"""Given a table html element as a BeautifulSoup, returns a list of
 	"""
+	p = param_defaults(p or {})
+
 	def get_rowspan(td):
 		s = td.get('rowspan')
 		if s == None:
@@ -410,7 +472,7 @@ def _table_to_events(table, base_date, keep_row_together = True):
 					date = TimelineDate.combine(base_date, date)
 					content_cells = [cell for (i, cell) in \
 						enumerate(cells) if i != year_col_index and i != date_col_index]
-					if keep_row_together:
+					if p['keep_row_together']:
 						content = ' '.join(_bs_inner_html(cell) for cell in content_cells)
 						events.append({
 							'date': date.simple_year(),

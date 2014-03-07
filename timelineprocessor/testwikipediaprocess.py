@@ -51,7 +51,7 @@ class TestStringBlocksToEvents(unittest.TestCase):
 		article = BeautifulSoup(html_modernhist)
 		evs = wikipediaprocess._string_blocks_to_events(wikipediaprocess._html_to_string_blocks(article))
 		self.p(evs)
-		self.assertEqual(len(evs), 115)
+		self.assertEqual(len(evs), 122)
 	def test_combine(self):
 		article = BeautifulSoup(html_iraqwar)
 		evs = wikipediaprocess._string_blocks_to_events(wikipediaprocess._html_to_string_blocks(article))
@@ -90,9 +90,10 @@ class TestWpPageToEvents(unittest.TestCase):
 			'Timeline of human prehistory',
 			'Timeline of ancient history',
 		])
+		pdb.set_trace()
 		self.validate_pages([
 			'Timeline of modern history',
-		], separate = True)
+		], p = { 'separate': True })
 	def test_two(self):
 		self.validate_pages(['Timeline of the Middle Ages'])
 
@@ -101,7 +102,7 @@ class TestWpPageToEvents(unittest.TestCase):
 			'17th century',
 			'18th century',
 			'19th century'
-		], single_section = 'events')
+		], p = { 'single_section': 'events' })
 	def test_three(self):
 		self.validate_pages([
 			'Timeline of country and capital changes',
@@ -115,49 +116,20 @@ class TestWpPageToEvents(unittest.TestCase):
 	def print_event(self, event):
 		print('%d: %s: %s' % (event['date'], event['date_string'], BeautifulSoup(event['content']).get_text()[:50]))
 
-	def validate_page(self, title, separate = False, single_section = None):
+	def validate_pages(self, titles, p = None):
 		# beautifulSoup warns about parsing strings like '. blah' because it
 		# thinks it looks like a filename. We can safely ignore these warnings
 		warnings.filterwarnings('ignore', module='bs4')
-
-		print('---Validating ' + title + '---')
-
-		raw_events = wikipediaprocess.wp_page_to_events_raw(title, separate, single_section)
-
-
-		if len(raw_events) < 3:
-			print('fewer than 3 events:')
-			for e in raw_events:
-				self.print_event(e)
-		else:
-			print('first and last events:')
-			self.print_event(raw_events[0])
-			self.print_event(raw_events[-1])
-
-		for e in [e for e in raw_events if len(e['content']) < 5]:
-			print ('short event:')
-			self.print_event(e)
-
-		# look for out of order events
-		if raw_events[0]['date'] < raw_events[-1]['date']:
-			bad_cmp = lambda x, y: x > y
-		else:
-			bad_cmp = lambda x, y: x < y
-
-		for i, (curre, nexte) in enumerate(zip(raw_events[:-1], raw_events[1:])):
-			if bad_cmp(curre['date'], nexte['date']):
-				print('out of order events:')
-				if (i == 0):
-					print('---')
-				else:
-					self.print_event(raw_events[i-1])
-				self.print_event(curre)
-				self.print_event(nexte)
-				print('')
-
-	def validate_pages(self, titles, separate = False, single_section = None):
 		for t in titles:
-			self.validate_page(t, separate, single_section)
+			print('---Validating ' + t + '---')
+			raw_events = wikipediaprocess.wp_page_to_events_raw(t, p)
+			(first_and_last, errors, fewer_than_threshold) = wikipediaprocess.get_errors(raw_events, 4)
+			if fewer_than_threshold:
+				print('Fewer than threshold:')
+			print first_and_last
+			if errors:
+				print('Errors:')
+				print errors
 
 
 @unittest.skip('skipping perf tests')

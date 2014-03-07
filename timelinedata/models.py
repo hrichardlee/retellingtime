@@ -11,37 +11,83 @@ import timelineprocessor.wikipediaprocess as wikipediaprocess
 logger = logging.getLogger(__name__)
 
 
-class CommonTimelineMetadata(models.Model):
-	title = models.CharField(max_length = 500)
-	single_section = models.CharField(max_length = 500, default = '', blank = True)
-	separate = models.BooleanField()
-	continuations = models.BooleanField()
-	url = models.CharField(max_length = 500)
-
-	def metadata_str(self):
-		s = ''
-		if self.separate:
-			s += 'sep '
-		if self.continuations:
-			s += 'cont '
-		if self.single_section:
-			s += '#' + self.single_section + ' '
-		s += format_html('<a href="{0}">orig</a>', self.url)
-		return s
-	metadata_str.allow_tags = True
-	metadata_str.short_description = 'metadata'
-
-	class Meta:
-		abstract = True
-
-
 # a timeline must have at least this many events before it will be shown
 _event_threshold = 4
 
 
-class Timeline(CommonTimelineMetadata):
-	events = models.CharField(max_length = 1000000)
+class Timeline(models.Model):
+	# metadata
+	title = models.CharField(max_length = 500)
+	url = models.CharField(max_length = 500)
+	timestamp = models.DateTimeField(auto_now = True)
 
+	# data
+	events = models.CharField(max_length = 1000000, blank = True)
+	banned = models.BooleanField(default = False)
+	fewer_than_threshold = models.BooleanField()
+
+	# error and diagnostic info
+	first_and_last = models.CharField(max_length = 1000, blank = True)
+	errors = models.CharField(max_length = 1000000, blank = True)
+
+	# parameters
+	single_section = models.CharField(max_length = 500, blank = True)
+	separate = models.BooleanField()
+	continuations = models.BooleanField()
+
+	def set_params(self, p):
+		self.single_section = p['single_section']
+		self.separate = p['separate']
+		self.continuations = p['continuations']
+	def get_params(self):
+		return {
+			'separate': self.separate,
+			'single_section': self.single_section,
+			'continuations': self.continuations,
+		}
+
+	# admin fields params
+	def params(self):
+		s = ''
+		if self.separate: s += 'sep '
+		if self.continuations: s += 'cont '
+		if self.single_section: s += '#' + self.single_section + ' '
+		s += format_html('<a href="{0}">orig</a>', self.url)
+		return s
+	params.allow_tags = True
+
+	# admin fields data
+	def ban(self):
+		# banned pages will not be processed until the ban is lifted
+		self.banned = True
+		self.save()
+
+	def unban(self):
+		self.banned = False
+		self.save()
+
+	def short_events(self):
+		return self.events[:50]
+
+	def pretty_events(self):
+		# way too lazy to put this in a css file...
+		return format_html('<pre style="white-space: pre-wrap; font-size: medium">{0}</pre>',
+				json.dumps(json.loads(self.events), indent = 4))
+
+	# admin fields error and diagnostic
+	def first_and_last_formatted(self):
+		return escape(self.first_and_last).replace('\n', '<br />')
+	first_and_last_formatted.allow_tags = True
+	first_and_last_formatted.admin_order_field = 'first_and_last'
+	first_and_last_formatted.short_description = 'first and last'
+
+	def errors_formatted(self):
+		return escape(self.errors).replace('\n', '<br />')
+	errors_formatted.allow_tags = True
+	errors_formatted.admin_order_field = 'errors'
+	errors_formatted.short_description = 'errors'
+
+	# presenting data
 	def short_title(self):
 		prefixes = ['timeline of ', 'chronology of']
 		suffixes = [' timeline']
@@ -56,36 +102,11 @@ class Timeline(CommonTimelineMetadata):
 				return self.title[:-len(s)]
 		return self.title
 
-	def get_events(self):
-		raw_events = wikipediaprocess.wp_page_to_events_raw(self.title, self.separate, self.single_section, self.continuations)
-		self.url = wikipediaprocess.get_wp_page(self.title).url
-		WpPageProcess.from_raw_events(raw_events, self)
-		events = wikipediaprocess.wp_post_process(raw_events)
-		if len(events) > _event_threshold:
-			self.events = json.dumps(events)
-			return True
-		else:
-			return False
-
 	def summary(self):
 		return { 'title': self.title,
 				'short_title': self.short_title(),
 				'tags': 'TODO add tags',
 				'id': self.id }
-
-	def details(self):
-		return { 'short_title': self.short_title(),
-			'url': self.url,
-			'events': self.events
-		}
-
-	def short_events(self):
-		return self.events[:50]
-
-	def pretty_events(self):
-		# way too lazy to put this in a css file...
-		return format_html('<pre style="white-space: pre-wrap; font-size: medium">{0}</pre>',
-				json.dumps(json.loads(self.events), indent = 4))
 
 	def details_json(self):
 		# this is a massive hack, but will work as long as 3021621274449386 does not
@@ -102,10 +123,22 @@ class Timeline(CommonTimelineMetadata):
 		return "Timeline(id: %d, title: %s, separate: %s, events: %s)" \
 			% (self.id or -1, self.title, self.separate, self.events[:30])
 			
+	# processing data
+	def is_valid(self):
+		return not self.banned and not self.fewer_than_threshold
+
+	def get_events(self):
+		raw_events = wikipediaprocess.wp_page_to_events_raw(self.title, self.get_params())
+		(self.first_and_last, self.errors, self.fewer_than_threshold) = wikipediaprocess.get_errors(raw_events, _event_threshold)
+		events = wikipediaprocess.wp_post_process(raw_events)
+		self.url = wikipediaprocess.get_wp_page(self.title).url
+		if not self.fewer_than_threshold:
+			self.events = json.dumps(events)
+		self.save()
+		return self.fewer_than_threshold
 
 	@classmethod
-	def process_wikipedia_page(cls, page_title, refresh=False,
-		separate=False, single_section='', continuations=False):
+	def process_wikipedia_page(cls, page_title, refresh = False, p = None):
 		"""Looks for the wikipedia page with the given title in the database.
 		If found, (optionally) refreshes it and returns it. If it is not
 		found, tries to parse the wikipedia page. If successful, returns the
@@ -113,110 +146,16 @@ class Timeline(CommonTimelineMetadata):
 		page_title = wikipediaprocess.normalize_title(page_title)
 		objs = cls.objects.filter(title__iexact=page_title)
 		if objs:
-			if refresh:
-				objs[0].get_events()
-				objs[0].save()
-				logger.info('Refreshed ' + page_title)
-			return objs[0]
-		elif WpPageProcess.objects.filter(title__iexact = page_title, banned = True).exists():
+			# assume that there is only ever one item with the same title
+			timeline = objs[0]
+			if refresh and not timeline.banned:
+				timeline.get_events()
+		else:
+			timeline = cls(title=page_title)
+			timeline.set_params(wikipediaprocess.param_defaults(p or {}))
+			timeline.get_events()
+		
+		if timeline.is_valid():
+			return timeline
+		else:
 			return None
-		else:
-			timeline = cls(title=page_title, separate=separate, single_section=single_section, continuations=continuations)
-			if timeline.get_events():
-				timeline.save()
-				logger.info('Added ' + page_title + ' successfully')
-				return timeline
-			else:
-				logger.info('Failed to add ' + page_title)
-				return None
-
-
-class WpPageProcess(CommonTimelineMetadata):
-	first_and_last = models.CharField(max_length = 1000, blank = True)
-	fewer_than_threshold = models.BooleanField(default = False)
-	errors = models.CharField(max_length = 1000000, blank = True)
-	banned = models.BooleanField(default = False)
-	timestamp = models.DateTimeField(auto_now = True)
-
-	def ban(self):
-		# banned pages will not be processed until the ban is lifted
-		self.banned = True
-		# remove the timeline data if it's been processed
-		Timeline.objects.filter(title__iexact = self.title).delete()
-		self.save()
-
-	def unban(self):
-		self.banned = False
-		self.save()
-
-	def first_and_last_formatted(self):
-		return escape(self.first_and_last).replace('\n', '<br />')
-	first_and_last_formatted.allow_tags = True
-	first_and_last_formatted.admin_order_field = 'first_and_last'
-	first_and_last_formatted.short_description = 'First and last'
-
-	def errors_formatted(self):
-		return escape(self.errors).replace('\n', '<br />')
-	errors_formatted.allow_tags = True
-	errors_formatted.admin_order_field = 'errors'
-	errors_formatted.short_description = 'Errors'
-
-	@classmethod
-	def event_to_str(self, event):
-		return '%s: %s: %s' % (
-			str(event['date']),
-			BeautifulSoup(event['date_string']).get_text(),
-			BeautifulSoup(event['content']).get_text()[:50])
-
-	@classmethod
-	def from_raw_events(cls, raw_events, timeline):
-		# delete any data about previous runs on this page
-		objs = cls.objects.filter(title__iexact = timeline.title).delete()
-
-		(first_and_last, errors, fewer_than_threshold) = cls.get_errors(raw_events)
-		proc = cls(title = timeline.title, single_section = timeline.single_section,
-			separate = timeline.separate, continuations = timeline.continuations, url = timeline.url,
-			first_and_last = first_and_last, errors = errors, fewer_than_threshold = fewer_than_threshold)
-		proc.save()
-
-	@classmethod
-	def get_errors(cls, raw_events):
-		errors = ''
-		first_and_last = ''
-		fewer_than_threshold = False
-
-		for e in raw_events:
-			if e['date'] == None:
-				errors += 'event without date:\n' + cls.event_to_str(e) + '\n'
-
-		if len(raw_events) < _event_threshold:
-			fewer_than_threshold = True
-			for e in raw_events:
-				first_and_last += cls.event_to_str(e) + '\n'
-		else:
-			first_and_last += \
-				cls.event_to_str(raw_events[0]) + '\n' + \
-				cls.event_to_str(raw_events[1]) + '\n' + \
-				cls.event_to_str(raw_events[-2]) + '\n' + \
-				cls.event_to_str(raw_events[-1])
-
-			for e in [e for e in raw_events if len(e['content']) < 5]:
-				errors += 'short event:' + '\n' + cls.event_to_str(e)
-
-			# look for out of order events
-			if raw_events[0]['date'] < raw_events[-1]['date']:
-				bad_cmp = lambda x, y: x > y
-			else:
-				bad_cmp = lambda x, y: x < y
-
-			for i, (curre, nexte) in enumerate(zip(raw_events[:-1], raw_events[1:])):
-				if bad_cmp(curre['date'], nexte['date']):
-					errors += 'out of order events:' + '\n'
-					if (i == 0):
-						errors += '---' + '\n'
-					else:
-						errors += cls.event_to_str(raw_events[i-1]) + '\n'
-					errors += \
-						cls.event_to_str(curre) + '\n' + \
-						cls.event_to_str(nexte) + '\n'
-		return (first_and_last, errors, fewer_than_threshold)

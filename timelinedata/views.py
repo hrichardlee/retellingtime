@@ -21,9 +21,19 @@ def search(request, page_title):
 	except wikipedia.PageError:
 		# this is a quick hack. should be symmetric with Timeline.short_title
 		page_title = 'Timeline of ' + page_title
+	try:
+		wikipediaprocess.get_wp_page(page_title)
+	except wikipedia.PageError:
+		raise Http404
+	# note: these parameters can only be used if the timeline has never been
+	# processed yet. if the timeline has been processed, the existing
+	# parameters will be used. if we did not use this policy, anyone with
+	# knowledge of the URL structure could do significant harm to the data.
+	# Parameters can be changed through the admin interface
 	separate = request.GET.get('separate', None) == 'yes'
 	single_section = request.GET.get('single_section', '')
-	result = Timeline.process_wikipedia_page(page_title, separate = separate, single_section = single_section)
+	result = Timeline.process_wikipedia_page(page_title,
+		p = { 'separate': separate, 'single_section': single_section })
 	if not result:
 		raise Http404
 	else:
