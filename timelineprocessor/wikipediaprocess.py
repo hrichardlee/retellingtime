@@ -291,7 +291,7 @@ def _bs_inner_html(soup):
 		not isinstance(c, bs4.Doctype))
 
 
-def _table_to_events(table):
+def _table_to_events(table, split_within_rows = True):
 	"""Given a table html element as a BeautifulSoup, returns a list of
 	"""
 	def get_rowspan(td):
@@ -358,13 +358,30 @@ def _table_to_events(table):
 						if extract2:
 							date = TimelineDate.combine(date, extract2[0])
 							date_string += ' ' + extract2[1]
-					content = ''.join(_bs_inner_html(cell) for (i, cell) in \
-						enumerate(cells) if i != year_col_index and i != date_col_index)
-					events.append({
-						'date': date.simple_year(),
-						'date_string': date_string,
-						'content': content
-					})
+					content_cells = [cell for (i, cell) in \
+						enumerate(cells) if i != year_col_index and i != date_col_index]
+					if split_within_rows:
+						lines = \
+							(line['line'] for lines in \
+								(block['lines'] for sbs in \
+									(_html_to_string_blocks(cell) for cell in content_cells) \
+									for block in sbs
+								) \
+								for line in lines
+							if line['line_type'] == LineTypes.line)
+						for line in lines:
+							events.append({
+								'date': date.simple_year(),
+								'date_string': date_string,
+								'content': line
+							})
+					else:
+						content = ' '.join(_bs_inner_html(cell) for cell in content_cells)
+						events.append({
+							'date': date.simple_year(),
+							'date_string': date_string,
+							'content': content
+						})
 
 	return events
 
