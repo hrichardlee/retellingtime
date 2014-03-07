@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import pdb
 
 import timelineprocessor.wikipediaprocess as wikipediaprocess
+import timelineprocessor.htmlprocess as htmlprocess
 
 logger = logging.getLogger(__name__)
 
@@ -156,7 +157,7 @@ class Timeline(models.Model):
 				timeline.get_events()
 		else:
 			timeline = cls(title=page_title)
-			timeline.set_params(wikipediaprocess.param_defaults(p or {}))
+			timeline.set_params(htmlprocess.param_defaults(p or {}))
 			timeline.get_events()
 		
 		if timeline.is_valid():
