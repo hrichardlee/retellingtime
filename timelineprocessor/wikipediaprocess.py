@@ -331,7 +331,7 @@ def _lines_from_html(html):
 		if line['line_type'] == LineTypes.line)
 
 
-def _table_to_events(table, base_date, split_within_rows = True):
+def _table_to_events(table, base_date, keep_row_together = True):
 	"""Given a table html element as a BeautifulSoup, returns a list of
 	"""
 	def get_rowspan(td):
@@ -390,7 +390,14 @@ def _table_to_events(table, base_date, split_within_rows = True):
 					cell['rowspan'] = rs - 1
 					rowspans.append((i, cell))
 
-			if len(cells) > year_col_index:
+			if len(cells) == 0 and len(row.find_all('th')) == 1:
+				cells = row.find_all('th')
+
+			if len(cells) == 1:
+				extract = parse_date_html(_bs_inner_html(cells[0]))
+				if extract:
+					base_date = TimelineDate.combine(base_date, extract[0])
+			elif len(cells) > year_col_index:
 				extract = parse_date_html(_bs_inner_html(cells[year_col_index]))
 				if extract:
 					date = extract[0]
@@ -403,7 +410,14 @@ def _table_to_events(table, base_date, split_within_rows = True):
 					date = TimelineDate.combine(base_date, date)
 					content_cells = [cell for (i, cell) in \
 						enumerate(cells) if i != year_col_index and i != date_col_index]
-					if split_within_rows:
+					if keep_row_together:
+						content = ' '.join(_bs_inner_html(cell) for cell in content_cells)
+						events.append({
+							'date': date.simple_year(),
+							'date_string': date_string,
+							'content': content
+						})
+					else:
 						# deal with rowspan cells
 						rowspan_cells = [cell for cell in content_cells if get_rowspan(cell) != None]
 						for cell in rowspan_cells:
@@ -429,13 +443,6 @@ def _table_to_events(table, base_date, split_within_rows = True):
 										'date_string': date_string,
 										'content': line
 									})
-					else:
-						content = ' '.join(_bs_inner_html(cell) for cell in content_cells)
-						events.append({
-							'date': date.simple_year(),
-							'date_string': date_string,
-							'content': content
-						})
 
 	return events
 
