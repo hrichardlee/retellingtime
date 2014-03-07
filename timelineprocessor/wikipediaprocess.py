@@ -40,6 +40,7 @@ def param_defaults(p):
 	p['separate'] = p.get('separate') or False
 	p['single_section'] = p.get('single_section') or ''
 	p['continuations'] = p.get('continuations') or False
+	p['keep_row_together'] = p.get('keep_row_together') or False
 	return p
 
 
