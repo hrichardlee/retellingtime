@@ -86,10 +86,15 @@ class Timeline(models.Model):
 	first_and_last_formatted.admin_order_field = 'first_and_last'
 	first_and_last_formatted.short_description = 'first and last'
 
+	def errors_formatted_short(self):
+		return escape(self.errors[:500]).replace('\n', '<br />')
+	errors_formatted_short.allow_tags = True
+	errors_formatted_short.admin_order_field = 'errors'
+	errors_formatted_short.short_description = 'errors (short)'
+
 	def errors_formatted(self):
 		return escape(self.errors).replace('\n', '<br />')
 	errors_formatted.allow_tags = True
-	errors_formatted.admin_order_field = 'errors'
 	errors_formatted.short_description = 'errors'
 
 	# presenting data

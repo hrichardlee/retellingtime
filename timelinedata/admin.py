@@ -44,7 +44,7 @@ class TimelineAdmin(admin.ModelAdmin):
 			p.unban()
 
 	list_display = ('title', 'banned', 'params', 'timestamp',
-		'first_and_last_formatted', 'fewer_than_threshold', 'errors_formatted')
+		'first_and_last_formatted', 'fewer_than_threshold', 'errors_formatted_short')
 	list_filter = ('banned', 'fewer_than_threshold', ErrorsNonEmptyFilter)
 	search_fields = ('title',)
 
