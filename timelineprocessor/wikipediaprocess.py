@@ -291,12 +291,22 @@ def _bs_inner_html(soup):
 		not isinstance(c, bs4.Doctype))
 
 
+def _lines_from_html(html):
+	return \
+		(line['line'] for lines in \
+			(block['lines'] for block in \
+				_html_to_string_blocks(html) \
+			) \
+			for line in lines
+		if line['line_type'] == LineTypes.line)
+
+
 def _table_to_events(table, split_within_rows = True):
 	"""Given a table html element as a BeautifulSoup, returns a list of
 	"""
 	def get_rowspan(td):
 		s = td.get('rowspan')
-		if not s:
+		if s == None:
 			return None
 
 		try:
@@ -304,7 +314,7 @@ def _table_to_events(table, split_within_rows = True):
 		except ValueError:
 			return None
 
-		if i >= 1:
+		if i >= 0:
 			return i
 		else:
 			return None
@@ -332,6 +342,8 @@ def _table_to_events(table, split_within_rows = True):
 		# rowspan number essentially gets decremented in the td element each
 		# time it is added to the subsequent row
 		rowspans = []
+		# only used if split_within_row is True
+		open_rowspans = {}
 
 		for row in table.find_all('tr'):
 			cells = row.find_all('td')
@@ -361,20 +373,31 @@ def _table_to_events(table, split_within_rows = True):
 					content_cells = [cell for (i, cell) in \
 						enumerate(cells) if i != year_col_index and i != date_col_index]
 					if split_within_rows:
-						lines = \
-							(line['line'] for lines in \
-								(block['lines'] for sbs in \
-									(_html_to_string_blocks(cell) for cell in content_cells) \
-									for block in sbs
-								) \
-								for line in lines
-							if line['line_type'] == LineTypes.line)
-						for line in lines:
-							events.append({
-								'date': date.simple_year(),
-								'date_string': date_string,
-								'content': line
-							})
+						# deal with rowspan cells
+						rowspan_cells = [cell for cell in content_cells if get_rowspan(cell) != None]
+						for cell in rowspan_cells:
+							if _bs_inner_html(cell) not in open_rowspans:
+								open_rowspans[_bs_inner_html(cell)] = (date, date_string)
+							elif get_rowspan(cell) <= 0: # and in open_rowspans, implicitly
+								rowspan_start = open_rowspans[_bs_inner_html(cell)]
+								rowspan_date = TimelineDate.span_from_dates(rowspan_start[0], date).simple_year()
+								rowspan_date_string = rowspan_start[1] + ' - ' + date_string
+								for line in _lines_from_html(cell):
+									events.append({
+										'date': rowspan_date,
+										'date_string': rowspan_date_string,
+										'content': line
+									})
+
+						# deal with non-rowspan cells
+						for cell in content_cells:
+							if get_rowspan(cell) == None:
+								for line in _lines_from_html(cell):
+									events.append({
+										'date': date.simple_year(),
+										'date_string': date_string,
+										'content': line
+									})
 					else:
 						content = ' '.join(_bs_inner_html(cell) for cell in content_cells)
 						events.append({
