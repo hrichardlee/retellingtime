@@ -125,7 +125,7 @@ date_grammar_string = u"""
 	jun -> 'j' 'u' 'n' | 'j' 'u' 'n' x | 'j' 'u' 'n' 'e'
 	jul -> 'j' 'u' 'l' | 'j' 'u' 'l' x | 'j' 'u' 'l' 'y'
 	aug -> 'a' 'u' 'g' | 'a' 'u' 'g' x | 'a' 'u' 'g' 'u' 's' 't'
-	sep -> 's' 'e' 'p' | 's' 'e' 'p' x | 's' 'e' 'p' 't' | 's' 'e' 'p' 't' 'e' 'm' 'b' 'e' 'r'
+	sep -> 's' 'e' 'p' | 's' 'e' 'p' x | 's' 'e' 'p' 't' | 's' 'e' 'p' 't' x | 's' 'e' 'p' 't' 'e' 'm' 'b' 'e' 'r'
 	oct -> 'o' 'c' 't' | 'o' 'c' 't' x | 'o' 'c' 't' 'o' 'b' 'e' 'r'
 	nov -> 'n' 'o' 'v' | 'n' 'o' 'v' x | 'n' 'o' 'v' 'e' 'm' 'b' 'e' 'r'
 	dec -> 'd' 'e' 'c' | 'd' 'e' 'c' x | 'd' 'e' 'c' 'e' 'm' 'b' 'e' 'r'

@@ -400,7 +400,6 @@ def parse_date_text(text):
 			if len(temp) == 1:
 				parse = temp[0]
 		if not parse:
-			pdb.set_trace()
 			warnings.warn('not sure how to decide between multiple parses %s' % date_text)
 			parse = parses[0]
 	else:
