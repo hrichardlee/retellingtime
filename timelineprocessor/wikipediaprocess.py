@@ -136,6 +136,8 @@ def _html_to_string_blocks(html):
 		if sb['lines']:
 			sbs.append(sb)
 
+	_bs_fix_brs(html)
+
 	string_blocks = []
 	curr_heading = ['']
 	curr_string_block = {'lines': [], 'heading': curr_heading}
@@ -164,6 +166,9 @@ def _html_to_string_blocks(html):
 			if child_string_blocks:
 				curr_string_block['lines'] += child_string_blocks[0]['lines']
 
+			curr_string = ''
+		elif el.name == 'br':
+			close_string(curr_string_block, curr_string)
 			curr_string = ''
 		elif el.name == 'table':
 			close_string(curr_string_block, curr_string)
@@ -264,6 +269,15 @@ def _string_blocks_to_events(string_blocks, single_section = None, continuations
 
 	return events
 
+
+def _bs_fix_brs(soup):
+	"""This function only works on soups (if it is given a tag, it will do
+	nothing). When BeautifulSoup parses a <br> tag, it makes a closing <br />
+	tag somewhere later in the document. This function fixes this problem."""
+	if soup.new_tag:
+		for br in soup.find_all('br'):
+			br.insert_before(soup.new_tag('br'))
+			br.unwrap()
 
 def _bs_inner_html(soup):
 	"""Gets the inner html (almost) of a BeautifulSoup element. It is slightly

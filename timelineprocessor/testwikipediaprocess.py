@@ -25,6 +25,11 @@ class TestHtmlToStringBlocks(unittest.TestCase):
 		strings = wikipediaprocess._html_to_string_blocks(html)
 		self.assertEqual(strings, stringblockstwo)
 
+	def test_three(self):
+		html = BeautifulSoup(htmlthree)
+		strings = wikipediaprocess._html_to_string_blocks(html)
+		self.assertEqual(strings, stringblocksthree)
+
 
 class TestStringBlocksToEvents(unittest.TestCase):
 	def p(self, data):
@@ -32,7 +37,7 @@ class TestStringBlocksToEvents(unittest.TestCase):
 	def test_one(self):
 		evs = wikipediaprocess._string_blocks_to_events(stringblocksone)
 		self.p(evs)
-		self.assertEqual(len(evs), 3)
+		self.assertEqual(len(evs), 6)
 	def test_two(self):
 		evs = wikipediaprocess._string_blocks_to_events(stringblockstwo)
 		self.p(evs)
@@ -46,7 +51,7 @@ class TestStringBlocksToEvents(unittest.TestCase):
 		article = BeautifulSoup(html_modernhist)
 		evs = wikipediaprocess._string_blocks_to_events(wikipediaprocess._html_to_string_blocks(article))
 		self.p(evs)
-		self.assertEqual(len(evs), 113)
+		self.assertEqual(len(evs), 115)
 	def test_combine(self):
 		article = BeautifulSoup(html_iraqwar)
 		evs = wikipediaprocess._string_blocks_to_events(wikipediaprocess._html_to_string_blocks(article))

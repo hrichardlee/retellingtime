@@ -61,6 +61,21 @@ stringblockstwo = [
 		]
 	}
 ]
+htmlthree = """
+258 <a>Zhuge Dan Rebellion</a> in <a>Wei</a> is suppressed;<br>
+259 <a>Sun Liang</a> is deposed by the regent <a>Sun Chen</a>;<br>
+260 <a>Sun Xiu</a> becomes emperor of <a>Wu</a>
+"""
+stringblocksthree = [
+	{
+		'heading': [u''],
+		'lines': [
+			{'line_type': LineTypes.line, 'line': u'258 <a>Zhuge Dan Rebellion</a> in <a>Wei</a> is suppressed;'},
+			{'line_type': LineTypes.line, 'line': u'259 <a>Sun Liang</a> is deposed by the regent <a>Sun Chen</a>;'},
+			{'line_type': LineTypes.line, 'line': u'260 <a>Sun Xiu</a> becomes emperor of <a>Wu</a>'}
+		]
+	}
+]
 html_modernhist = """<div class="dablink">For earlier times, see <a href="/wiki/Timeline_of_early_modern_history" title="Timeline of early modern history">Timeline of early modern history</a>.</div>
 <dl>
 <dd><div class="notice plainlinks"><i>This list is <a href="/wiki/Wikipedia:WikiProject_Lists#Incomplete_lists" title="Wikipedia:WikiProject Lists">incomplete</a>; you can help by <a class="external text" href="//en.wikipedia.org/w/index.php?title=Timeline_of_modern_history&amp;action=edit">expanding it</a></i>.</div>
