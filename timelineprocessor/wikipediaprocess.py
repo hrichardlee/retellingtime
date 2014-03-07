@@ -292,7 +292,7 @@ def _string_blocks_to_events(string_blocks, single_section = None, continuations
 						}
 				elif line['line_type'] == LineTypes.table:
 					close_event(events, curr_event)
-					events += _table_to_events(line['line'])
+					events += _table_to_events(line['line'], base_date)
 					curr_event = None
 			close_event(events, curr_event)
 			curr_event = None
@@ -331,7 +331,7 @@ def _lines_from_html(html):
 		if line['line_type'] == LineTypes.line)
 
 
-def _table_to_events(table, split_within_rows = True):
+def _table_to_events(table, base_date, split_within_rows = True):
 	"""Given a table html element as a BeautifulSoup, returns a list of
 	"""
 	def get_rowspan(td):
@@ -400,6 +400,7 @@ def _table_to_events(table, split_within_rows = True):
 						if extract2:
 							date = TimelineDate.combine(date, extract2[0])
 							date_string += ' ' + extract2[1]
+					date = TimelineDate.combine(base_date, date)
 					content_cells = [cell for (i, cell) in \
 						enumerate(cells) if i != year_col_index and i != date_col_index]
 					if split_within_rows:
