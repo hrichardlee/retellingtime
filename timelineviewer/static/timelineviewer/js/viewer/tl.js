@@ -15,11 +15,22 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					this.doRender();
 				}
 			},
+			createHeaderActions: function (headerEl) {
+				var that = this;
+				$('a.remove-link', headerEl).click(function (e) {
+					// TODO: need to deal with allTimelines, allFirstDate, allLastDate
+					that.baseEl.remove();
+				})
+			},
 			createRenderAndSvg: function (timelineholder, headerTemplate, metadata) {
 				var that = this;
 
 				var baseEl = timelineholder.append('div');
-				baseEl.append('div').html(headerTemplate(metadata));
+				this.baseEl = baseEl;
+				var headerEl = baseEl.append('div')
+					.classed('timeline-header', true)
+					.html(headerTemplate(metadata));
+				this.createHeaderActions(headerEl[0][0])
 
 				// initialize svg and such
 				this.svg = baseEl.append('svg')

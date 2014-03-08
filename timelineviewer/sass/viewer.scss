@@ -24,6 +24,7 @@ $bodyFont: 'Noticia Text', serif;
 $chromeFont: 'Open Sans', sans-serif;
 $headerFont: 'Open Sans Condensed', sans-serif;
 $headerFontSize: 12pt;
+$bodyFontSize: 10pt;
 
 // for frame/scrolling stuff
 html, body {
@@ -80,7 +81,7 @@ a, a:visited { color: $cyan; }
 	}
 }
 
-h2 {
+.timeline-header {
 	@extend .horiz-padding;
 	margin: 0;
 	padding-top: 2px;
@@ -88,10 +89,33 @@ h2 {
 
 	background-color: $whitedark;
 	color: $fglight;
-	font-size: $headerFontSize;
-	font-family: $headerFont;
-	font-weight: 400;
+
+	.left {
+		float: left;
+	}
+
+	h2 {
+		font-size: $headerFontSize;
+		font-family: $headerFont;
+		font-weight: 400;
+		display: inline;
+		line-height: 14pt;
+	}
+
+	a {
+		font-size: $bodyFontSize;
+		line-height: 14pt;
+	}
+
+	.right {
+		float: right;
+	}
+
+	.clear {
+		clear: both;
+	}
 }
+
 
 .event-text {
 	width: 180px;
@@ -101,7 +125,7 @@ h2 {
 	padding-bottom: 2px;
 
 	background-color: $whiteTransp;
-	font-size: 13px;
+	font-size: $bodyFontSize;
 	line-height: 125%;
 }
 

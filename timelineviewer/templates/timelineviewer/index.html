@@ -45,7 +45,14 @@
 	</script>
 
 	<script type="text/template" id="header-template">
-		<h2><%= short_title %> <a href="<%= url %>">(original page)</a></h2>
+		<div class="left">
+			<h2><%= short_title %></h2>
+			<a href="<%= url %>">(original page)</a>
+		</div>
+		<div class="right">
+			<a href="#" class='remove-link'>remove</a>
+		</div>
+		<div class="clear"></div>
 	</script>
 </div>
 {% endblock %}

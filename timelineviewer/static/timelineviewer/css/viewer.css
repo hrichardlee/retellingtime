@@ -25,7 +25,7 @@ a:hover {
 a, a:visited {
   color: #2aa198; }
 
-.horiz-padding, #header h1, h2, #timeline-adder {
+.horiz-padding, #header h1, .timeline-header, #timeline-adder {
   padding-left: 10px;
   padding-right: 10px; }
 
@@ -46,15 +46,27 @@ a, a:visited {
     #header h1 #retelling {
       font-family: "Open Sans Condensed", sans-serif; }
 
-h2 {
+.timeline-header {
   margin: 0;
   padding-top: 2px;
   padding-bottom: 2px;
   background-color: #eee8d5;
-  color: #93a1a1;
-  font-size: 12pt;
-  font-family: "Open Sans Condensed", sans-serif;
-  font-weight: 400; }
+  color: #93a1a1; }
+  .timeline-header .left {
+    float: left; }
+  .timeline-header h2 {
+    font-size: 12pt;
+    font-family: "Open Sans Condensed", sans-serif;
+    font-weight: 400;
+    display: inline;
+    line-height: 14pt; }
+  .timeline-header a {
+    font-size: 10pt;
+    line-height: 14pt; }
+  .timeline-header .right {
+    float: right; }
+  .timeline-header .clear {
+    clear: both; }
 
 .event-text {
   width: 180px;
@@ -63,7 +75,7 @@ h2 {
   padding-top: 2px;
   padding-bottom: 2px;
   background-color: rgba(253, 246, 227, 0.9);
-  font-size: 13px;
+  font-size: 10pt;
   line-height: 125%; }
 
 #timelines {
