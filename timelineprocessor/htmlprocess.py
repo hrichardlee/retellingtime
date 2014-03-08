@@ -151,14 +151,14 @@ def string_blocks_to_events(string_blocks, p = None):
 			# if there's a year specified in the headings, we create a fuzzy
 			# range that child elements of those headings need to fall in
 			base_date_range = None
-			if base_date.simple_year() != None:
+			if base_date.start_year() != None:
 				delta_minus = 10
 				delta_plus = 20
 				m = re.search(ur'0+$', str(base_date.start.year))
 				if m:
 					delta_minus = int('1' + ('0' * (m.end() - m.start())))
 					delta_plus = delta_minus * 2
-				base_date_range = (base_date.simple_year() - delta_minus, base_date.simple_year() + delta_plus)
+				base_date_range = (base_date.start_year() - delta_minus, base_date.start_year() + delta_plus)
 
 			for line in string_block['lines']:
 				if line['line_type'] == LineTypes.line:
@@ -166,21 +166,22 @@ def string_blocks_to_events(string_blocks, p = None):
 					# if we can parse a date, create a new event
 					if parse and \
 						((not base_date_range) or \
-						 (parse[0].simple_year() == None) or \
-						 (parse[0].simple_year() >= base_date_range[0] and \
-						 	parse[0].simple_year() <= base_date_range[1]) or \
+						 (parse[0].start_year() == None) or \
+						 (parse[0].start_year() >= base_date_range[0] and \
+						 	parse[0].start_year() <= base_date_range[1]) or \
 						 (TimelineDate.can_combine_as_day(base_date, parse[0]))
 						 ):
 
 						_close_event(events, curr_event)
 						date = TimelineDate.combine(base_date, parse[0])
-						if date.simple_year() == None and prev_date:
+						if date.start_year() == None and prev_date:
 							# this is the case where we have a month or
 							# monthday but no year. in this case, take it from
 							# the previous event
 							date = TimelineDate.combine(prev_date, date)
 						curr_event = {
-							'date': date.simple_year(),
+							'date': date.start_year(),
+							'date_length': date.length(),
 							'date_string': parse[1],
 							'content': parse[2]
 						}
@@ -194,15 +195,17 @@ def string_blocks_to_events(string_blocks, p = None):
 							_close_event(events, curr_event)
 							curr_event = {
 								'date': curr_event['date'],
+								'date_length': curr_event['date_length'],
 								'date_string': curr_event['date_string'],
 								'content': line['line']
 							}
 					# if there's no parse and no current event, see if we can
 					# use the base_date
-					elif base_date.simple_year() != None:
+					elif base_date.start_year() != None:
 						# no need to close events because curr_event is None
 						curr_event = {
-							'date': base_date.simple_year(),
+							'date': base_date.start_year(),
+							'date_length': base_date.length(),
 							'date_string': base_date_string,
 							'content': line['line']
 						}
@@ -331,7 +334,8 @@ def _table_to_events(table, base_date, p = None):
 					if p['keep_row_together']:
 						content = ' '.join(_bs_inner_html(cell) for cell in content_cells)
 						events.append({
-							'date': date.simple_year(),
+							'date': date.start_year(),
+							'date_length': date.length(),
 							'date_string': date_string,
 							'content': content
 						})
@@ -343,11 +347,12 @@ def _table_to_events(table, base_date, p = None):
 								open_rowspans[_bs_inner_html(cell)] = (date, date_string)
 							elif get_rowspan(cell) <= 0: # and in open_rowspans, implicitly
 								rowspan_start = open_rowspans[_bs_inner_html(cell)]
-								rowspan_date = TimelineDate.span_from_dates(rowspan_start[0], date).simple_year()
+								rowspan_date = TimelineDate.span_from_dates(rowspan_start[0], date)
 								rowspan_date_string = rowspan_start[1] + ' - ' + date_string
 								for line in _lines_from_html(cell):
 									events.append({
-										'date': rowspan_date,
+										'date': rowspan_date.start_year(),
+										'date_length': rowspan_date.length(),
 										'date_string': rowspan_date_string,
 										'content': line
 									})
@@ -357,7 +362,8 @@ def _table_to_events(table, base_date, p = None):
 							if get_rowspan(cell) == None:
 								for line in _lines_from_html(cell):
 									events.append({
-										'date': date.simple_year(),
+										'date': date.start_year(),
+										'date_length': date.length(),
 										'date_string': date_string,
 										'content': line
 									})

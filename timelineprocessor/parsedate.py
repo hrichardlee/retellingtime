@@ -110,8 +110,14 @@ class TimelineDate:
 		self.start = start
 		self.end = end
 
-	def simple_year(self):
+	def start_year(self):
 		return self.start.simple_year()
+
+	def length(self):
+		if self.end:
+			return self.end.simple_year() - self.start.simple_year()
+		else:
+			return 0
 
 	@classmethod
 	def span_from_dates(cls, a, b):
