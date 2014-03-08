@@ -254,6 +254,7 @@ def _table_to_events(table, base_date, p = None):
 	"""Given a table html element as a BeautifulSoup, returns a list of
 	"""
 	p = param_defaults(p or {})
+	
 
 	def get_rowspan(td):
 		s = td.get('rowspan')
@@ -318,6 +319,12 @@ def _table_to_events(table, base_date, p = None):
 				extract = parse_date_html(_bs_inner_html(cells[0]))
 				if extract:
 					base_date = TimelineDate.combine(base_date, extract[0])
+					events.append({
+						'date': base_date.start_year(),
+						'date_length': base_date.length(),
+						'date_string': extract[1],
+						'content': extract[2]
+					})
 			elif len(cells) > year_col_index:
 				extract = parse_date_html(_bs_inner_html(cells[year_col_index]))
 				if extract:
