@@ -53,21 +53,25 @@ def wp_page_to_events_raw(title, p = None):
 	return events
 
 
-def wp_post_process(raw_events):
+def wp_post_process(raw_events, url):
 	_add_importance_to_events(raw_events)
 	raw_events.sort(key=lambda e: e['date'], reverse=True)
 	raw_events = _filter_bad_events(raw_events)
-	_fix_wikipedia_links(raw_events)
+	_fix_wikipedia_links(raw_events, url)
+	htmlprocess.clean_events(raw_events)
 
 	return raw_events
 
-def _fix_wikipedia_links(events):
+def _fix_wikipedia_links(events, url):
 	"""Converts all links in the contents of events that are relative
 	Wikipedia links to absolute Wikipedia links. Modifies events in place"""
 	for e in events:
 		soup = BeautifulSoup(e['content'])
 		for a in soup.find_all('a'):
-			a['href'] = 'http://en.wikipedia.org' + a['href']
+			if a['href'].startswith('/'):
+				a['href'] = 'http://en.wikipedia.org' + a['href']
+			elif a['href'].startswith('#'):
+				a['href'] = url + a['href']
 		e['content'] = unicode(soup)
 
 def _filter_bad_events(events):

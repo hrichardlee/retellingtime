@@ -254,7 +254,7 @@ def _table_to_events(table, base_date, p = None):
 	"""Given a table html element as a BeautifulSoup, returns a list of
 	"""
 	p = param_defaults(p or {})
-	
+
 
 	def get_rowspan(td):
 		s = td.get('rowspan')
@@ -376,3 +376,39 @@ def _table_to_events(table, base_date, p = None):
 									})
 
 	return events
+
+
+_problem_elements = set([
+	'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+	'table', 'tr', 'td', 'thead', 'tfoot', 'tbody', 'th',	
+])
+
+def clean_events(events):
+	"""Takes raw events and replaces any problematic elements. Modifies events
+	in place."""
+	for e in events:
+		e['content'] = clean_html(BeautifulSoup(e['content']))
+		e['date_string'] = clean_html(BeautifulSoup(e['date_string']))
+
+def clean_html(soup):
+	rewrapped = True
+	while rewrapped:
+		rewrapped = False
+		for el in soup.descendants:
+			if el.name in _problem_elements:
+				el.wrap(soup.new_tag('div'))
+				el.unwrap()
+				rewrapped = True
+			elif el.name == 'img' and el.get('src'):
+				text = el.get('alt') or 'img'
+				a = soup.new_tag('a', href=el.get('src'))
+				a.string = '[' + text + ']'
+				el.replace_with(a)
+
+			try:
+				if el.get('class') and 'mw-editsection' in el.get('class'):
+					el.extract()
+			except AttributeError:
+				# non tags won't have the get method
+				pass
+	return unicode(soup)

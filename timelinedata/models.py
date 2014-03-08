@@ -140,8 +140,8 @@ class Timeline(models.Model):
 	def get_events(self):
 		raw_events = wikipediaprocess.wp_page_to_events_raw(self.title, self.get_params())
 		(self.first_and_last, self.errors, self.fewer_than_threshold) = wikipediaprocess.get_errors(raw_events, _event_threshold)
-		events = wikipediaprocess.wp_post_process(raw_events)
 		self.url = wikipediaprocess.get_wp_page(self.title).url
+		events = wikipediaprocess.wp_post_process(raw_events, self.url)
 		if not self.fewer_than_threshold:
 			self.events = json.dumps(events)
 		self.save()
