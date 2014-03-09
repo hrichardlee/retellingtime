@@ -283,6 +283,11 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				
 				this.prevTranslateX = t[0];
 
+				var that = this;
+				this.scopedAndFilteredEvents = _.filter(this.scopedEvents, function (e) {
+					return e.right >= -C.EVENTWIDTH && e.left <= that.width + C.EVENTWIDTH;
+				})
+
 				return { onlyTranslate: onlyTranslate, s: s, t: t }
 			},
 			renderUpdateTimelineBody: function (onlyTranslate) {
@@ -344,9 +349,9 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 				// select elements
 				var textElements = this.focus.select('.text-elements').selectAll('g.text-root')
-					.data(this.scopedEvents, function (e) { return e.id(); });
+					.data(this.scopedAndFilteredEvents, function (e) { return e.id(); });
 				var markers = this.focus.select('.markers').selectAll('g')
-					.data(this.scopedEvents, function (e) { return e.id(); });
+					.data(this.scopedAndFilteredEvents, function (e) { return e.id(); });
 
 				// update elements
 				transformTransitionFn(textElements.select('g.text-transform'))
