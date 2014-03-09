@@ -70,11 +70,12 @@ a, a:visited {
 
 .event-text {
   width: 180px;
-  margin-left: 6px;
+  margin-left: 4px;
+  padding-left: 2px;
   padding-right: 2px;
   padding-top: 2px;
   padding-bottom: 2px;
-  background-color: rgba(253, 246, 227, 0.9);
+  background-color: rgba(253, 246, 227, 0.5);
   font-size: 10pt;
   line-height: 125%; }
 
@@ -84,10 +85,13 @@ a, a:visited {
     font-size: 10px; }
     #timelines svg .background {
       fill: #fdf6e3; }
-    #timelines svg .markers line {
-      stroke: #93a1a1;
+    #timelines svg .markers line, #timelines svg .range-lines line {
       stroke-width: 2;
       shape-rendering: crispEdges; }
+    #timelines svg .markers line {
+      stroke: rgba(147, 161, 161, 0.45); }
+    #timelines svg .range-lines line {
+      stroke: rgba(147, 161, 161, 0.45); }
     #timelines svg .axis path, #timelines svg .axis line {
       fill: none;
       stroke: #93a1a1;

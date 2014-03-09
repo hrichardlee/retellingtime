@@ -57,6 +57,8 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					.classed('markers', true);
 				this.focus.append('g')
 					.classed('text-elements', true);
+				this.focus.append('g')
+					.classed('range-lines', true);
 
 
 				this.xAxisEl = this.svg.append('g')
@@ -286,7 +288,15 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				var that = this;
 				this.scopedAndFilteredEvents = _.filter(this.scopedEvents, function (e) {
 					return e.right >= -C.EVENTWIDTH && e.left <= that.width + C.EVENTWIDTH;
-				})
+				});
+
+				// set data for range lines
+				this.rangeLinesEvents = _.filter(this.scopedAndFilteredEvents, function (e) {
+					return e.date_length > 0;
+				});
+				_.each(this.rangeLinesEvents, function (e) {
+					e.date_length_x = that.x(e.date + e.date_length) - e.left;
+				});
 
 				return { onlyTranslate: onlyTranslate, s: s, t: t }
 			},
@@ -352,6 +362,8 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					.data(this.scopedAndFilteredEvents, function (e) { return e.id(); });
 				var markers = this.focus.select('.markers').selectAll('g')
 					.data(this.scopedAndFilteredEvents, function (e) { return e.id(); });
+				var rangeLines = this.focus.select('.range-lines').selectAll('g')
+					.data(this.rangeLinesEvents, function (e) { return e.id(); });
 
 				// update elements
 				transformTransitionFn(textElements.select('g.text-transform'))
@@ -363,6 +375,11 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 						return 'translate(' + d.left + ', ' + (C.TIMELINEHEIGHT - d.bottom - d.height) + ')';
 					})
 					.attr('y2', function (d) { return d.bottom + d.height; });
+				transformTransitionFn(rangeLines.select('line'))
+					.attr('transform', function (d) {
+						return 'translate(' + d.left + ', ' + (C.TIMELINEHEIGHT - d.bottom - d.height) + ')';
+					})
+					.attr('x2', function (d) { return d.date_length_x; });
 				// this catches elements that are transitioning for exiting,
 				// have not finished their transition yet, and were
 				// reintroduced.
@@ -370,6 +387,8 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				fadeIn(reenteringTexts, false);
 				var reenteringMarkers = markers.filter('.exiting').classed('exiting', false);
 				fadeIn(reenteringMarkers, false);
+				var reenteringRangeLines = rangeLines.filter('.exiting').classed('exiting', false);
+				fadeIn(reenteringRangeLines, false);
 
 				// only entering text elements
 				var textElementsEnter = textElements.enter()
@@ -400,12 +419,27 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					.attr('x2', '0')
 					.attr('y1', C.MARKEREXTRAHEIGHT)
 					.attr('y2', function (d) { return d.bottom + d.height; })
+
+				// only entering range lines
+				var rangeLinesEnter = rangeLines.enter()
+					.append('g');
+				fadeIn(rangeLinesEnter, true);
+				rangeLinesEnter.append('line')
+					.attr('transform', function (d) {
+						return 'translate(' + d.left + ', ' + (C.TIMELINEHEIGHT - d.bottom - d.height) + ')';
+					})
+					.attr('x1', '0')
+					.attr('x2', function (d) { return d.date_length_x; })
+					.attr('y1', function (d) { return d.height - 2; })
+					.attr('y2', function (d) { return d.height - 2; })
 				
 				// only removed elements
 				var exitingTexts = textElements.exit().classed('exiting', true);
 				fadeOut(exitingTexts);
 				var exitingMarkers = markers.exit().classed('exiting', true);
 				fadeOut(exitingMarkers);
+				var exitingRangeLines = rangeLines.exit().classed('exiting', true);
+				fadeOut(exitingRangeLines);
 			},
 			renderUpdateContextStrip: function () {
 				// render context

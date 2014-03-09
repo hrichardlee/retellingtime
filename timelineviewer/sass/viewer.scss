@@ -8,7 +8,8 @@ $fglight:     #93a1a1;	//base1
 $whitedark:     #eee8d5;	//base2
 $white:     #fdf6e3;		//base3
 
-$whiteTransp: rgba(253, 246, 227, 0.9);
+$fglightTransp: rgba(147, 161, 161, 0.45);
+$whiteTransp: rgba(253, 246, 227, 0.5);
 $midlight: #BDC2BD; //Lab: 78, -3, 2
 
 $yellow:    #b58900;
@@ -119,7 +120,8 @@ a, a:visited { color: $cyan; }
 
 .event-text {
 	width: 180px;
-	margin-left: 6px;
+	margin-left: 4px;
+	padding-left: 2px;
 	padding-right: 2px;
 	padding-top: 2px;
 	padding-bottom: 2px;
@@ -139,10 +141,16 @@ a, a:visited { color: $cyan; }
 			fill: $white;
 		}
 
-		.markers line {
-			stroke: $fglight;
+		.markers line, .range-lines line {
 			stroke-width: 2;
 			shape-rendering: crispEdges;
+		}
+
+		.markers line {
+			stroke: $fglightTransp;
+		}
+		.range-lines line {
+			stroke: $fglightTransp;
 		}
 
 		.axis {

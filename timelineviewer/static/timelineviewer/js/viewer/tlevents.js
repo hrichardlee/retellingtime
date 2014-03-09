@@ -293,6 +293,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 		}
 		function Event(eventData, $containerEl, template) {
 			this.date = eventData.date;
+			this.date_length = eventData.date_length;
 			this.content = eventData.content;
 			this.importance = eventData.importance;
 
