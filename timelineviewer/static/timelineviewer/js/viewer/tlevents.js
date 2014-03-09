@@ -24,7 +24,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 	// hides the least important blocks in the dependentBlock chain of block
 	// until height of the blocks removed equals or exceeds verticalHeight.
 	// Not guaranteed to actually move the block down
-	function hideDependentBlocks(block, verticalHeight) {
+	function hideDependentBlocks(block, verticalHeight, timelineHeight) {
 		if (C.DEBUG) console.debug('hideDependentBlocks: ' + block.content);
 		var blocks = [];
 		var origBlock = block;
@@ -52,9 +52,9 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 		// relies on EventView.hide not removing the nextBlock pointer
 		if (lowestBlock.block.id() != origBlock.id()) {
 			if (lowestBlock.block.dependentBlock) {
-				layoutDependentChains(lowestBlock.block.dependentBlock);
+				layoutDependentChains(lowestBlock.block.dependentBlock, timelineHeight);
 			} else {
-				layoutDependentChains(lowestBlock.block.chain.firstBlock)
+				layoutDependentChains(lowestBlock.block.chain.firstBlock, timelineHeight);
 			}
 		}
 
@@ -65,7 +65,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 	// coresponding to a dependingBlock is allowed to finish execution. If
 	// all chains return true, then true is returned. If at least one
 	// chain returns false, then false is returned.
-	function layoutDependentChains(startingBlock) {
+	function layoutDependentChains(startingBlock, timelineHeight) {
 		if (C.DEBUG) console.debug('Dependent chains ' + startingBlock.content.slice(0, 20));
 
 		var revisit = [startingBlock]
@@ -84,7 +84,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 									: null);
 
 				if ((block.bottom >= prevBottom
-					|| block.top > C.TIMELINEHEIGHT)
+					|| block.top > timelineHeight)
 					&& block.id() != startingBlock.id()) {
 					break;
 				} else {
@@ -159,7 +159,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 		return penultimatePrevChainBlock;
 	}
 
-	function layoutViewChains(chains) {
+	function layoutViewChains(chains, timelineHeight) {
 		var i = chains.length - 1;
 		var reset = null;
 		while (i >= 0 || reset) {
@@ -173,8 +173,8 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 				prevChainBlock = placeBlock(block, prevChainBlock);
 
 				// if vertical height is too high, remove blocks and relayout
-				while (block.top > C.TIMELINEHEIGHT && !block.hidden) {
-					hideDependentBlocks(block, block.top - C.TIMELINEHEIGHT);
+				while (block.top > timelineHeight && !block.hidden) {
+					hideDependentBlocks(block, block.top - timelineHeight, timelineHeight);
 				}
 				block = block.nextBlock;
 			}
@@ -186,10 +186,10 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 		if (C.DEBUG) console.debug('layoutViewChains done');
 	}
 
-	function makeViewChains (events) {
+	function makeViewChains (events, timelineHeight) {
 		// first hide all events taller than the timeline
 		_.map(events, function (e) {
-			if (e.height >= C.TIMELINEHEIGHT) e.hide();
+			if (e.height >= timelineHeight) e.hide();
 		})
 
 		// create view chains. Each chains[i] is a block that should be
@@ -238,7 +238,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 			chainBlocks.sort(function (a,b) { return a.importance - b.importance; });
 			var j = 0;
 			var removedHeight = 0;
-			while (removedHeight < totalHeight - C.TIMELINEHEIGHT) {
+			while (removedHeight < totalHeight - timelineHeight) {
 				chainBlocks[j].hide();
 				hidden = true;
 				removedHeight += chainBlocks[j].height;
@@ -247,7 +247,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 		}
 
 		if (hidden) {
-			return makeViewChains(_.filter(events, function (e) { return !e.hidden; }));
+			return makeViewChains(_.filter(events, function (e) { return !e.hidden; }), timelineHeight);
 		} else {
 			return chains;
 		}
@@ -309,9 +309,9 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 
 	// Takes a list of events that have had setLeft called. Returns a subset
 	// of events that have had setBottom called
-	function setBottoms(evs) {
+	function setBottoms(evs, timelineHeight) {
 		var chains = makeViewChains(evs)
-		layoutViewChains(chains);
+		layoutViewChains(chains, timelineHeight);
 		return _.filter(evs, function (e) { return !e.hidden; });
 	}
 

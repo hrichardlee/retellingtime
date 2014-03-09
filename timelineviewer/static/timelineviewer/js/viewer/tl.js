@@ -33,8 +33,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				this.createHeaderActions(headerEl[0][0])
 
 				// initialize svg and such
-				this.svg = baseEl.append('svg')
-					.attr('height', C.TOTALTIMELINEHEIGHT);
+				this.svg = baseEl.append('svg');
 				this.svg.attr('width', '100%');
 
 				this.svg.append('defs').append('clipPath')
@@ -49,7 +48,6 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				this.x = d3.scale.linear();
 
 				this.focus.append('rect')
-					.attr('height', C.TIMELINEHEIGHT)
 					.classed('background', true)
 					.attr('width', '100%');
 
@@ -63,15 +61,14 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 				this.xAxisEl = this.svg.append('g')
 					.classed({'x': true, 'axis': true})
-					.attr('height', C.AXISHEIGHT)
-					.attr('transform', 'translate(0,' + C.TIMELINEHEIGHT + ')');
+					.attr('height', C.AXISHEIGHT);
 
 				this.xAxis = d3.svg.axis();
 
 
 				var context = this.svg.append('g')
-					.attr('height', C.CONTEXTSTRIPHEIGHT)
-					.attr('transform', 'translate(0,' + (C.TIMELINEHEIGHT + C.AXISHEIGHT) + ')');
+					.attr('height', C.CONTEXTSTRIPHEIGHT);
+				this.context = context;
 
 				this.contextX = d3.scale.linear();
 
@@ -92,6 +89,14 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 			},
 			setRenderEvents: function (events) {
 				this.events = events;
+			},
+			setRenderHeight: function (height) {
+				this.height = height;
+
+				this.svg.attr('height', height + C.AXISHEIGHT + C.CONTEXTSTRIPHEIGHT);
+				this.focus.select('.background').attr('height', height);
+				this.xAxisEl.attr('transform', 'translate(0,' + height + ')');
+				this.context.attr('transform', 'translate(0,' + (height + C.AXISHEIGHT) + ')');
 			},
 			setRenderWidth: function () {
 				// local var for convenience
@@ -264,6 +269,8 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					this.brushEl.call(this.brush);
 				}
 
+				var that = this;
+
 				// Set the left/bottom coordinates appropriately
 				// Note: prevTranslateX and prevScale are guaranteed to exist
 				// because of firstRender
@@ -273,7 +280,10 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 						e.reset();
 						e.setLeft(this.x(e.date));
 					}, this);
-					this.scopedEvents = tlevents.setBottoms(this.events);
+					this.scopedEvents = tlevents.setBottoms(this.events, this.height);
+					_.each(this.events, function (e) {
+						e.height_from_top = that.height - e.bottom - e.height;
+					})
 					onlyTranslate = false;
 				} else {
 					var deltaX = t[0] - this.prevTranslateX
@@ -285,7 +295,6 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				
 				this.prevTranslateX = t[0];
 
-				var that = this;
 				this.scopedAndFilteredEvents = _.filter(this.scopedEvents, function (e) {
 					return e.right >= -C.EVENTWIDTH && e.left <= that.width + C.EVENTWIDTH;
 				});
@@ -366,18 +375,19 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					.data(this.rangeLinesEvents, function (e) { return e.id(); });
 
 				// update elements
+				var that = this;
 				transformTransitionFn(textElements.select('g.text-transform'))
 					.attr('transform', function (d) {
-						return 'translate(' + d.left + ', ' + (C.TIMELINEHEIGHT - d.bottom - d.height) + ')';
+						return 'translate(' + d.left + ', ' + d.height_from_top + ')';
 					});
 				transformTransitionFn(markers.select('line'))
 					.attr('transform', function (d) {
-						return 'translate(' + d.left + ', ' + (C.TIMELINEHEIGHT - d.bottom - d.height) + ')';
+						return 'translate(' + d.left + ', ' + d.height_from_top + ')';
 					})
 					.attr('y2', function (d) { return d.bottom + d.height; });
 				transformTransitionFn(rangeLines.select('line'))
 					.attr('transform', function (d) {
-						return 'translate(' + d.left + ', ' + (C.TIMELINEHEIGHT - d.bottom - d.height) + ')';
+						return 'translate(' + d.left + ', ' + d.height_from_top + ')';
 					})
 					.attr('x2', function (d) { return d.date_length_x; });
 				// this catches elements that are transitioning for exiting,
@@ -399,7 +409,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					.append('g')
 					.classed('text-transform', true)
 					.attr('transform', function (d) {
-						return 'translate(' + d.left + ', ' + (C.TIMELINEHEIGHT - d.bottom - d.height) + ')';
+						return 'translate(' + d.left + ', ' + d.height_from_top + ')';
 					})
 					.append('foreignObject')
 					.attr('height', function (d) {return d.height; })
@@ -413,7 +423,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				fadeIn(markersEnter, true);
 				markersEnter.append('line')
 					.attr('transform', function (d) {
-						return 'translate(' + d.left + ', ' + (C.TIMELINEHEIGHT - d.bottom - d.height) + ')';
+						return 'translate(' + d.left + ', ' + d.height_from_top + ')';
 					})
 					.attr('x1', '0')
 					.attr('x2', '0')
@@ -426,7 +436,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				fadeIn(rangeLinesEnter, true);
 				rangeLinesEnter.append('line')
 					.attr('transform', function (d) {
-						return 'translate(' + d.left + ', ' + (C.TIMELINEHEIGHT - d.bottom - d.height) + ')';
+						return 'translate(' + d.left + ', ' + d.height_from_top + ')';
 					})
 					.attr('x1', '0')
 					.attr('x2', function (d) { return d.date_length_x; })
@@ -486,6 +496,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 			$(window).on('resize', function () {
 				that.setRenderWidth();
+				that.setRenderHeight($(window).height() - C.TALLTIMELINEMARGIN);
 			});
 
 			var events = _.map(p.data.events, function(ev) {
@@ -493,6 +504,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 			});
 
 			this.createRenderAndSvg(p.timelineHolder, p.headerTemplate, p.data.metadata);
+			this.setRenderHeight($(window).height() - C.TALLTIMELINEMARGIN)
 			this.setRenderEvents(events);
 			this.setRenderWidth();
 
