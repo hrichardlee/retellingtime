@@ -79,6 +79,17 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 			return widthParamsModified;
 		}
+		function widthParamsSetFocus(firstDate, lastDate) {
+			widthParams.oldFirstDate = widthParams.firstDate;
+			widthParams.oldLastDate = widthParams.lastDate;
+
+			widthParams.firstDate = firstDate;
+			widthParams.lastDate = lastDate;
+		}
+		function widthParamsRemoveFocus() {
+			widthParams.firstDate = widthParams.oldFirstDate;
+			widthParams.lastDate = widthParams.oldLastDate;
+		}
 
 		// class methods
 		var baseObject = {
@@ -91,7 +102,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 			},
 			createHeaderActions: function (headerEl) {
 				var that = this;
-				$('a.remove-link', headerEl).click(function (e) {
+				$('a#remove-link', headerEl).click(function (e) {
 					// TODO: need to deal with allTimelines, allFirstDate, allLastDate
 					that.baseEl.remove();
 					var index = allTimelines.indexOf(that);
@@ -103,6 +114,26 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 							t.setRenderWidth();
 						});
 					}
+				})
+
+				$('a#set-focus-link #active', headerEl).addClass('hidden');
+				$('a#set-focus-link', headerEl).click(function (e) {
+					var inactive = $('#inactive', this);
+					var active = $('#active', this);
+					if (!inactive.hasClass('hidden') && active.hasClass('hidden')) {
+						var domain = that.x.domain();
+						widthParamsSetFocus(domain[0], domain[1]);
+						inactive.addClass('hidden');
+						active.removeClass('hidden');
+					} else {
+						widthParamsRemoveFocus()
+						inactive.removeClass('hidden');
+						active.addClass('hidden');
+					}
+
+					_.each(allTimelines, function (t) {
+						t.setRenderWidth();
+					});
 				})
 			},
 			createRenderAndSvg: function (timelineholder, headerTemplate, metadata) {
