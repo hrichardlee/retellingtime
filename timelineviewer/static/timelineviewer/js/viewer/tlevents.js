@@ -188,9 +188,12 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 
 	function makeViewChains (events, timelineHeight) {
 		// first hide all events taller than the timeline
-		_.map(events, function (e) {
+		_.each(events, function (e) {
 			if (e.height >= timelineHeight) e.hide();
-		})
+		});
+		events = _.filter(events, function (e) {
+			return !e.hidden;
+		});
 
 		// create view chains. Each chains[i] is a block that should be
 		// rendered at the base of the timeline. The chain is doubly-
@@ -310,7 +313,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 	// Takes a list of events that have had setLeft called. Returns a subset
 	// of events that have had setBottom called
 	function setBottoms(evs, timelineHeight) {
-		var chains = makeViewChains(evs)
+		var chains = makeViewChains(evs, timelineHeight);
 		layoutViewChains(chains, timelineHeight);
 		return _.filter(evs, function (e) { return !e.hidden; });
 	}
