@@ -46,6 +46,12 @@ a, a:visited {
     #header h1 #retelling {
       font-family: "Open Sans Condensed", sans-serif; }
 
+h2 {
+  font-size: 12pt;
+  font-family: "Open Sans Condensed", sans-serif;
+  font-weight: 400;
+  line-height: 14pt; }
+
 .timeline-header {
   margin: 0;
   padding-top: 2px;
@@ -55,11 +61,7 @@ a, a:visited {
   .timeline-header .left {
     float: left; }
   .timeline-header h2 {
-    font-size: 12pt;
-    font-family: "Open Sans Condensed", sans-serif;
-    font-weight: 400;
-    display: inline;
-    line-height: 14pt; }
+    display: inline; }
   .timeline-header a {
     font-size: 10pt;
     line-height: 14pt; }
@@ -109,17 +111,20 @@ a, a:visited {
   border-top: 2px solid #93a1a1;
   padding-top: 4px;
   padding-bottom: 24px; }
-  #timeline-adder #query-instructions {
+  #timeline-adder .instructions {
     font-size: 12pt;
     font-family: "Open Sans Condensed", sans-serif;
     color: #93a1a1; }
+  #timeline-adder h2 {
+    margin-top: 10px;
+    margin-left: 0;
+    margin-bottom: 0;
+    margin-right: 0; }
   #timeline-adder #query {
     font-family: "Noticia Text", serif;
     width: 400px; }
   #timeline-adder #options .option {
     margin-right: 2.5em; }
-    #timeline-adder #options .option .tags {
-      display: none; }
 
 #invisible-renderer {
   visibility: hidden;

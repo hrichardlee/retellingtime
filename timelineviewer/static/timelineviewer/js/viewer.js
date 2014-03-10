@@ -77,8 +77,6 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 				event = touches[0];
 			}
 
-			console.log(event.pageY);
-
 			$target.get(0).scrollTop -= event.pageY - posY;
 			posY = event.pageY;
 		}

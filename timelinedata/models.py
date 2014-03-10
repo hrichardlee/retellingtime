@@ -21,6 +21,7 @@ class Timeline(models.Model):
 	title = models.CharField(max_length = 500)
 	url = models.CharField(max_length = 500)
 	timestamp = models.DateTimeField(auto_now = True)
+	highlighted = models.BooleanField(default = False)
 
 	# data
 	events = models.CharField(max_length = 1000000, blank = True)
@@ -69,6 +70,14 @@ class Timeline(models.Model):
 
 	def unban(self):
 		self.banned = False
+		self.save()
+
+	def highlight(self):
+		self.highlighted = True
+		self.save()
+
+	def unhighlight(self):
+		self.highlighted = False
 		self.save()
 
 	def short_events(self):

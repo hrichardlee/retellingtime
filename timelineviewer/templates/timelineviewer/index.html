@@ -13,17 +13,27 @@
 
 		<div id="timeline-adder">
 			<div>
-			<span id="query-instructions">Add a timeline:</span>
-			<input id="query" type="text" />
+				<span class="instructions">Search for a timeline:</span>
+				<input id="query" type="text" />
 			</div>
 
 			<div id="options">
-				{% for t in timelines %}
-				<span class="option">
-					<a href="#" id="t-{{ t.id }}">{{ t.short_title.split|join:"&nbsp;" }}</a>
-					<span class="tags">{{ "todo: tags" }}</span>
-				</span>
-				{% endfor %}
+				<div id="highlighted-timelines">
+					<h2 class="instructions option-instructions">Select a featured timeline:</h2>
+					{% for t in highlighted_timelines %}
+					<span class="option">
+						<a href="#" id="t-{{ t.id }}">{{ t.short_title.split|join:"&nbsp;" }}</a>
+					</span>
+					{% endfor %}
+				</div>
+				<div id="all-timelines">
+					<h2 class="instructions option-instructions">All timelines:</h2>
+					{% for t in timelines %}
+					<span class="option">
+						<a href="#" id="t-{{ t.id }}">{{ t.short_title.split|join:"&nbsp;" }}</a>
+					</span>
+					{% endfor %}
+				</div>
 				<span id="customoption" class="hidden">
 					<a href="#">(Parse&nbsp;the&nbsp;Wikipedia&nbsp;page&nbsp;titled:&nbsp;<span id="query-text"></span>)</a>
 				</span>

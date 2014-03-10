@@ -43,12 +43,20 @@ class TimelineAdmin(admin.ModelAdmin):
 		for p in queryset:
 			p.unban()
 
-	list_display = ('title', 'banned', 'params', 'timestamp',
+	def highlight(modeladmin, request, queryset):
+		for p in queryset:
+			p.highlight()
+
+	def unhighlight(modeladmin, request, queryset):
+		for p in queryset:
+			p.unhighlight()
+
+	list_display = ('title', 'banned', 'highlighted', 'params', 'timestamp',
 		'first_and_last_formatted', 'fewer_than_threshold', 'errors_formatted_short')
 	list_filter = ('banned', 'fewer_than_threshold', ErrorsNonEmptyFilter)
 	search_fields = ('title',)
 
-	actions = ['refresh', 'ban', 'unban']
+	actions = ['refresh', 'ban', 'unban', 'highlight', 'unhighlight']
 
 	readonly_fields = ('timestamp', 'first_and_last_formatted', 'errors_formatted', 'pretty_events')
 

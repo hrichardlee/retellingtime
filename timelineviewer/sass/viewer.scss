@@ -82,6 +82,13 @@ a, a:visited { color: $cyan; }
 	}
 }
 
+h2 {
+	font-size: $headerFontSize;
+	font-family: $headerFont;
+	font-weight: 400;
+	line-height: 14pt;
+}
+
 .timeline-header {
 	@extend .horiz-padding;
 	margin: 0;
@@ -96,11 +103,7 @@ a, a:visited { color: $cyan; }
 	}
 
 	h2 {
-		font-size: $headerFontSize;
-		font-family: $headerFont;
-		font-weight: 400;
 		display: inline;
-		line-height: 14pt;
 	}
 
 	a {
@@ -184,10 +187,17 @@ a, a:visited { color: $cyan; }
 	padding-top: 4px;
 	padding-bottom: 24px;
 
-	#query-instructions {
+	.instructions {
 		font-size: $headerFontSize;
 		font-family: $headerFont;
 		color: $fglight;
+	}
+
+	h2 {
+		margin-top: 10px;
+		margin-left: 0;
+		margin-bottom: 0;
+		margin-right: 0;
 	}
 
 	#query {
@@ -198,10 +208,6 @@ a, a:visited { color: $cyan; }
 	#options {
 		.option {
 			margin-right: 2.5em;
-
-			.tags {
-				display: none;
-			}
 		}
 	}
 }
