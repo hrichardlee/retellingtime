@@ -3,6 +3,12 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 	var Timeline = (function() {
 		// static class variables and functions
 		var allTimelines = [];
+		function setHash() {
+			window.location.hash =
+				_.map(allTimelines, function (t) {
+					return t.title;
+				}).join('&');
+		}
 		var widthParams = {
 			minDistFromEvents: function (events) {
 				var minDist = null;
@@ -218,6 +224,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					if (widthParams.removedTimelines()) {
 						widthParams.setWidth(false);
 					}
+					setHash();
 				})
 
 				$('a#set-focus-link #active', headerEl).addClass('hidden');
@@ -689,8 +696,11 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 			// Takes one parameter p that should have the following
 			// properties: data, eventTemplate, invisibleEventsHolder,
 			// headerTemplate timelineHolder. data should be [metadata:
-			// {short_title, url}, events: [{date, content, importance}, ...]]
+			// {title, short_title, url}, events: [{date, content,
+			// importance}, ...]]
 			var that = this;
+
+			this.title = p.data.metadata.title;
 
 			$(window).on('resize', function () {
 				if (allTimelines.length == 1) {
@@ -718,6 +728,8 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 			this.setRenderEvents(events);
 			widthParams.setWidth(false);
+
+			setHash();
 		}
 		Timeline.prototype = baseObject;
 

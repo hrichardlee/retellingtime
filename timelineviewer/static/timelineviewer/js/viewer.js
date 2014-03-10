@@ -31,6 +31,12 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 	}
 
 	$(function() {
+		if (window.location.hash) {
+			_.each(window.location.hash.substring(1).split('&'), function (title) {
+				addTimeline('/timelinedata/search/' + title);
+			});
+		}
+
 		// This section is for scrolling vertically through the page
 		// This is extremely loosely based on http://azoff.github.io/overscroll/
 		var $target = $('#frame');

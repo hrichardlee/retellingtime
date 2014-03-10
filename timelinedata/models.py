@@ -123,6 +123,7 @@ class Timeline(models.Model):
 		# show up in any of the other fields...
 		return json.dumps({
 				'metadata': {
+					'title': self.title,
 					'short_title': self.short_title(),
 					'url': self.url
 				},
