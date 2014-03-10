@@ -446,6 +446,8 @@
     return event;
   }
   d3.event = null;
+  function d3_eventPreventDefaultDummy() {
+  }
   function d3_eventPreventDefault() {
     d3.event.preventDefault();
   }
@@ -1077,7 +1079,7 @@
           w.on(click, null);
         }
         w.on(click, function() {
-          d3_eventPreventDefault();
+          d3_eventPreventDefaultDummy();
           off();
         }, true);
         setTimeout(off, 0);

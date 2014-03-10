@@ -68,6 +68,8 @@ def _fix_wikipedia_links(events, url):
 	for e in events:
 		soup = BeautifulSoup(e['content'])
 		for a in soup.find_all('a'):
+			a['target'] = '_blank'
+
 			if a['href'].startswith('/'):
 				a['href'] = 'http://en.wikipedia.org' + a['href']
 			elif a['href'].startswith('#'):
