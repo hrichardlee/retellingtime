@@ -55,8 +55,9 @@ date_grammar_string = u"""
 	TO -> osp dash osp | sp to sp
 
 
-	MONTHDAY -> DAY sp MONTH | MONTH ocomma sp DAY
+	MONTHDAY -> DAY sp MONTH | MONTH ocomma sp DAY | MONTHNUM '/' DAY
 	MONTH -> jan | feb | mar | apr | may | jun | jul | aug | sep | oct | nov | dec
+	MONTHNUM -> '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '1' '0' | '1' '1' | '1' '2'
 	DAY -> n | '0' n | '1' n | '2' n | '3' '0' | '3' '1'
 
 
@@ -151,7 +152,7 @@ date_grammar_words = [
 	u'oct', u'october', u'nov',u'november', u'dec', u'december',
 ]
 
-date_valid_nonwords_re_string = ur'^[\d,±\.\?\-–—~ ]*$'
+date_valid_nonwords_re_string = ur'^[\d,±\.\?/\-–—~ ]*$'
 # the subset of characters that are valid in a date string that can also be a
 # character that ends the date string
 date_valid_end_char = ur'^[,\.\?\-–— ]$'

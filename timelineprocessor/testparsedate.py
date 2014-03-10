@@ -132,8 +132,7 @@ class TestParseDate(unittest.TestCase):
 			(u'23 March blah',				(TimelineDate(TimePoint(month = 3, day = 23)),	u'23 March',		u'blah')),
 			(u'December 3',					(TimelineDate(TimePoint(month = 12, day = 3)),	u'December 3',		u'')),
 
-			# (u'12/3',						(TimelineDate(TimePoint(month = 12, day = 3)),	u'12/3',		u'')),
-			# (u'December 3',					(TimelineDate(TimePoint(month = 12, day = 3)),	u'December 3',		u'')),
+			(u'12/3',						(TimelineDate(TimePoint(month = 12, day = 3)),	u'12/3',		u'')),
 
 			# this decision is made arbitrarily by the parser. we're just not going to worry about it
 			# (u'3 December 23',				(TimelineDate(3, month = 12, day = 23)),		u'3 December 23',	u'')),

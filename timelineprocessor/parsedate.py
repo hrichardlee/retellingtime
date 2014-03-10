@@ -241,10 +241,13 @@ def parse_date_text(text):
 	def monthday(monthday): # returns TimePoint
 		d = None
 		for n in monthday:
-			if n.node == 'DAY':
-				d = int(numstr(n))
-			elif n.node == 'MONTH':
-				m = month(n)
+			if hasattr(n, 'node'):
+				if n.node == 'DAY':
+					d = int(numstr(n))
+				elif n.node == 'MONTH':
+					m = month(n)
+				elif n.node == 'MONTHNUM': # only one of MONTH and MONTHNUM should be present
+					m = TimePoint(month = int(numstr(n)))
 		m.day = d
 		return m
 	def num(num): # returns TimePoint
