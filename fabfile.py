@@ -87,6 +87,11 @@ def restart_gunicorn():
 
 	sudo('start retellingtime')
 
+def restart_celery():
+	with settings(warn_only = True):
+		sudo('stop retellingtime-celery')
+	sudo('start retellingtime-celery')
+
 def code_setup():
 	"""This uploads a new version of source, updates python packages, and
 	prepares gunicorn"""
@@ -94,6 +99,7 @@ def code_setup():
 	update_reqs()
 	prep_staticfiles()
 	restart_gunicorn()
+	restart_celery()
 
 
 ## Needs to happen once after code has been uploaded
