@@ -41,7 +41,7 @@ def search(request, page_title):
 
 def all(request):
 	return HttpResponse(
-		json.dumps([t.summary() for t in Timeline.objects.all()]),
+		json.dumps([t.summary() for t in Timeline.objects.all() if t.is_valid()]),
 		content_type = 'application/json')
 
 
