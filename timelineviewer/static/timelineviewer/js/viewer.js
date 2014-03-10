@@ -44,8 +44,8 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 
 		var posY;
 
-		$target.on('mousedown', start);
-		$target.on('mouseup mouseleave', stop); // also click?
+		$target.on('mousedown touchstart', start);
+		$target.on('mouseup mouseleave touchend touchcancel', stop); // also click?
 		$target.on('select dragstart drag', ignore);
 
 		function start(event) {
@@ -56,19 +56,27 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 				return !$currEl.is(exclude);
 			})) {
 				event.preventDefault();
-				$target.on('mousemove', drag)
+				$target.on('mousemove touchmove', drag)
 				posY = event.pageY;
 			}
 		}
 
 		function drag(event) {
 			event.preventDefault();
+
+			var touches = event.originalEvent.touches;
+			if (touches && touches.length) {
+				event = touches[0];
+			}
+
+			console.log(event.pageY);
+
 			$target.get(0).scrollTop -= event.pageY - posY;
 			posY = event.pageY;
 		}
 
 		function stop(event) {
-			$target.unbind('mousemove', drag);
+			$target.unbind('mousemove touchmove', drag);
 			posy = false;
 		}
 
