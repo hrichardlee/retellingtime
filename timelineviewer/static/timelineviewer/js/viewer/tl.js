@@ -90,6 +90,10 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				}
 				widthParams.minDist = newMinDist;
 
+				if (allTimelines.length == 1) {
+					allTimelines[0].setRenderHeight(Math.max($(window).height() - C.TALLTIMELINEMARGIN, C.SHORTTIMELINEHEIGHT));
+				}
+
 				return widthParamsModified;
 			},
 			setFocus: function (firstDate, lastDate) {
@@ -312,12 +316,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 			},
 			setRenderEvents: function (events) {
 				this.events = events;
-				var that = this;
-
-				// get first and last date
-				if (widthParams.addNewEvents(events)) {
-					widthParams.setWidth(false);
-				}
+				widthParams.addNewEvents(events)
 			},
 			setRenderHeight: function (height) {
 				this.height = height;
@@ -328,9 +327,6 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				this.context.attr('transform', 'translate(0,' + (height + C.AXISHEIGHT) + ')');
 			},
 			setRenderWidth: function () {
-				// local var for convenience
-				var events = this.events;
-
 				this.dateDelta = widthParams.lastDate - widthParams.firstDate;
 				this.firstDate = widthParams.firstDate;
 
@@ -697,7 +693,11 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 			var that = this;
 
 			$(window).on('resize', function () {
-				// that.setRenderHeight($(window).height() - C.TALLTIMELINEMARGIN);
+				if (allTimelines.length == 1) {
+					// This is only in the case where this is the only timeline
+					that.setRenderHeight(Math.max($(window).height() - C.TALLTIMELINEMARGIN, C.SHORTTIMELINEHEIGHT));
+					that.doRender();
+				}
 			});
 
 			var events = _.map(p.data.events, function(ev) {
@@ -707,10 +707,17 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 			allTimelines.push(this);
 
 			this.createRenderAndSvg(p.timelineHolder, p.headerTemplate, p.data.metadata);
-			this.setRenderHeight($(window).height() - C.TALLTIMELINEMARGIN)
+
+			if (allTimelines.length == 1) {
+				this.setRenderHeight(Math.max($(window).height() - C.TALLTIMELINEMARGIN, C.SHORTTIMELINEHEIGHT));
+			} else {
+				_.each(allTimelines, function (t) {
+					t.setRenderHeight(C.SHORTTIMELINEHEIGHT)
+				});
+			}
+
 			this.setRenderEvents(events);
 			widthParams.setWidth(false);
-
 		}
 		Timeline.prototype = baseObject;
 
