@@ -86,12 +86,11 @@ a, a:visited {
     #timelines svg .background {
       fill: #fdf6e3; }
     #timelines svg .markers line, #timelines svg .range-lines line {
+      stroke: rgba(147, 161, 161, 0.45);
       stroke-width: 2;
       shape-rendering: crispEdges; }
-    #timelines svg .markers line {
-      stroke: rgba(147, 161, 161, 0.45); }
-    #timelines svg .range-lines line {
-      stroke: rgba(147, 161, 161, 0.45); }
+    #timelines svg .range-lines path {
+      fill: rgba(147, 161, 161, 0.45); }
     #timelines svg .axis path, #timelines svg .axis line {
       fill: none;
       stroke: #93a1a1;

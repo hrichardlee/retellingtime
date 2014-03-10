@@ -142,15 +142,13 @@ a, a:visited { color: $cyan; }
 		}
 
 		.markers line, .range-lines line {
+			stroke: $fglightTransp;
 			stroke-width: 2;
 			shape-rendering: crispEdges;
 		}
 
-		.markers line {
-			stroke: $fglightTransp;
-		}
-		.range-lines line {
-			stroke: $fglightTransp;
+		.range-lines path {
+			fill: $fglightTransp;
 		}
 
 		.axis {

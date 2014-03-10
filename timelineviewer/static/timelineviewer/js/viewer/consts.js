@@ -9,6 +9,10 @@ define([], function () {
 	// make the marker shorter to compensate for event-text margin and leading in text and padding
 	C.MARKEREXTRAHEIGHT = 4 + 2;
 
+	C.RANGELINEBOTTOMPADDING = 1;
+	C.RANGETRIANGLEWIDTH = 4;
+	C.RANGETRIANGLEHEIGHT = 6;
+
 	C.TRANSFORM_TRANSITION_DURATION = 250;
 	C.TRANSFORM_TRANSITION_EASING = 'linear';
 	C.FIRST_RENDER_TRANSITION_DURATION = 250;

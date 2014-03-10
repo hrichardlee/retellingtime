@@ -303,8 +303,16 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				this.rangeLinesEvents = _.filter(this.scopedAndFilteredEvents, function (e) {
 					return e.date_length > 0;
 				});
+				var rangeTriangleLocal = 'l ' + (-C.RANGETRIANGLEWIDTH) + ' ' + (C.RANGETRIANGLEHEIGHT / 2) + ' l 0 ' + (-C.RANGETRIANGLEHEIGHT) + ' z'
 				_.each(this.rangeLinesEvents, function (e) {
-					e.date_length_x = that.x(e.date + e.date_length) - e.left;
+					var rightEnd = that.x(e.date + e.date_length) - e.left;
+					if (rightEnd >= 3) {
+						e.date_length_x = rightEnd - 3;
+						e.triangle_path = 'M ' + rightEnd + ' 0 ' + rangeTriangleLocal;
+					} else {
+						e.date_length_x = 0;
+						e.triangle_path = '';
+					}
 				});
 
 				return { onlyTranslate: onlyTranslate, s: s, t: t }
@@ -371,7 +379,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					.data(this.scopedAndFilteredEvents, function (e) { return e.id(); });
 				var markers = this.focus.select('.markers').selectAll('g')
 					.data(this.scopedAndFilteredEvents, function (e) { return e.id(); });
-				var rangeLines = this.focus.select('.range-lines').selectAll('g')
+				var rangeLines = this.focus.select('.range-lines').selectAll('g.range-line-root')
 					.data(this.rangeLinesEvents, function (e) { return e.id(); });
 
 				// update elements
@@ -385,11 +393,14 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 						return 'translate(' + d.left + ', ' + d.height_from_top + ')';
 					})
 					.attr('y2', function (d) { return d.bottom + d.height; });
-				transformTransitionFn(rangeLines.select('line'))
+				transformTransitionFn(rangeLines.select('g.range-line-transform'))
 					.attr('transform', function (d) {
-						return 'translate(' + d.left + ', ' + d.height_from_top + ')';
-					})
+						return 'translate(' + d.left + ', ' + (d.height_from_top + d.height - C.RANGELINEBOTTOMPADDING) + ')';
+					});
+				transformTransitionFn(rangeLines.select('line'))
 					.attr('x2', function (d) { return d.date_length_x; });
+				transformTransitionFn(rangeLines.select('path'))
+					.attr('d', function (d) { return d.triangle_path; });
 				// this catches elements that are transitioning for exiting,
 				// have not finished their transition yet, and were
 				// reintroduced.
@@ -403,8 +414,8 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				// only entering text elements
 				var textElementsEnter = textElements.enter()
 					.append('g')
-					.classed('text-root', true)
-				fadeIn(textElementsEnter, true)
+					.classed('text-root', true);
+				fadeIn(textElementsEnter, true);
 				var textInnerTransformGroup = textElementsEnter
 					.append('g')
 					.classed('text-transform', true)
@@ -432,16 +443,24 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 				// only entering range lines
 				var rangeLinesEnter = rangeLines.enter()
-					.append('g');
+					.append('g')
+					.classed('range-line-root', true);
 				fadeIn(rangeLinesEnter, true);
-				rangeLinesEnter.append('line')
+				var rangeLineInnerTransformGroup = rangeLinesEnter
+					.append('g')
+					.classed('range-line-transform', true)
 					.attr('transform', function (d) {
-						return 'translate(' + d.left + ', ' + d.height_from_top + ')';
-					})
+						return 'translate(' + d.left + ', ' + (d.height_from_top + d.height - C.RANGELINEBOTTOMPADDING) + ')';
+					});
+				rangeLineInnerTransformGroup
+					.append('line')
 					.attr('x1', '0')
 					.attr('x2', function (d) { return d.date_length_x; })
-					.attr('y1', function (d) { return d.height - 2; })
-					.attr('y2', function (d) { return d.height - 2; })
+					.attr('y1', '0')
+					.attr('y2', '0');
+				rangeLineInnerTransformGroup
+					.append('path')
+					.attr('d', function (d) { return d.triangle_path; });
 				
 				// only removed elements
 				var exitingTexts = textElements.exit().classed('exiting', true);
