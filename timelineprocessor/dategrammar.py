@@ -58,10 +58,11 @@ date_grammar_string = u"""
 	MONTHDAY -> DAY sp MONTH | MONTH ocomma sp DAY | MONTHNUM '/' DAY
 	MONTH -> jan | feb | mar | apr | may | jun | jul | aug | sep | oct | nov | dec
 	MONTHNUM -> '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '1' '0' | '1' '1' | '1' '2'
-	DAY -> n | '0' n | '1' n | '2' n | '3' '0' | '3' '1'
+	DAY -> DAYNUM | DAYNUM th
+	DAYNUM -> n | '0' n | '1' n | '2' n | '3' '0' | '3' '1'
 
 
-	MONTHDAYRANGE -> MONTHDAY TO MONTHDAY | MONTH TO MONTHDAY | DAY TO MONTHDAY
+	MONTHDAYRANGE -> MONTHDAY TO MONTHDAY | MONTH TO MONTHDAY | DAY TO MONTHDAY | MONTHDAY TO DAY
 	MONTHDAYRANGE -> MONTHDAY TO YADYEARMONTH | MONTH TO YADYEARMONTH
 	MONTHDAYRANGE -> MONTHDAY TO YADYEARMONTHDAY | MONTH TO YADYEARMONTHDAY  | DAY TO YADYEARMONTHDAY
 

@@ -358,8 +358,12 @@ def parse_date_text(text):
 		elif yearsago[0].node == 'MAR':
 			return TimelineDate(-dec(yearsago[0][0]) * 1000000, -dec(yearsago[0][2]) * 1000000)
 	def monthdayrange(r): # returns TimelineDate
+		copy_from_first = False
 		second = None
-		if r[2].node == 'MONTHDAY':
+		if r[2].node == 'DAY':
+			second = TimePoint(day = int(numstr(r[2])))
+			copy_from_first = True
+		elif r[2].node == 'MONTHDAY':
 			second = monthday(r[2])
 		elif r[2].node == 'YADYEARMONTH' or r[2].node == 'YADYEARMONTHDAY':
 			second = yadyymymd(r[2])
@@ -371,6 +375,11 @@ def parse_date_text(text):
 		elif r[0].node == 'MONTHDAY':
 			temp = monthday(r[0])
 			first = TimePoint(second.year, temp.month, temp.day, year_approx = second.year_approx)
+
+		if copy_from_first:
+			second.year = first.year
+			second.month = first.month
+
 		return TimelineDate(first, second)
 	def monthdayyearrange(r): # returns TimelineDate
 		yeartp = TimePoint(int(numstr(r[4])))
@@ -416,7 +425,6 @@ def parse_date_text(text):
 			parse = parses[0]
 	else:
 		parse = parses[0]
-
 
 	if parse[0].node == 'DATE':
 		result = date(parse[0])

@@ -123,6 +123,7 @@ class TestParseDate(unittest.TestCase):
 	def test_monthday(self):
 		self.helper((
 			(u'December 3 1980',			(TimelineDate(TimePoint(1980, 12, 3)),			u'December 3 1980',	u'')),
+			(u'December 3rd 1980',			(TimelineDate(TimePoint(1980, 12, 3)),			u'December 3rd 1980',	u'')),
 			(u'June 30, 1923',				(TimelineDate(TimePoint(1923, 6, 30)),			u'June 30, 1923',	u'')),
 			(u'December 1980',				(TimelineDate(TimePoint(1980, 12)),				u'December 1980',	u'')),
 			(u'December',					(TimelineDate(TimePoint(month = 12)),			u'December',		u'')),
@@ -131,7 +132,7 @@ class TestParseDate(unittest.TestCase):
 			# these test the ambiguous resolution code
 			(u'23 March blah',				(TimelineDate(TimePoint(month = 3, day = 23)),	u'23 March',		u'blah')),
 			(u'December 3',					(TimelineDate(TimePoint(month = 12, day = 3)),	u'December 3',		u'')),
-
+			(u'December 3rd to 4th',		(TimelineDate(TimePoint(month = 12, day = 3), TimePoint(month = 12, day = 4)),	u'December 3rd to 4th',		u'')),
 			(u'12/3',						(TimelineDate(TimePoint(month = 12, day = 3)),	u'12/3',		u'')),
 
 			# this decision is made arbitrarily by the parser. we're just not going to worry about it
