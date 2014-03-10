@@ -211,3 +211,15 @@ a, a:visited { color: $cyan; }
 	visibility: hidden;
 	position: absolute;
 }
+
+
+#apology-message {
+	padding-left: 24px;
+	padding-top: 24px;
+	font-size: 16pt;
+	max-width: 500px;
+
+	.details {
+		font-size: 12pt;
+	}
+}

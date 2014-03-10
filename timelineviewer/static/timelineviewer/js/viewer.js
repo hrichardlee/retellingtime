@@ -31,6 +31,14 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 	}
 
 	$(function() {
+		// check for IE
+		if (!document.implementation.hasFeature("w3.org/TR/SVG11/feature#Extensibility","1.1")) {
+			$('#functionality').addClass('hidden');
+			$('#apology-message').removeClass('hidden');
+		}
+
+
+		// load timelines based on url hash
 		if (window.location.hash) {
 			_.each(window.location.hash.substring(1).split('&'), function (title) {
 				addTimeline('/timelinedata/search/' + title);

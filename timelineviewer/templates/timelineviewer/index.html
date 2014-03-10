@@ -8,33 +8,42 @@
 		<h1><span id="retelling">RETELLING</span>TIME</h1>
 	</div>
 	
+	<div id="functionality">
+		<div id="timelines"></div>
 
-	<div id="timelines"></div>
+		<div id="timeline-adder">
+			<div>
+			<span id="query-instructions">Add a timeline:</span>
+			<input id="query" type="text" />
+			</div>
 
-	<div id="timeline-adder">
-		<div>
-		<span id="query-instructions">Add a timeline:</span>
-		<input id="query" type="text" />
+			<div id="options">
+				{% for t in timelines %}
+				<span class="option">
+					<a href="#" id="t-{{ t.id }}">{{ t.short_title.split|join:"&nbsp;" }}</a>
+					<span class="tags">{{ "todo: tags" }}</span>
+				</span>
+				{% endfor %}
+				<span id="customoption" class="hidden">
+					<a href="#">(Parse&nbsp;the&nbsp;Wikipedia&nbsp;page&nbsp;titled:&nbsp;<span id="query-text"></span>)</a>
+				</span>
+			</div>
 		</div>
 
-		<div id="options">
-			{% for t in timelines %}
-			<span class="option">
-				<a href="#" id="t-{{ t.id }}">{{ t.short_title.split|join:"&nbsp;" }}</a>
-				<span class="tags">{{ "todo: tags" }}</span>
-			</span>
-			{% endfor %}
-			<span id="customoption" class="hidden">
-				<a href="#">(Parse&nbsp;the&nbsp;Wikipedia&nbsp;page&nbsp;titled:&nbsp;<span id="query-text"></span>)</a>
-			</span>
-		</div>
+		<svg id="invisible-renderer" height="0" width="0">
+			<foreignobject height="1" width="1">
+				<div id="invisible-events-holder"></div>
+			</foreignobject>
+		</svg>
 	</div>
 
-	<svg id="invisible-renderer" height="0" width="0">
-		<foreignobject height="1" width="1">
-			<div id="invisible-events-holder"></div>
-		</foreignobject>
-	</svg>
+	<div id="apology-message" class="hidden">
+		<p>We're really sorry, but this just isn't going to work.</p>
+
+		<p class="details">You could try <a href="http://www.mozilla.org/en-US/firefox/new/">Firefox</a> or <a href="http://google.com/chrome/">Chrome</a>.</p>
+
+		<p class="details">What's going on here?</p>
+	</div>
 
 	<script type="text/javascript"
 		data-main="{% static 'timelineviewer/js/viewer.js' %}"
