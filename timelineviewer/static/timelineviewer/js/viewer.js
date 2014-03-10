@@ -104,10 +104,6 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 			addTimeline('/timelinedata/' + this.id.substring(2));
 		})
 
-		$('#options #customoption a').click(function (e) {
-			addTimeline('/timelinedata/search/' + $('#query').val());
-		})
-
 		var prevQuery = [];
 
 		$('#query').keyup(function (e) {
@@ -155,29 +151,34 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 			});
 
 			prevQuery = currQuery;
+			
+			var visible = $('#options .option').not('.hidden');
 
-			// check for exact match
-			var exactMatch = _.find(visible, function (el) {
-				return $('a', el).text().toLowerCase() == currLowerQuery;
-			});
-			if (currLowerQuery.length == 0 || exactMatch) {
-				$('#options #customoption').addClass('hidden')
+			if (currOrigQuery.length > 0) {
+				$('#highlighted-timelines').addClass('hidden');
+				$('#not-searching-label').addClass('hidden');
+				if (visible.length > 0) {
+					$('#search-results-label').removeClass('hidden');	
+					$('#no-search-results-label').addClass('hidden');
+				} else {
+					$('#search-results-label').addClass('hidden');	
+					$('#no-search-results-label').removeClass('hidden');
+				}
 			} else {
-				$('#options #customoption #query-text').text(currOrigQuery);
-				$('#options #customoption').removeClass('hidden')
+				$('#highlighted-timelines').removeClass('hidden');
+				$('#no-search-label').removeClass('hidden');
+				$('#search-label').addClass('hidden');
+				$('#no-search-results-label').addClass('hidden');
 			}
 
 			// on enter, if there is only one matched option or there is an
 			// exact match, add that timeline. if no timelines are matched,
 			// then look for the exactly specified Wikipedia page
 			if (e.which == 13) {
-				var visible = $('#options .option').not('.hidden');
 				if (visible.length == 1) {
 					$('a', visible).click();
 				} else if (exactMatch) {
 					$('a', exactMatch).click();
-				} else if (visible.length == 0) {
-					$('#options #customoption a').click();
 				}
 			}
 		})

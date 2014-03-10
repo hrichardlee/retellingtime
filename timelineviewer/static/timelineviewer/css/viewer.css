@@ -116,10 +116,11 @@ h2 {
     font-family: "Open Sans Condensed", sans-serif;
     color: #93a1a1; }
   #timeline-adder h2 {
-    margin-top: 10px;
-    margin-left: 0;
-    margin-bottom: 0;
-    margin-right: 0; }
+    margin: 0; }
+  #timeline-adder #highlighted-timelines {
+    margin-top: 5px; }
+  #timeline-adder #all-timelines {
+    margin-top: 20px; }
   #timeline-adder #query {
     font-family: "Noticia Text", serif;
     width: 400px; }

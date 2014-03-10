@@ -194,10 +194,15 @@ h2 {
 	}
 
 	h2 {
-		margin-top: 10px;
-		margin-left: 0;
-		margin-bottom: 0;
-		margin-right: 0;
+		margin: 0
+	}
+
+	#highlighted-timelines {
+		margin-top: 5px;
+	}
+
+	#all-timelines {
+		margin-top: 20px;
 	}
 
 	#query {

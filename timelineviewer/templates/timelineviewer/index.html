@@ -19,7 +19,7 @@
 
 			<div id="options">
 				<div id="highlighted-timelines">
-					<h2 class="instructions option-instructions">Select a featured timeline:</h2>
+					<h2 class="instructions option-instructions">Or select a featured timeline:</h2>
 					{% for t in highlighted_timelines %}
 					<span class="option">
 						<a href="#" id="t-{{ t.id }}">{{ t.short_title.split|join:"&nbsp;" }}</a>
@@ -27,16 +27,17 @@
 					{% endfor %}
 				</div>
 				<div id="all-timelines">
-					<h2 class="instructions option-instructions">All timelines:</h2>
+					<h2 class="instructions option-instructions">
+						<span id="not-searching-label">All timelines:</span>
+						<span id="search-results-label" class="hidden">Search results:</span>
+						<span id="no-search-results-label" class="hidden">No search results</span>
+					</h2>
 					{% for t in timelines %}
 					<span class="option">
 						<a href="#" id="t-{{ t.id }}">{{ t.short_title.split|join:"&nbsp;" }}</a>
 					</span>
 					{% endfor %}
 				</div>
-				<span id="customoption" class="hidden">
-					<a href="#">(Parse&nbsp;the&nbsp;Wikipedia&nbsp;page&nbsp;titled:&nbsp;<span id="query-text"></span>)</a>
-				</span>
 			</div>
 		</div>
 
