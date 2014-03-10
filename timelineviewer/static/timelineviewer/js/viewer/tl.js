@@ -221,7 +221,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					if (index > -1) {
 						allTimelines.splice(index, 1);
 					}
-					if (widthParams.removedTimelines()) {
+					if (widthParams.removedTimelines() || allTimelines.length == 1) {
 						widthParams.setWidth(false);
 					}
 					setHash();
