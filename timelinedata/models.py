@@ -108,17 +108,18 @@ class Timeline(models.Model):
 
 	# presenting data
 	def short_title(self):
-		prefixes = ['timeline of ', 'chronology of']
+		prefixes = ['timeline of ', 'chronology of ']
 		suffixes = [' timeline']
 
 		t = self.title.lower()
 
 		for p in prefixes:
 			if t.startswith(p):
-				return self.title[len(p)].upper() + self.title[len(p) + 1:]
+				temp = self.title[len(p):].strip()
+				return temp[0].upper() + temp[1:]
 		for s in suffixes:
 			if t.endswith(s):
-				return self.title[:-len(s)]
+				return self.title[:-len(s)].strip()
 		return self.title
 
 	def summary(self):
