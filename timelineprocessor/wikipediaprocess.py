@@ -56,9 +56,9 @@ def wp_page_to_events_raw(title, p = None):
 def wp_post_process(raw_events, url):
 	_add_importance_to_events(raw_events)
 	raw_events.sort(key=lambda e: e['date'], reverse=True)
-	raw_events = _filter_bad_events(raw_events)
 	_fix_wikipedia_links(raw_events, url)
 	htmlprocess.clean_events(raw_events)
+	raw_events = _filter_bad_events(raw_events)
 
 	return raw_events
 
@@ -78,7 +78,7 @@ def _filter_bad_events(events):
 	"""Eliminates events that are suspected to be incorrect, returns a new
 	list."""
 	#TODO add filtering based on order of dates
-	return [e for e in events if e['content'] and e['date'] != None]
+	return [e for e in events if e['content'] and e['date'] != None and len(BeautifulSoup(e['content']).get_text().strip()) > 2]
 
 # requires running the nltk downloader: nltk.download() > d > punkt
 _sentence_splitter = nltk.data.load('tokenizers/punkt/english.pickle')
@@ -123,7 +123,7 @@ def get_errors(raw_events, event_threshold):
 			_event_to_str(raw_events[-2]) + '\n' + \
 			_event_to_str(raw_events[-1])
 
-		for e in [e for e in raw_events if len(e['content']) < 5]:
+		for e in [e for e in raw_events if len(BeautifulSoup(e['content']).get_text()) <= 2]:
 			errors += 'short event:' + '\n' + _event_to_str(e)
 
 		# look for out of order events
