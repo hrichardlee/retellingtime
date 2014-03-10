@@ -43,8 +43,8 @@ class TestParseDate(unittest.TestCase):
 			(u'1245\xa0AD',				(TimelineDate(TimePoint(1245)),							u'1245\xa0AD',			u'')),
 		))
 
-		self.assertEqual(parse_date_html(u'900–929')[0].simple_year(),	900)
-		self.assertEqual(parse_date_html(u'1st century')[0].simple_year(),	0)
+		self.assertEqual(parse_date_html(u'900–929')[0].start_year(),	900)
+		self.assertEqual(parse_date_html(u'1st century')[0].start_year(),	0)
 
 
 	def test_timename(self):
@@ -131,6 +131,9 @@ class TestParseDate(unittest.TestCase):
 			# these test the ambiguous resolution code
 			(u'23 March blah',				(TimelineDate(TimePoint(month = 3, day = 23)),	u'23 March',		u'blah')),
 			(u'December 3',					(TimelineDate(TimePoint(month = 12, day = 3)),	u'December 3',		u'')),
+
+			# (u'12/3',						(TimelineDate(TimePoint(month = 12, day = 3)),	u'12/3',		u'')),
+			# (u'December 3',					(TimelineDate(TimePoint(month = 12, day = 3)),	u'December 3',		u'')),
 
 			# this decision is made arbitrarily by the parser. we're just not going to worry about it
 			# (u'3 December 23',				(TimelineDate(3, month = 12, day = 23)),		u'3 December 23',	u'')),
