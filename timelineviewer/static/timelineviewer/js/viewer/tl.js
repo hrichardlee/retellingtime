@@ -1,10 +1,84 @@
 define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], function ($, _, d3, tlevents, C) {
 
 	var Timeline = (function() {
-		// static class variables
+		// static class variables and functions
 		var allTimelines = [];
-		var allFirstDate = false;
-		var allLastDate = false;
+		var widthParams = {};
+		function minDistFromEvents(events) {
+			var minDist = null;
+			for (var i = 0; i < events.length - 1; i++) {
+				var dist = Math.abs(events[i].date - events[i+1].date);
+				if ((!minDist || dist < minDist) && dist != 0)
+					minDist = dist;
+			}
+			return minDist;
+		}
+		function updateWidthParams(events) {
+			// Returns whether or not the parameters were changed. If events
+			// is passed in, we assume that only those events were added. If
+			// no events are passed in, then we assume that events were
+			// removed and check allTimelines
+
+			var widthParamsModified = false;
+
+			var newFirstDate = events[(events.length- 1)].date;
+			var newLastDate = events[0].date;
+
+			if (!widthParams.firstDate || newFirstDate < widthParams.firstDate) {
+				widthParams.firstDate = newFirstDate;
+				widthParamsModified = true;
+			}
+			if (!widthParams.lastDate || newLastDate > widthParams.lastDate) {
+				widthParams.lastDate = newLastDate;
+				widthParamsModified = true;
+			}
+
+			// get minDist
+
+			var newMinDist = minDistFromEvents(events);
+
+			if (newMinDist && (!widthParams.minDist || newMinDist < widthParams.minDist)) {
+				widthParamsModified = true;
+				widthParams.minDist = newMinDist;
+			}
+
+			return widthParamsModified;
+		}
+		function updateWidthParamsRemovedTimelines() {
+			var widthParamsModified = false;
+
+			// timeline was removed
+			var newFirstDate = _.min(
+				_.map(allTimelines, function (t) {
+					return t.events[(t.events.length - 1)].date;
+				})
+			);
+			var newLastDate = _.max(
+				_.map(allTimelines, function (t) {
+					return t.events[0].date;
+				})
+			);
+
+			if (newFirstDate != widthParams.firstDate || newLastDate != widthParams.lastDate) {
+				widthParamsModified = true;
+			}
+			widthParams.firstDate = newFirstDate;
+			widthParams.lastDate = newLastDate;
+
+			// get minDist
+			var newMinDist = _.min(
+				_.map(allTimelines, function (t) {
+					return minDistFromEvents(t.events);
+				})
+			);
+
+			if (newMinDist != widthParams.minDist) {
+				widthParamsModified = true;
+			}
+			widthParams.minDist = newMinDist;
+
+			return widthParamsModified;
+		}
 
 		// class methods
 		var baseObject = {
@@ -20,6 +94,15 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				$('a.remove-link', headerEl).click(function (e) {
 					// TODO: need to deal with allTimelines, allFirstDate, allLastDate
 					that.baseEl.remove();
+					var index = allTimelines.indexOf(that);
+					if (index > -1) {
+						allTimelines.splice(index, 1);
+					}
+					if (updateWidthParamsRemovedTimelines()) {		
+						_.each(allTimelines, function (t) {
+							t.setRenderWidth();
+						});
+					}
 				})
 			},
 			createRenderAndSvg: function (timelineholder, headerTemplate, metadata) {
@@ -89,6 +172,14 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 			},
 			setRenderEvents: function (events) {
 				this.events = events;
+				var that = this;
+
+				// get first and last date
+				if (updateWidthParams(events)) {
+					_.each(allTimelines, function (other) {
+						if (other !== that) { other.setRenderWidth(); }
+					});
+				}
 			},
 			setRenderHeight: function (height) {
 				this.height = height;
@@ -102,43 +193,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				// local var for convenience
 				var events = this.events;
 
-				// get first and last date
-				var firstDate = events[(events.length- 1)].date;
-				var lastDate = events[0].date;
-
-				if (this.synced) {
-					var allRangeModified = false;
-					if (allFirstDate === false || firstDate < allFirstDate) {
-						allFirstDate = firstDate;
-						allRangeModified = true;
-					} else {
-						firstDate = allFirstDate;
-					}
-					if (allLastDate === false || lastDate > allLastDate) {
-						allLastDate = lastDate;
-						allRangeModified = true;
-					} else {
-						lastDate = allLastDate;
-					}
-
-					if (allRangeModified) {
-						_.each(allTimelines, function (other) {
-							if (other !== this) { other.setRenderWidth(); }
-						});
-					}
-				}
-
-				this.dateDelta = lastDate - firstDate;
-				this.firstDate = firstDate;
-
 				this.width = $(window).width();
-
-				// create scales/axes
-				this.x.range([0, this.width]);
-				this.contextX.range([0, this.width]);
-				this.xAxis.scale(this.x).orient('bottom');
-				this.x.domain([firstDate, lastDate]);
-				this.xAxisEl.call(this.xAxis);
 
 				// calculate values for initial/min scale:
 				// - We want to set the scale to be zoomed out initially so that we can
@@ -152,21 +207,26 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				// 	   (W - We - 2 * M) * (c - a) / W + a = b
 				//		c = (b - a) * W / (W - We - 2 * M) + a
 				// Now we can scale out to (b - a) / (c - a), and translate to M
-				var c = (lastDate - firstDate)
+				var c = (widthParams.lastDate - widthParams.firstDate)
 						* this.width / (this.width - C.EVENTWIDTH - 2 * C.FIRST_RENDER_MARGIN)
-						+ firstDate;
-				var initialScale = (lastDate - firstDate)
-						/ (c - firstDate);
+						+ widthParams.firstDate;
+				var initialScale = (widthParams.lastDate - widthParams.firstDate) /
+						(c - widthParams.firstDate);
 
-				// get max zoom, set zoom
-				var minDist = null;
-				for (var i = 0; i < events.length - 1; i++) {
-					var dist = Math.abs(events[i].date - events[i+1].date);
-					if ((!minDist || dist < minDist) && dist != 0) minDist = dist;
-				}
-				var zoomMax = minDist
+				this.dateDelta = widthParams.lastDate - widthParams.firstDate;
+				this.firstDate = widthParams.firstDate;
+
+				// create scales/axes
+				this.x.range([0, this.width]);
+				this.contextX.range([0, this.width]);
+				this.xAxis.scale(this.x).orient('bottom');
+				this.x.domain([widthParams.firstDate, widthParams.lastDate]);
+				this.xAxisEl.call(this.xAxis);
+
+				// set max zoom
+				var zoomMax = widthParams.minDist
 					? (this.x.domain()[1] - this.x.domain()[0])
-								* C.ZOOMMAXFACTOR / minDist
+								* C.ZOOMMAXFACTOR / widthParams.minDist
 					: C.ZOOMMAXFACTOR;
 				this.zoom
 					.scaleExtent([initialScale, zoomMax])
@@ -220,10 +280,10 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				//if (this.secondRender || this.resetRenderWidth)
 					this.renderUpdateContextStrip();
 
-				if (this.synced && !(s && t)) {
+				if (!(s && t)) {
 					var that = this;
 					_.each(allTimelines, function (other) {
-						if (other !== that && other.synced	) other.doRender(p.s, p.t);
+						if (other !== that) other.doRender(p.s, p.t);
 					})
 				}
 
@@ -511,7 +571,6 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 			// headerTemplate timelineHolder. data should be [metadata:
 			// {short_title, url}, events: [{date, content, importance}, ...]]
 			var that = this;
-			this.synced = true;
 
 			$(window).on('resize', function () {
 				that.setRenderWidth();
