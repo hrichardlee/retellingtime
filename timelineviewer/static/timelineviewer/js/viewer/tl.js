@@ -424,6 +424,9 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					.html(headerTemplate(metadata));
 				this.createHeaderActions(headerEl[0][0])
 
+				this.textElementsHolder = baseEl.append('div')
+					.classed('text-elements-holder', true);
+
 				// initialize svg and such
 				this.svg = baseEl.append('svg');
 				this.svg.attr('width', '100%');
@@ -444,8 +447,6 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 				this.focus.append('g')
 					.classed('markers', true);
-				this.focus.append('g')
-					.classed('text-elements', true);
 				this.focus.append('g')
 					.classed('range-lines', true);
 
@@ -721,7 +722,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				};
 
 				// select elements
-				var textElements = this.focus.select('.text-elements').selectAll('g.text-root')
+				var textElements = this.textElementsHolder.selectAll('div.text-root')
 					.data(this.scopedAndFilteredEvents, function (e) { return e.id(); });
 				var markers = this.focus.select('.markers').selectAll('g')
 					.data(this.scopedAndFilteredEvents, function (e) { return e.id(); });
@@ -730,10 +731,9 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 				// update elements
 				var that = this;
-				transformTransitionFn(textElements.select('g.text-transform'))
-					.attr('transform', function (d) {
-						return 'translate(' + d.left + ', ' + d.height_from_top + ')';
-					});
+				transformTransitionFn(textElements.select('div.text-transform'))
+					.style('top', function (d) { return d.height_from_top + 'px'; })
+					.style('left', function (d) { return d.left + 'px'; });
 				transformTransitionFn(markers.select('line'))
 					.attr('transform', function (d) {
 						return 'translate(' + d.left + ', ' + d.height_from_top + ')';
@@ -759,19 +759,14 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 				// only entering text elements
 				var textElementsEnter = textElements.enter()
-					.append('g')
+					.append('div')
 					.classed('text-root', true);
 				fadeIn(textElementsEnter, true);
 				var textInnerTransformGroup = textElementsEnter
-					.append('g')
+					.append('div')
 					.classed('text-transform', true)
-					.attr('transform', function (d) {
-						return 'translate(' + d.left + ', ' + d.height_from_top + ')';
-					})
-					.append('foreignObject')
-					.attr('height', function (d) {return d.height; })
-					.attr('width', C.EVENTWIDTH)
-					.append('xhtml:div')
+					.style('top', function (d) { return d.height_from_top + 'px'; })
+					.style('left', function (d) { return d.left + 'px'; })
 					.html(function (d) { return d.html(); })
 
 				// only entering marker elements

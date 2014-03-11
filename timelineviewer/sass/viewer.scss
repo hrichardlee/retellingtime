@@ -145,6 +145,18 @@ h2 {
 		padding-bottom: 12pt;
 	}
 
+	.text-elements-holder {
+		position: relative; // because text elements will be absolute
+
+		.text-root {
+			position: absolute;
+
+			.text-transform {
+				position: absolute;
+			}
+		}
+	}
+
 	svg {
 		font-size: 10px;
 
@@ -229,6 +241,11 @@ h2 {
 #invisible-renderer {
 	visibility: hidden;
 	position: absolute;
+
+	.invisible-event-holder {
+		position: absolute;
+		top: -500;
+	}
 }
 
 

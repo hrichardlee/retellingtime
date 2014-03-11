@@ -302,7 +302,7 @@ define(['jquery', 'underscore', 'simpleset', 'viewer/consts'], function ($, _, S
 
 			this.reset();
 			
-			this.$el = $('<div></div').html(template(eventData));
+			this.$el = $('<div></div').addClass('invisible-event-holder').html(template(eventData));
 			$containerEl.append(this.$el);
 			this.height = $('.event-text', this.$el).outerHeight(true); // true includes margins
 		}

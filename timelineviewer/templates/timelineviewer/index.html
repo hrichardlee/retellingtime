@@ -4,6 +4,10 @@
 
 {% block content %}
 <div id="frame">
+	<div id="invisible-renderer" height="0" width="0">
+		<div id="invisible-events-holder"></div>
+	</div>
+
 	<div id="header">
 		<h1><span id="retelling">RETELLING</span>TIME</h1>
 	</div>
@@ -40,12 +44,6 @@
 				</div>
 			</div>
 		</div>
-
-		<svg id="invisible-renderer" height="0" width="0">
-			<foreignobject height="1" width="1">
-				<div id="invisible-events-holder"></div>
-			</foreignobject>
-		</svg>
 	</div>
 
 	<div id="apology-message" class="hidden">
