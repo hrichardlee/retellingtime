@@ -10,6 +10,7 @@ from parsedate import parse_date_html, TimelineDate, TimePoint
 def param_defaults(p):
 	p['separate'] = p.get('separate') or False
 	p['single_section'] = p.get('single_section') or ''
+	p['extra_ignore_sections'] = p.get('extra_ignore_sections') or ''
 	p['continuations'] = p.get('continuations') or False
 	p['keep_row_together'] = p.get('keep_row_together') or False
 	return p
@@ -112,7 +113,7 @@ def string_blocks_to_events(string_blocks, p = None):
 	events. A timeline event is {date: number, date_string: string, content: string}
 	"""
 
-	curr_ignore_sections = _ignore_sections
+	curr_ignore_sections = _ignore_sections.copy()
 	p = param_defaults(p or {})
 
 	def section_test(name):
@@ -127,10 +128,12 @@ def string_blocks_to_events(string_blocks, p = None):
 		# is just an intro paragraph, but if this if statement is true, it is
 		# probably the entire content of the article
 		try:
-			curr_ignore_sections = _ignore_sections.copy()
 			curr_ignore_sections.remove('')
 		except KeyError:
 			pass
+	if p['extra_ignore_sections']:
+		for s in p['extra_ignore_sections'].split('&'):
+			curr_ignore_sections.add(s.lower().strip())
 
 	curr_event = None
 	events = []
@@ -190,7 +193,7 @@ def string_blocks_to_events(string_blocks, p = None):
 					# current event if there is one
 					elif curr_event:
 						if p['continuations']:
-							curr_event['content'] += line_break + line['line']
+							curr_event['content'] += _line_break + line['line']
 						else:
 							_close_event(events, curr_event)
 							curr_event = {

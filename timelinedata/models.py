@@ -34,19 +34,22 @@ class Timeline(models.Model):
 
 	# parameters
 	single_section = models.CharField(max_length = 500, blank = True)
+	extra_ignore_sections = models.CharField(max_length = 500, blank = True)
 	separate = models.BooleanField()
 	continuations = models.BooleanField()
 	keep_row_together = models.BooleanField()
 
 	def set_params(self, p):
 		self.single_section = p['single_section']
+		self.extra_ignore_sections = p['extra_ignore_sections']
 		self.separate = p['separate']
 		self.continuations = p['continuations']
 		self.keep_row_together = p['keep_row_together']
 	def get_params(self):
 		return {
-			'separate': self.separate,
 			'single_section': self.single_section,
+			'extra_ignore_sections': self.extra_ignore_sections,
+			'separate': self.separate,
 			'continuations': self.continuations,
 			'keep_row_together': self.keep_row_together,
 		}
@@ -58,6 +61,7 @@ class Timeline(models.Model):
 		if self.continuations: s += 'cont '
 		if self.keep_row_together: s += 'rows_together '
 		if self.single_section: s += '#' + self.single_section + ' '
+		if self.extra_ignore_sections: s += '-#' + self.extra_ignore_sections + ' '
 		s += format_html('<a href="{0}">orig</a>', self.url)
 		return s
 	params.allow_tags = True
