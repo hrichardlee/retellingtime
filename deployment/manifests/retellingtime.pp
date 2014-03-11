@@ -18,6 +18,12 @@ class git {
 }
 
 class upstart {
+	file { "/etc/secret_key.txt":
+		ensure => "file",
+		source => "${puppet_manifests_dir}/secret_key.txt",
+		notify => Service["retellingtime"]
+	}
+
 	file { "/etc/init/retellingtime.conf":
 		ensure => "file",
 		source => "${puppet_manifests_dir}/upstart-retellingtime",
