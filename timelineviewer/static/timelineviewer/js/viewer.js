@@ -19,14 +19,11 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 	var timelines;
 
 	function addTimeline(url) {
-		$.get(url, function(data) {
-			var timeline = new tl.Timeline({
-				data: data,
-				eventTemplate: _.template($('#event-template').html()),
-				invisibleEventsHolder: $('#invisible-events-holder'),
-				headerTemplate: _.template($('#header-template').html()),
-				timelineHolder: d3.select('#timelines')
-			});
+		new tl.Timeline(url, {
+			eventTemplate: _.template($('#event-template').html()),
+			invisibleEventsHolder: $('#invisible-events-holder'),
+			headerTemplate: _.template($('#header-template').html()),
+			timelineHolder: d3.select('#timelines')
 		});
 	}
 

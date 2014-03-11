@@ -257,13 +257,20 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					active.addClass('hidden');
 				}
 			},
-			createRenderAndSvg: function (timelineholder, headerTemplate, metadata) {
+			createBaseEl: function (timelineHolder, height) {
+				var baseEl = timelineHolder.append('div');
+				this.baseEl = baseEl;
+
+				baseEl.append('div')
+					.classed('loading-indicator', true)
+					.text('loading...');
+			},
+			createRenderAndSvg: function (headerTemplate, metadata) {
 				var that = this;
 
 				widthParams.init();
-
-				var baseEl = timelineholder.append('div');
-				this.baseEl = baseEl;
+				var baseEl = this.baseEl;
+				baseEl.text('');
 				var headerEl = baseEl.append('div')
 					.classed('timeline-header', true)
 					.html(headerTemplate(metadata));
@@ -692,7 +699,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 		}
 
 		// constructor
-		function Timeline(p) {
+		function Timeline(url, p) {
 			// Takes one parameter p that should have the following
 			// properties: data, eventTemplate, invisibleEventsHolder,
 			// headerTemplate timelineHolder. data should be [metadata:
@@ -700,7 +707,39 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 			// importance}, ...]]
 			var that = this;
 
-			this.title = p.data.metadata.title;
+			this.createBaseEl(p.timelineHolder,
+				allTimelines.length == 0
+				? Math.max($(window).height() - C.TALLTIMELINEMARGIN, C.SHORTTIMELINEHEIGHT)
+				: C.SHORTTIMELINEHEIGHT);
+
+			$.get(url)
+				.done(function(data) {
+					that.title = data.metadata.title;
+
+					that.createRenderAndSvg(p.headerTemplate, data.metadata);
+
+					var events = _.map(data.events, function(ev) {
+						return new tlevents.Event(ev, p.invisibleEventsHolder, p.eventTemplate);
+					});
+
+					allTimelines.push(that);
+
+					if (allTimelines.length == 1) {
+						that.setRenderHeight(Math.max($(window).height() - C.TALLTIMELINEMARGIN, C.SHORTTIMELINEHEIGHT));
+					} else {
+						_.each(allTimelines, function (t) {
+							t.setRenderHeight(C.SHORTTIMELINEHEIGHT)
+						});
+					}
+
+					that.setRenderEvents(events);
+					widthParams.setWidth(false);
+
+					setHash();
+				})
+				.fail(function() {
+					that.baseEl.remove();
+				});
 
 			$(window).on('resize', function () {
 				if (allTimelines.length == 1) {
@@ -710,26 +749,6 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				}
 			});
 
-			var events = _.map(p.data.events, function(ev) {
-				return new tlevents.Event(ev, p.invisibleEventsHolder, p.eventTemplate);
-			});
-
-			allTimelines.push(this);
-
-			this.createRenderAndSvg(p.timelineHolder, p.headerTemplate, p.data.metadata);
-
-			if (allTimelines.length == 1) {
-				this.setRenderHeight(Math.max($(window).height() - C.TALLTIMELINEMARGIN, C.SHORTTIMELINEHEIGHT));
-			} else {
-				_.each(allTimelines, function (t) {
-					t.setRenderHeight(C.SHORTTIMELINEHEIGHT)
-				});
-			}
-
-			this.setRenderEvents(events);
-			widthParams.setWidth(false);
-
-			setHash();
 		}
 		Timeline.prototype = baseObject;
 
