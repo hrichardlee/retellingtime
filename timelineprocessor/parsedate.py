@@ -89,15 +89,15 @@ class TimePoint:
 		"""Given TimePoints a and b, returns a new TimePoint that self takes
 		on b's attributes, except if b does not have that attribute, in which
 		case a's are taken."""
-		if b.year:
+		if b.year != None:
 			year = b.year
 			year_approx = b.year_approx
 		else:
 			year = a.year
 			year_approx = a.year_approx
-		if b.month: month = b.month
+		if b.month != None: month = b.month
 		else: month = a.month
-		if b.day: day = b.day
+		if b.day != None: day = b.day
 		else: day = a.day
 		return cls(year, month, day, year_approx = year_approx)
 
@@ -129,8 +129,8 @@ class TimelineDate:
 	@classmethod
 	def can_combine_as_day(cls, a, b):
 		return not a.end and not b.end \
-			and a.start.year and a.start.month and not a.start.day \
-			and b.start.year and not b.start.month and not b.start.day \
+			and a.start.year != None and a.start.month != None and a.start.day == None \
+			and b.start.year != None and b.start.month == None and b.start.day == None \
 			and b.start.year >= 1 and b.start.year <= 31
 
 	@classmethod

@@ -9,7 +9,7 @@ from fabric.contrib.project import rsync_project
 
 
 # Uncomment this line and add the right hosts
-# env.hosts= ['192.168.56.103']
+env.hosts= ['retellingtime.com']
 
 base_dir = '/home/hrichardlee'
 puppet_modules_dir = base_dir + '/.puppet/modules'
@@ -46,7 +46,7 @@ def install_pip():
 	run('wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py')
 	sudo('python get-pip.py')
 
-def code_independent_setup():
+def initial_config_setup():
 	"""This should only need to be run once for a machine before any code gets
 	put on the machine"""
 	install_puppet()
@@ -55,6 +55,12 @@ def code_independent_setup():
 	webserver_puppet()
 
 	install_pip()
+
+def web_config_setup():
+	"""This updates the machine with any new puppet modules"""
+	put_manifests()
+	webserver_puppet()
+
 
 
 ## Utility functions

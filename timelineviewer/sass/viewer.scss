@@ -145,6 +145,25 @@ h2 {
 		padding-bottom: 12pt;
 	}
 
+	.zoomable-holder {
+		position: relative;
+
+		.text-elements-holder {
+			position: absolute; // because text elements will be absolute
+			overflow: hidden;
+			width: 100%;
+
+			.text-root {
+				position: absolute;
+
+				.text-transform {
+					position: absolute;
+				}
+			}
+		}
+	}
+
+
 	svg {
 		font-size: 10px;
 
@@ -167,6 +186,7 @@ h2 {
 				fill: none;
 				stroke: $fglight;
 				shape-rendering: crispEdges;
+				stroke-width: 2;
 			}
 			text {
 				fill: $fglight;
@@ -229,6 +249,11 @@ h2 {
 #invisible-renderer {
 	visibility: hidden;
 	position: absolute;
+
+	.invisible-event-holder {
+		position: absolute;
+		top: -500;
+	}
 }
 
 

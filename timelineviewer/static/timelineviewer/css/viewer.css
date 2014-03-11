@@ -89,6 +89,16 @@ h2 {
     text-align: center;
     padding-top: 12pt;
     padding-bottom: 12pt; }
+  #timelines .zoomable-holder {
+    position: relative; }
+    #timelines .zoomable-holder .text-elements-holder {
+      position: absolute;
+      overflow: hidden;
+      width: 100%; }
+      #timelines .zoomable-holder .text-elements-holder .text-root {
+        position: absolute; }
+        #timelines .zoomable-holder .text-elements-holder .text-root .text-transform {
+          position: absolute; }
   #timelines svg {
     font-size: 10px; }
     #timelines svg .background {
@@ -136,6 +146,9 @@ h2 {
 #invisible-renderer {
   visibility: hidden;
   position: absolute; }
+  #invisible-renderer .invisible-event-holder {
+    position: absolute;
+    top: -500; }
 
 #apology-message {
   padding-left: 24px;
