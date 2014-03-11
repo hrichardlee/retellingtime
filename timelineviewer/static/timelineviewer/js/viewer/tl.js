@@ -2,6 +2,154 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 	var Timeline = (function() {
 		// static class variables and functions
+
+		// date stuff
+		function isLeap(y) {
+			if (y % 400 === 0) {
+				return true;
+			} else if (y % 100 === 0) {
+				return false;
+			} else if (y % 4 === 0) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+		var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+		var monthLengthsCommon =    [31, 28, 31, 30, 31,  30,  31,  31,  30,  31,  30,  31]
+		var monthCumLengthsCommon = [0,  31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
+		var monthLengthsLeap =      [31, 29, 31, 30, 31,  30,  31,  31,  30,  31,  30,  31]
+		var monthCumLengthsLeap =   [0,  31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]
+		var monthFractionsCommon = _.map(monthLengthsCommon, function (x) { return x / 365; });
+		var monthCumFractionsCommon = _.map(monthCumLengthsCommon, function (x) { return x / 365; });
+		var monthFractionsLeap = _.map(monthLengthsLeap, function (x) { return x / 366; });
+		var monthCumFractionsLeap = _.map(monthCumLengthsLeap, function (x) { return x / 366; });
+		function monthDayFromFraction(f, year) {
+			if (isLeap(year)) {
+				var monthFractions = monthFractionsCommon;
+				var monthCumFractions = monthCumFractionsCommon;
+				var monthLengths = monthLengthsCommon;
+			} else {
+				var monthFractions = monthFractionsLeap;
+				var monthCumFractions = monthCumFractionsLeap;
+				var monthLengths = monthLengthsLeap;
+			}
+
+			var monthIndex = monthCumFractions.indexOf(
+				_.find(monthCumFractions, function (x) {
+					return x > f;
+				})
+			) - 1;
+			var monthStart = monthCumFractions[monthIndex];
+			var day = Math.round((f - monthStart) / monthFractions[monthIndex] * monthLengths[monthIndex]) + 1;
+			if (day > monthLengths[monthIndex]) {
+				day = 1;
+				monthIndex += 1;
+			}
+			var yearAdjust = 0;
+			if (monthIndex > 11) {
+				monthIndex = 1;
+				yearAdjust = 1;
+			}
+
+			//return [monthNames[monthIndex], day];
+			return [yearAdjust, day + ' ' + monthNames[monthIndex]];
+		}
+		function closestMonthStartFromFraction(f, year) {
+			if (isLeap(year)) {
+				var monthFractions = monthFractionsCommon;
+				var monthCumFractions = monthCumFractionsCommon;
+				var monthLengths = monthLengthsCommon;
+			} else {
+				var monthFractions = monthFractionsLeap;
+				var monthCumFractions = monthCumFractionsLeap;
+				var monthLengths = monthLengthsLeap;
+			}
+
+			var monthIndex = monthCumFractions.indexOf(
+				_.find(monthCumFractions, function (x) {
+					return x > f;
+				})
+			) - 1;
+			var a = monthCumFractions[monthIndex];
+			var b = monthCumFractions[monthIndex + 1];
+			return Math.abs(f - a) < Math.abs(f - b) ? a : b;
+		}
+
+		function tickValuesFn(t0, t1) {
+			var m = t1 - t0 < 2 ? 8 : 10;
+
+			// this code is taken from
+			// https://github.com/mbostock/d3/blob/c247e1626118de41b3d40e2a711354f76e004343/src/scale/linear.js
+			var span = t1 - t0;
+			var step = Math.pow(10, Math.floor(Math.log(span / m) / Math.LN10));
+			var err = m / span * step;
+
+			// Filter ticks to get closer to the desired count.
+			if (err <= .15) step *= 10;
+			else if (err <= .35) step *= 5;
+			else if (err <= .75) step *= 2;
+
+			// Round start and stop values to step interval.
+			t0 = Math.ceil(t0 / step) * step;
+			t1 = Math.floor(t1 / step) * step + step * .5; // inclusive
+
+			var origTicks = _.range(t0, t1, step);
+			// End copied code
+			var newTicks = _.map(origTicks, function (d) {
+				if (d > 0) {
+					if (d === (d|0)) {
+						return d;
+					} else {
+						if (step > 60/365) {
+							var frac = d - (d|0);
+							var year = d|0;
+							var closest = closestMonthStartFromFraction(frac, year);
+							return year + closest;
+						} else {
+							return d;
+						}
+					}
+				} else if (d >= -10001) {
+					if (step > 4) {
+						return d + 1;
+					} else {
+						return d;
+					}
+				} else { // d < -10001
+					if (step > 2000) {
+						return d + 1950;	
+					} else if (step > 200) {
+						return d + 50;
+					} else {
+						return d;
+					}
+				}
+			});
+			return newTicks;
+		}
+
+		function tickFormatFn(d) {
+			if (d > 0) {
+				// d = [1, infinity] = d AD
+				if (d === (d|0)) {
+					return d.toString();	
+				} else {
+					var frac = d - (d|0);
+					var year = d|0;
+					var monthDay = monthDayFromFraction(frac, year);
+					return monthDay[1] + ' ' + (year + monthDay[0]).toString();
+				}
+			} else if (d >= -10001) {
+				// d = [-10001, 0] = (-d + 1) BC
+				return (-d + 1).toString() + ' BC';
+			} else {
+				// d = [-infinity, -100002] = (-d + 1950) / 1000000 Ma
+				return d3.format(",.0f")((-d + 1950) / 1000000) + ' Ma';
+			}
+		}
+
+		// static variables and functions
 		var allTimelines = [];
 		function setHash() {
 			window.location.hash =
@@ -306,8 +454,12 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					.classed({'x': true, 'axis': true})
 					.attr('height', C.AXISHEIGHT);
 
-				this.xAxis = d3.svg.axis();
 
+				this.xAxis = d3.svg.axis()
+					.tickValues(function () {
+						return tickValuesFn(that.x.domain()[0], that.x.domain()[1]);
+					})
+					.tickFormat(tickFormatFn);
 
 				var context = this.svg.append('g')
 					.attr('height', C.CONTEXTSTRIPHEIGHT);
