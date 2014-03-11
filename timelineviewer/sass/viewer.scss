@@ -145,17 +145,24 @@ h2 {
 		padding-bottom: 12pt;
 	}
 
-	.text-elements-holder {
-		position: relative; // because text elements will be absolute
+	.zoomable-holder {
+		position: relative;
 
-		.text-root {
-			position: absolute;
+		.text-elements-holder {
+			position: absolute; // because text elements will be absolute
+			overflow: hidden;
+			width: 100%;
 
-			.text-transform {
+			.text-root {
 				position: absolute;
+
+				.text-transform {
+					position: absolute;
+				}
 			}
 		}
 	}
+
 
 	svg {
 		font-size: 10px;
