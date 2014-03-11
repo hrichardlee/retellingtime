@@ -296,7 +296,7 @@ def parse_date_text(text):
 		if daynum != None: yeartp.day = daynum
 		return yeartp
 	def year(year): # returns TimePoint
-		if year.node == 'YBC': return -num(year[0])
+		if year.node == 'YBC': return -num(year[0]) + 1 # because we are using astronomical years in which x BC is stored as (-x + 1)
 		elif year.node == 'YAD': return yadyymymd(year)
 	def _has_child_node(n, label):
 		return [i for i, c in enumerate(n) if hasattr(c, 'node') and c.node == label]
@@ -344,19 +344,19 @@ def parse_date_text(text):
 		elif date[0].node == 'PERIODAD' or date[0].node == 'PERIODBC':
 			return period(date[0])
 	def yearsago(yearsago): # returns TimelineDate
-		# not currently adjusting for the 2014 years since 0 A.D....
+		# assume years ago means years ago from Jan 1 1950
 		if yearsago[0].node == 'YAS':
-			return TimelineDate(-num(yearsago[0][0]))
+			return TimelineDate(-num(yearsago[0][0]) + 1950)
 		elif yearsago[0].node == 'YAR':
-			return TimelineDate(-num(yearsago[0][0]), -num(yearsago[0][2]))
+			return TimelineDate(-num(yearsago[0][0]) + 1950, -num(yearsago[0][2]) + 1950)
 		elif yearsago[0].node == 'KAS':
-			return TimelineDate(-dec(yearsago[0][0]) * 1000)
+			return TimelineDate(-dec(yearsago[0][0]) * 1000 + 1950)
 		elif yearsago[0].node == 'KAR':
-			return TimelineDate(-dec(yearsago[0][0]) * 1000, -dec(yearsago[0][2]) * 1000)
+			return TimelineDate(-dec(yearsago[0][0]) * 1000 + 1950, -dec(yearsago[0][2]) * 1000 + 1950)
 		elif yearsago[0].node == 'MAS':
-			return TimelineDate(-dec(yearsago[0][0]) * 1000000)
+			return TimelineDate(-dec(yearsago[0][0]) * 1000000 + 1950)
 		elif yearsago[0].node == 'MAR':
-			return TimelineDate(-dec(yearsago[0][0]) * 1000000, -dec(yearsago[0][2]) * 1000000)
+			return TimelineDate(-dec(yearsago[0][0]) * 1000000 + 1950, -dec(yearsago[0][2]) * 1000000 + 1950)
 	def monthdayrange(r): # returns TimelineDate
 		copy_from_first = False
 		second = None

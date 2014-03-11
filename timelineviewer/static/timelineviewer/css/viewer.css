@@ -83,6 +83,12 @@ h2 {
 
 #timelines {
   background-color: #fdf6e3; }
+  #timelines .loading-indicator {
+    font-size: 24pt;
+    color: rgba(147, 161, 161, 0.45);
+    text-align: center;
+    padding-top: 12pt;
+    padding-bottom: 12pt; }
   #timelines svg {
     font-size: 10px; }
     #timelines svg .background {

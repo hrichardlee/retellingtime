@@ -137,6 +137,14 @@ h2 {
 #timelines {
 	background-color: $white;
 
+	.loading-indicator {
+		font-size: 24pt;
+		color: $fglightTransp;
+		text-align: center;
+		padding-top: 12pt;
+		padding-bottom: 12pt;
+	}
+
 	svg {
 		font-size: 10px;
 
