@@ -136,7 +136,7 @@ def devgo():
 	with settings(warn_only=True):
 		local('kill `pgrep -f "python manage.py runserver"`')
 	local('sass --update timelineviewer/sass:timelineviewer/static/timelineviewer/css/')
-	local('python manage.py runserver 0.0.0.0:8000 --noreload')
+	local('python manage.py runserver 0.0.0.0:8000 --noreload --insecure')
 
 def devresetdb():
 	local('rm db.sqlite3 --force')
