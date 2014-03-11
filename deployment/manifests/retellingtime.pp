@@ -76,5 +76,24 @@ class webserver {
 		target => "/etc/nginx/sites-available/retellingtime",
 		notify => Service["nginx"]
 	}
+
+	file { "/etc/nginx/ssl":
+		require => Package["nginx"],
+		ensure => "directory"
+	}
+
+	file { "/etc/nginx/ssl/server.crt":
+		require => [Package["nginx"], File["/etc/nginx/ssl"]],
+		ensure => "file",
+		source => "${puppet_manifests_dir}/server.crt",
+		notify => Service["nginx"]
+	}
+
+	file { "/etc/nginx/ssl/server.key":
+		require => [Package["nginx"], File["/etc/nginx/ssl"]],
+		ensure => "file",
+		source => "${puppet_manifests_dir}/server.key",
+		notify => Service["nginx"]
+	}
 }
 
