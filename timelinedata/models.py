@@ -3,6 +3,7 @@ from django.utils.html import format_html, escape
 import logging
 import json
 from bs4 import BeautifulSoup
+import operator
 
 import pdb
 
@@ -22,6 +23,8 @@ class Timeline(models.Model):
 	url = models.CharField(max_length = 500)
 	timestamp = models.DateTimeField(auto_now = True)
 	highlighted = models.BooleanField(default = False)
+
+	orig_titles = models.CharField(max_length = 2000, default = '', blank = True)
 
 	# data
 	events = models.CharField(max_length = 1000000, blank = True)
@@ -62,6 +65,8 @@ class Timeline(models.Model):
 		if self.keep_row_together: s += 'rows_together '
 		if self.single_section: s += '#' + self.single_section + ' '
 		if self.extra_ignore_sections: s += '-#' + self.extra_ignore_sections + ' '
+		# this is not really a parameter but we include it here
+		if self.orig_titles: s += 'comb: ' + self.orig_titles + ' '
 		s += format_html('<a href="{0}">orig</a>', self.url)
 		return s
 	params.allow_tags = True
@@ -153,14 +158,27 @@ class Timeline(models.Model):
 		return not self.banned and not self.fewer_than_threshold
 
 	def get_events(self):
-		raw_events = wikipediaprocess.wp_page_to_events_raw(self.title, self.get_params())
-		(self.first_and_last, self.errors, self.fewer_than_threshold) = wikipediaprocess.get_errors(raw_events, _event_threshold)
-		self.url = wikipediaprocess.get_wp_page(self.title).url
-		events = wikipediaprocess.wp_post_process(raw_events, self.url)
-		if not self.fewer_than_threshold:
-			self.events = json.dumps(events)
-		self.save()
-		return self.fewer_than_threshold
+		if self.orig_titles:
+			titles = json.loads(self.orig_titles)
+			timelines = []
+			for t in titles:
+				objs = Timeline.objects.filter(title__iexact = t)
+				if objs:
+					timelines.append(objs[0])
+			event_lists = [json.loads(t.events) for t in timelines]
+			self.events = json.dumps(Timeline.combine_events(event_lists))
+			self.fewer_than_threshold = all(t.fewer_than_threshold for t in timelines)
+			self.save()
+			return True
+		else:
+			raw_events = wikipediaprocess.wp_page_to_events_raw(self.title, self.get_params())
+			(self.first_and_last, self.errors, self.fewer_than_threshold) = wikipediaprocess.get_errors(raw_events, _event_threshold)
+			self.url = wikipediaprocess.get_wp_page(self.title).url
+			events = wikipediaprocess.wp_post_process(raw_events, self.url)
+			if not self.fewer_than_threshold:
+				self.events = json.dumps(events)
+			self.save()
+			return self.fewer_than_threshold
 
 	@classmethod
 	def process_wikipedia_page(cls, page_title, refresh = False, p = None):
@@ -184,3 +202,24 @@ class Timeline(models.Model):
 			return timeline
 		else:
 			return None
+
+	@classmethod
+	def combine_events(cls, event_lists):
+		return sorted([event for event_list in event_lists for event in event_list], key = operator.itemgetter('date'), reverse = True)
+
+	@classmethod
+	def combine_timelines(cls, timelines):
+		event_lists = [json.loads(t.events) for t in timelines]
+
+		# find the timeline with the oldest event
+		first_timeline = timelines[min(enumerate(event_lists), key = lambda es: es[1][-1])[0]]
+
+		combination = cls(
+			orig_titles = json.dumps([t.title for t in timelines]),
+			title = ' + '.join(t.title for t in timelines),
+			url = first_timeline.url,
+			events = json.dumps(cls.combine_events(event_lists))
+			)
+		combination.set_params(htmlprocess.param_defaults({}))
+		combination.fewer_than_threshold = all(t.fewer_than_threshold for t in timelines)
+		combination.save()
