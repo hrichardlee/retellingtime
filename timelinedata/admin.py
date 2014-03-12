@@ -76,7 +76,7 @@ class TimelineAdmin(admin.ModelAdmin):
 
 	list_display = ('title', 'banned', 'highlighted', 'params', 'timestamp',
 		'first_and_last_formatted', 'fewer_than_threshold', 'errors_formatted_short')
-	list_filter = ('banned', 'fewer_than_threshold', ErrorsNonEmptyFilter, CombinationsFilter)
+	list_filter = ('highlighted', 'banned', 'fewer_than_threshold', ErrorsNonEmptyFilter, CombinationsFilter)
 	search_fields = ('title',)
 
 	actions = ['refresh', 'ban', 'unban', 'highlight', 'unhighlight', 'combine', 'asyncRefresh']
