@@ -3,7 +3,8 @@ html, body {
   width: 100%; }
 
 #frame {
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   position: absolute;
   top: 0;
   height: 100%;
@@ -63,7 +64,7 @@ h2 {
   .timeline-header h2 {
     display: inline; }
   .timeline-header a {
-    font-size: 10pt;
+    font-size: 9.5pt;
     line-height: 14pt; }
   .timeline-header .right {
     float: right; }
@@ -78,7 +79,7 @@ h2 {
   padding-top: 2px;
   padding-bottom: 2px;
   background-color: rgba(253, 246, 227, 0.5);
-  font-size: 10pt;
+  font-size: 9.5pt;
   line-height: 125%; }
 
 #timelines {
@@ -112,7 +113,8 @@ h2 {
     #timelines svg .axis path, #timelines svg .axis line {
       fill: none;
       stroke: #93a1a1;
-      shape-rendering: crispEdges; }
+      shape-rendering: crispEdges;
+      stroke-width: 2; }
     #timelines svg .axis text {
       fill: #93a1a1; }
     #timelines svg .context-markers line.marker {
