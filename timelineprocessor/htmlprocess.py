@@ -100,7 +100,7 @@ _line_break = '<br />'
 _ignore_sections = set([
 	'',
 	'contents', 'see also',	'references', 'external links',	'notes',
-	'further reading', 'related media', 'notes and citations'
+	'further reading', 'related media', 'notes and citations', 'footnotes',
 ])
 
 def _close_event(es, e):

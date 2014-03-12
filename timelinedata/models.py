@@ -134,8 +134,7 @@ class Timeline(models.Model):
 	def sort_order_title(self):
 		t = self.short_title().lower()
 		if t.startswith('the '):
-			temp = t[4:].strip()
-			return temp[0].upper() + temp[1:]
+			return t[4:].strip()
 		else:
 			return t
 

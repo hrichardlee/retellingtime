@@ -2,6 +2,7 @@ from django.contrib import admin
 from timelinedata.models import Timeline
 from timelineprocessor import wikipediaprocess
 from timelinedata.views import admin_populate
+import timelinedata.tasks
 from django.conf.urls import patterns, url
 
 
@@ -50,6 +51,10 @@ class TimelineAdmin(admin.ModelAdmin):
 		for timeline in queryset:
 			timeline.get_events()
 
+	def asyncRefresh(modeladmin, request, queryset):
+		for timeline in queryset:
+			timelinedata.tasks.refreshTimeline.delay(timeline)
+
 	def ban(modeladmin, request, queryset):
 		for p in queryset:
 			p.ban()
@@ -74,7 +79,7 @@ class TimelineAdmin(admin.ModelAdmin):
 	list_filter = ('banned', 'fewer_than_threshold', ErrorsNonEmptyFilter, CombinationsFilter)
 	search_fields = ('title',)
 
-	actions = ['refresh', 'ban', 'unban', 'highlight', 'unhighlight', 'combine']
+	actions = ['refresh', 'ban', 'unban', 'highlight', 'unhighlight', 'combine', 'asyncRefresh']
 
 	readonly_fields = ('timestamp', 'first_and_last_formatted', 'errors_formatted', 'pretty_events')
 

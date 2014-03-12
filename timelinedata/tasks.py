@@ -12,3 +12,7 @@ def add(x, y):
 @shared_task
 def getWikipediaTimeline(page_title):
 	Timeline.process_wikipedia_page(page_title)
+
+@shared_task
+def refreshTimeline(timeline):
+	timeline.get_events()

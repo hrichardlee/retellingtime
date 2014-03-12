@@ -277,7 +277,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 			},
 			setWidth: function (retainWindow) {
 				// we're still using the "old" parameters here:
-				if (retainWindow) {
+				if (retainWindow && allTimelines.length > 0) {
 					// this is pretty hacky, caused by having multiple zooms/brushes for each timeline
 					var a = allTimelines[0].x.invert(0);
 					var b = allTimelines[0].x.invert(widthParams.width);
@@ -373,6 +373,10 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 						widthParams.setWidth(false);
 					}
 					setHash();
+
+					if (that.resizeFn) {
+						$(window).off('resize', that.resizeFn);
+					}
 				})
 
 				$('a#set-focus-link #active', headerEl).addClass('hidden');
@@ -889,13 +893,15 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					that.baseEl.remove();
 				});
 
-			$(window).on('resize', function () {
+			this.resizeFn = function () {
 				if (allTimelines.length == 1) {
 					// This is only in the case where this is the only timeline
 					that.setRenderHeight(Math.max($(window).height() - C.TALLTIMELINEMARGIN, C.SHORTTIMELINEHEIGHT));
 					that.doRender();
 				}
-			});
+			}
+
+			$(window).on('resize', this.resizeFn);
 
 		}
 		Timeline.prototype = baseObject;
