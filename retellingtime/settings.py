@@ -105,3 +105,11 @@ LOGGING = {
         },
     },
 }
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'retellingtime@gmail.com'
+EMAIL_HOST_PASSWORD = 'BCdzpSICQodMGvmBQFOA'
+DEFAULT_FROM_EMAIL = 'retellingtime@gmail.com'
+ADMINS = (('Richard', 'hrichardlee@gmail.com'),)

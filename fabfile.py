@@ -77,7 +77,7 @@ def exec_puppet(manifest):
 
 ## Source
 def put_source():
-	rsync_project(remote_dir=source_dir, local_dir='./', exclude='.git', extra_opts='--filter=":- .gitignore"')
+	rsync_project(remote_dir=source_dir, local_dir='./', exclude='.git', extra_opts='--filter=":- .gitignore" --delete')
 
 def update_reqs():
 	ve_run('pip install -r requirements.txt', base_dir=source_dir)
