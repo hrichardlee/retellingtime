@@ -8,3 +8,6 @@ def index(request):
 		{'timelines': sorted([t for t in Timeline.objects.all() if t.is_valid()], key=lambda t: t.sort_order_title()),
 		'highlighted_timelines': sorted([t for t in Timeline.objects.filter(highlighted = True)], key = lambda t: t.sort_order_title())
 		})
+
+def about(request):
+	return render(request, 'timelineviewer/about.html')

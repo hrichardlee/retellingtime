@@ -1,6 +1,7 @@
 html, body {
   height: 100%;
-  width: 100%; }
+  width: 100%;
+  font-size: 10pt; }
 
 #frame {
   overflow-y: auto;
@@ -26,7 +27,7 @@ a:hover {
 a, a:visited {
   color: #2aa198; }
 
-.horiz-padding, #header h1, .timeline-header, #timeline-adder {
+.horiz-padding, #header h1, #header #about-link, .timeline-header, #timeline-adder, #about-text {
   padding-left: 10px;
   padding-right: 10px; }
 
@@ -35,10 +36,10 @@ a, a:visited {
 
 #header {
   width: 100%;
-  border-bottom: 2px solid #93a1a1; }
+  border-bottom: 2px solid #93a1a1;
+  padding-top: 2px;
+  padding-bottom: 2px; }
   #header h1 {
-    padding-top: 4px;
-    padding-bottom: 4px;
     margin: 0;
     font-size: 16pt;
     font-family: "Open Sans", sans-serif;
@@ -46,6 +47,13 @@ a, a:visited {
     font-weight: 400; }
     #header h1 #retelling {
       font-family: "Open Sans Condensed", sans-serif; }
+    #header h1 a {
+      text-decoration: none;
+      color: #93a1a1; }
+  #header #about-link {
+    font-size: 10pt;
+    position: relative;
+    top: 5px; }
 
 h2 {
   font-size: 12pt;
@@ -53,23 +61,26 @@ h2 {
   font-weight: 400;
   line-height: 14pt; }
 
+.left {
+  float: left; }
+
+.right {
+  float: right; }
+
+.clear {
+  clear: both; }
+
 .timeline-header {
   margin: 0;
   padding-top: 2px;
   padding-bottom: 2px;
   background-color: #eee8d5;
   color: #93a1a1; }
-  .timeline-header .left {
-    float: left; }
   .timeline-header h2 {
     display: inline; }
   .timeline-header a {
-    font-size: 9.5pt;
+    font-size: 10pt;
     line-height: 14pt; }
-  .timeline-header .right {
-    float: right; }
-  .timeline-header .clear {
-    clear: both; }
 
 .event-text {
   width: 180px;
@@ -79,7 +90,7 @@ h2 {
   padding-top: 2px;
   padding-bottom: 2px;
   background-color: rgba(253, 246, 227, 0.5);
-  font-size: 9.5pt;
+  font-size: 10pt;
   line-height: 125%; }
 
 #timelines {
@@ -128,7 +139,8 @@ h2 {
 #timeline-adder {
   border-top: 2px solid #93a1a1;
   padding-top: 4px;
-  padding-bottom: 24px; }
+  padding-bottom: 24px;
+  font-size: 12pt; }
   #timeline-adder .instructions {
     font-size: 12pt;
     font-family: "Open Sans Condensed", sans-serif;
@@ -158,4 +170,12 @@ h2 {
   font-size: 16pt;
   max-width: 500px; }
   #apology-message .details {
+    font-size: 12pt; }
+
+#about-text {
+  max-width: 75em; }
+  #about-text h2 {
+    font-size: 24px; }
+  #about-text p {
+    padding-left: 4em;
     font-size: 12pt; }
