@@ -25,7 +25,7 @@ $bodyFont: 'Noticia Text', serif;
 $chromeFont: 'Open Sans', sans-serif;
 $headerFont: 'Open Sans Condensed', sans-serif;
 $headerFontSize: 12pt;
-$bodyFontSize: 10pt;
+$bodyFontSize: 9.5pt;
 
 // for frame/scrolling stuff
 html, body {
@@ -34,7 +34,8 @@ html, body {
 }
 
 #frame {
-	overflow: auto;
+	overflow-y: auto;
+	overflow-x: hidden;
 	position: absolute;
 	top: 0;
 	height: 100%;
