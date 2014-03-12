@@ -187,12 +187,13 @@ def string_blocks_to_events(string_blocks, p = None):
 						 ):
 
 						_close_event(events, curr_event)
-						date = TimelineDate.combine(base_date, parse[0])
+						date = parse[0]
 						if date.start_year() == None and prev_date:
 							# this is the case where we have a month or
 							# monthday but no year. in this case, take it from
 							# the previous event
 							date = TimelineDate.combine(prev_date, date)
+						date = TimelineDate.combine(base_date, date)
 						curr_event = {
 							'date': date.start_year(),
 							'date_length': date.length(),
