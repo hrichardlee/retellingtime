@@ -115,6 +115,7 @@ class TestParseDate(unittest.TestCase):
 			(u'15 ±0.3 Ma',				(TimelineDate(TimePoint(-15000000 + 1950, year_approx = 300000 + 1950)),		u'15 ±0.3 Ma',		u'')),
 			(u'541 ±\xa00.3 Ma',		(TimelineDate(TimePoint(-541000000 + 1950, year_approx = 300000 + 1950)),		u'541 ±\xa00.3 Ma',	u'')),
 			(u'25? Ma',					(TimelineDate(TimePoint(-25000000 + 1950, year_approx = True)),		u'25? Ma',			u'')),
+			(u'25 million years ago',					(TimelineDate(TimePoint(-25000000 + 1950)),		u'25 million years ago',			u'')),
 		))
 
 		# This case should be fixed so that it works

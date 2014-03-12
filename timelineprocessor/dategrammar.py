@@ -14,11 +14,15 @@ date_grammar_string = u"""
 	YAS -> NUM osp years sp ago | NUM osp bp
 	YAR -> NUM TO NUM osp years sp ago | NUM TO NUM osp bp
 
-	KAS -> DEC osp ka ago | DEC osp ka
-	KAR -> DEC TO DEC ka ago | DEC TO DEC osp ka
+	KAS -> DEC osp KA
+	KAR -> DEC TO DEC osp KA
 
-	MAS -> DEC osp ma ago | DEC osp ma
-	MAR -> DEC TO DEC ma ago | DEC TO DEC osp ma
+	KA -> ka | ka sp ago | thousand sp years sp ago
+
+	MAS -> DEC osp MA
+	MAR -> DEC TO DEC osp MA
+
+	MA -> ma | ma sp ago | million sp years sp ago
 
 	NUM -> NUME | NUMQ
 	NUME -> NUMLEADGROUP NUMGROUPS
@@ -111,6 +115,8 @@ date_grammar_string = u"""
 	to -> 't' 'o'
 	years -> 'y' 'e' 'a' 'r' 's' | 'y' 'r' 's' | 'y' 'r' 's' x
 	ago -> 'a' 'g' 'o'
+	thousand -> 't' 'h' 'o' 'u' 's' 'a' 'n' 'd'
+	million -> 'm' 'i' 'l' 'l' 'i' 'o' 'n'
 	bp -> 'b' 'p'
 	ma -> 'm' 'a'
 	ka -> 'k' 'a'
@@ -139,7 +145,7 @@ date_grammar_words = [
 	u'about',
 	u'to',
 	u'years', u'yrs', u'ago', u'bp',
-	u'ma', u'ka',
+	u'ma', u'ka', u'thousand', u'million',
 	u'th', u'st', u'nd', u'rd',
 	u'century',
 	u'millenium', 'millennium',
