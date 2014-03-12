@@ -20,5 +20,5 @@ pycrypto==2.6.1
 pytz==2013.9
 requests==1.2.3
 tornado==3.2
--e git+https://github.com/hrichardlee/Wikipedia@a36099916d2a0f274cc0f5f4020fadb5a79acb6f#egg=wikipedia-master
+-e git+https://github.com/hrichardlee/Wikipedia@1bc77f8dddca1187273b663588f6564bc72c79e2#egg=wikipedia
 wsgiref==0.1.2
