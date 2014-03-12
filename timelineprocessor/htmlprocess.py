@@ -180,6 +180,7 @@ def string_blocks_to_events(string_blocks, p = None):
 					if parse and \
 						((not base_date_range) or \
 						 (parse[0].start_year() == None) or \
+						 (base_date_string.lower().strip() == 'antiquity') or \
 						 (parse[0].start_year() >= base_date_range[0] and \
 						 	parse[0].start_year() <= base_date_range[1]) or \
 						 (TimelineDate.can_combine_as_day(base_date, parse[0]))
