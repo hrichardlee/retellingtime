@@ -452,7 +452,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 
 
 				this.axisSvg = baseEl.append('svg')
-					.attr('height', C.AXISHEIGHT + C.CONTEXTSTRIPHEIGHT)
+					.attr('height', C.AXISHEIGHT + C.CONTEXTSTRIPHEIGHT + 1)
 					.attr('width', '100%');
 
 				this.xAxisEl = this.axisSvg.append('g')
