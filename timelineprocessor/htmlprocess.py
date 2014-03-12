@@ -38,6 +38,10 @@ def _close_string_blocks(sbs, sb, s):
 	if sb['lines']:
 		sbs.append(sb)
 
+_ignore_classes = set([
+	'thumb', 'toc',
+])
+
 def html_to_string_blocks(html):
 	"""Given an html element as a BeautifulSoup, returns a list of string
 	blocks. Each string block represents a section in the html demarcated by a
@@ -57,6 +61,12 @@ def html_to_string_blocks(html):
 	curr_string_block = {'lines': [], 'heading': curr_heading}
 	curr_string = ''
 	for el in html.children:
+		try:
+			if el.has_attr('class') and any((c in _ignore_classes) for c in el['class']):
+				continue
+		except (AttributeError, KeyError):
+			pass
+
 		if el.name in _header_elements:
 			# close the previous block
 			_close_string_blocks(string_blocks, curr_string_block, curr_string)
