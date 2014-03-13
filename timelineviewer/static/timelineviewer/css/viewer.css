@@ -173,9 +173,11 @@ h2 {
     font-size: 12pt; }
 
 #about-text {
-  max-width: 75em; }
+  max-width: 75em;
+  padding-bottom: 4em; }
   #about-text h2 {
-    font-size: 24px; }
+    font-size: 24px;
+    color: #93a1a1; }
   #about-text p {
     padding-left: 4em;
     font-size: 12pt; }

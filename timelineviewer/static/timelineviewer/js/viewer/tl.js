@@ -145,7 +145,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				return (-d + 1).toString() + ' BC';
 			} else {
 				// d = [-infinity, -100002] = (-d + 1950) / 1000000 Ma
-				return d3.format(",.0f")((-d + 1950) / 1000000) + ' Ma';
+				return ((-d + 1950) / 1000000) + ' Ma';
 			}
 		}
 
