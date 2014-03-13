@@ -24,13 +24,18 @@ $green:     #859900;
 $bodyFont: 'Noticia Text', serif;
 $chromeFont: 'Open Sans', sans-serif;
 $headerFont: 'Open Sans Condensed', sans-serif;
+$titleHeaderFontSize: 16pt;
 $headerFontSize: 12pt;
-$bodyFontSize: 9.5pt;
+$bodyFontSize: 10pt;
+$textBodyFontSize: 12pt;
+$axisFontSize: 10px;
 
 // for frame/scrolling stuff
 html, body {
 	height: 100%;
 	width: 100%;
+
+	font-size: $bodyFontSize;
 }
 
 #frame {
@@ -65,14 +70,14 @@ a, a:visited { color: $cyan; }
 #header {
 	width: 100%;
 	border-bottom: 2px solid $fglight;
+	padding-top: 2px;
+	padding-bottom: 2px;
 
 	h1 {
 		@extend .horiz-padding;
-		padding-top: 4px;
-		padding-bottom: 4px;
 		margin: 0;
 
-		font-size: 16pt;
+		font-size: $titleHeaderFontSize;
 		font-family: $chromeFont;
 		color: $fglight;
 		font-weight: 400;
@@ -80,6 +85,18 @@ a, a:visited { color: $cyan; }
 		#retelling {
 			font-family: $headerFont;
 		}
+
+		a {
+			text-decoration: none;
+			color: $fglight;
+		}
+	}
+
+	#about-link {
+		@extend .horiz-padding;
+		font-size: $bodyFontSize;
+		position: relative;
+		top: 5px; // this is very arbitrary...
 	}
 }
 
@@ -88,6 +105,18 @@ h2 {
 	font-family: $headerFont;
 	font-weight: 400;
 	line-height: 14pt;
+}
+
+.left {
+	float: left;
+}
+
+.right {
+	float: right;
+}
+
+.clear {
+	clear: both;
 }
 
 .timeline-header {
@@ -99,10 +128,6 @@ h2 {
 	background-color: $whitedark;
 	color: $fglight;
 
-	.left {
-		float: left;
-	}
-
 	h2 {
 		display: inline;
 	}
@@ -110,14 +135,6 @@ h2 {
 	a {
 		font-size: $bodyFontSize;
 		line-height: 14pt;
-	}
-
-	.right {
-		float: right;
-	}
-
-	.clear {
-		clear: both;
 	}
 }
 
@@ -166,7 +183,7 @@ h2 {
 
 
 	svg {
-		font-size: 10px;
+		font-size: $axisFontSize;
 
 		.background {
 			fill: $white;
@@ -215,6 +232,7 @@ h2 {
 	border-top: 2px solid $fglight;
 	padding-top: 4px;
 	padding-bottom: 24px;
+	font-size: $textBodyFontSize;
 
 	.instructions {
 		font-size: $headerFontSize;
@@ -265,6 +283,23 @@ h2 {
 	max-width: 500px;
 
 	.details {
+		font-size: 12pt;
+	}
+}
+
+
+#about-text {
+	@extend .horiz-padding;
+	max-width: 75em;
+	padding-bottom: 6em;
+
+	h2 {
+		font-size: 24px;
+		color: $fglight;
+	}
+
+	p {
+		padding-left: 4em;
 		font-size: 12pt;
 	}
 }

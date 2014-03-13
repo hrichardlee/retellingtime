@@ -3,8 +3,23 @@
 
 {% block object-tools-items %}
   <li>
-    <a href="{% url 'admin:timelineadmin_populate' %}">
-      Populate timelines
+    <a href="{% url 'admin:timelineadmin_populate_from_list' %}">
+      From List of Timelines
+    </a>
+  </li>
+  <li>
+    <a href="{% url 'admin:timelineadmin_populate_from_title_search' %}">
+      From title search
+    </a>
+  </li>
+  <li>
+    <a href="{% url 'admin:timelineadmin_refresh_all' %}">
+      Refresh all
+    </a>
+  </li>
+  <li>
+    <a href="{% url 'admin:timelineadmin_cancel_all' %}">
+      Cancel all
     </a>
   </li>
 

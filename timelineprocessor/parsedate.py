@@ -277,7 +277,7 @@ def parse_date_text(text):
 		if isad:
 			return TimelineDate(n * factor - factor, n * factor)
 		else:
-			return TimelineDate(-n * factor, -n * factor + factor)
+			return TimelineDate(-n * factor + 1, -n * factor + factor + 1)
 	def yadyymymd(yad): # returns TimePoint
 		# name stands for year AD: year, year month, year month day
 		monthtp = None

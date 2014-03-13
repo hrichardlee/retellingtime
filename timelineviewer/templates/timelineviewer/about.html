@@ -1,0 +1,34 @@
+{% extends "timelineviewer/base.html" %}
+
+{% block content %}
+
+<div id="header">
+	<div class="left">
+		<h1><a href="{% url 'index' %}"><span id="retelling">RETELLING</span>TIME</a></h1>
+	</div>
+	<div class="right">
+		<a id="about-link" href="{% url 'about' %}">about</a>
+	</div>
+	<div class="clear"></div>
+</div>
+
+<div id="about-text">
+<h2>The Internet, remixing, and the wisdom of the crowds</h2>
+<p>Retelling Time takes the text of timeline pages from the English language Wikipedia and visualizes them. Retelling Time is not affiliated with Wikipedia or the Wikimedia Foundation. The contents of Retelling Time are distributed under the terms of the the <a href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons ShareAlike license</a>. The <a href="https://github.com/hrichardlee/retellingtime">code for Retelling Time</a> is also available.</p>
+
+<h2>Accuracy, epistemology, and known unknowns</h2>
+<p>Some of the timelines will be incorrect or nonsensical because Retelling Time did not parse the corresponding Wikipedia page correctly. Much of the time, this is because the code for Retelling Time is making a bad assumption about the Wikipedia page. In that case, <a href="mailto:retellingtime@gmail.com">let me know</a> or have a look at the <a href="https://github.com/hrichardlee/retellingtime">code</a> and send me an update to the code. Other times, this is because the Wikipedia page itself is formatted poorly, in which case, please edit the Wikipedia page. Retelling Time will periodically refresh its timelines from Wikipedia's text.</p>
+
+<p>In other cases, a timeline will be wrong in a factual way or a normative way. Again, please edit the Wikipedia page directly.</p>
+
+<p>You may also feel that there should be a timeline about a subject that does not exist. Sometimes, a timeline on Wikipedia will be ignored by Retelling Time. This is probably because Retelling Time doesn't understand the structure of that particular Wikipedia page. Again, <a href="mailto:retellingtime@gmail.com">let me know</a> and/or have a look at the <a href="https://github.com/hrichardlee/retellingtime">code</a>. Or, Wikipedia might not have a timeline for that topic, in which case, please create the Wikipedia page. If the title of the page starts with "Timeline of", it'll show up here eventually.</p>
+
+<h2>Calendars, horseshoes, and hand grenades</h2>
+<p>Retelling Time has decided interpreting dates using the <a href="https://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar">proleptic Gregorian calendar</a> for dates after 1 AD is good enough. Retelling Time makes no attempt at interpreting months and days before 1 AD. For dates that are marked as "before present" (for example "5 million years ago"), "present" is considered to be <a href="https://en.wikipedia.org/wiki/Dendrochronology">January 1, 1950</a>. All years are allotted equal horizontal space on the timeline regardless of how many days they consist of.</p>
+
+<h2>Timelines, maps, and finding your way</h2>
+<p>I think of timelines as the temporal equivalents of maps. As with space, we can only ever occupy a tiny slice of it, and only ever rove across an <a href="http://zenpencils.com/comic/100-carl-sagan-pale-blue-dot/">ever so slightly larger slice</a> over the course of our lives. Even abstractly understanding its contours is the work of generations. With space, we have a bit more control over how we travel across it, which is why spatial maps are more practical, monetizable, and thoroughly developed. We can daydream about the day when temporal maps will need a directions feature. (Directions from <b>your present time</b> to <b>the invention of the land mine</b>: Hang a left at <b>the Lutheran reformation</b>. Use caution – This route may be missing sidewalks or pedestrian paths.) The promise of the virtual world is to overcome the reality of this confinement, to give us wings to fly with.</p>
+
+</div>
+
+{% endblock %}

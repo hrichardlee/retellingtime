@@ -38,6 +38,10 @@ def _close_string_blocks(sbs, sb, s):
 	if sb['lines']:
 		sbs.append(sb)
 
+_ignore_classes = set([
+	'thumb', 'toc',
+])
+
 def html_to_string_blocks(html):
 	"""Given an html element as a BeautifulSoup, returns a list of string
 	blocks. Each string block represents a section in the html demarcated by a
@@ -57,6 +61,12 @@ def html_to_string_blocks(html):
 	curr_string_block = {'lines': [], 'heading': curr_heading}
 	curr_string = ''
 	for el in html.children:
+		try:
+			if el.has_attr('class') and any((c in _ignore_classes) for c in el['class']):
+				continue
+		except (AttributeError, KeyError):
+			pass
+
 		if el.name in _header_elements:
 			# close the previous block
 			_close_string_blocks(string_blocks, curr_string_block, curr_string)
@@ -170,18 +180,20 @@ def string_blocks_to_events(string_blocks, p = None):
 					if parse and \
 						((not base_date_range) or \
 						 (parse[0].start_year() == None) or \
+						 (base_date_string.lower().strip() == 'antiquity') or \
 						 (parse[0].start_year() >= base_date_range[0] and \
 						 	parse[0].start_year() <= base_date_range[1]) or \
 						 (TimelineDate.can_combine_as_day(base_date, parse[0]))
 						 ):
 
 						_close_event(events, curr_event)
-						date = TimelineDate.combine(base_date, parse[0])
+						date = parse[0]
 						if date.start_year() == None and prev_date:
 							# this is the case where we have a month or
 							# monthday but no year. in this case, take it from
 							# the previous event
 							date = TimelineDate.combine(prev_date, date)
+						date = TimelineDate.combine(base_date, date)
 						curr_event = {
 							'date': date.start_year(),
 							'date_length': date.length(),
