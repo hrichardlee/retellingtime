@@ -26,7 +26,7 @@ class Timeline(models.Model):
 
 	url = models.CharField(max_length = 500)
 	timestamp = models.DateTimeField(auto_now = True)
-	highlighted = models.BooleanField(default = False)
+	highlighted = models.BooleanField(db_index = True, default = False)
 
 	orig_titles = models.CharField(max_length = 2000, default = '', blank = True)
 
@@ -34,7 +34,7 @@ class Timeline(models.Model):
 	events = models.CharField(max_length = 1000000, blank = True)
 	banned = models.BooleanField(default = False)
 	fewer_than_threshold = models.BooleanField()
-	is_valid = models.BooleanField(default = True)
+	is_valid = models.BooleanField(db_index = True, default = True)
 
 	# error and diagnostic info
 	first_and_last = models.CharField(max_length = 1000, blank = True)

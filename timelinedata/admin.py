@@ -47,9 +47,8 @@ class TimelineAdmin(admin.ModelAdmin):
 		return admin_populate_from_title_search(request, self)
 
 	def resave_all_view(self, request):
-		for t in Timeline.objects.all():
-			t.save()
-		self.message_user(request, 'Resaved all timelines')
+		timelinedata.tasks.resaveTimelines.delay()
+		self.message_user(request, 'Queued resaving all timelines')
 		return self.changelist_view(request)
 
 	def refresh_all_view(self, request):
