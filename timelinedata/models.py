@@ -22,7 +22,7 @@ class Timeline(models.Model):
 	# metadata
 	title = models.CharField(max_length = 500)
 	short_title = models.CharField(max_length = 500)
-	sort_order_title = models.CharField(max_length = 500)
+	sort_order_title = models.CharField(db_index = True, max_length = 500)
 
 	url = models.CharField(max_length = 500)
 	timestamp = models.DateTimeField(auto_now = True)
