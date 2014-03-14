@@ -347,6 +347,13 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				_.each(allTimelines, function (t) {
 					t.setRenderWidth();
 				});
+			},
+			getTranslateBounds: function (s) {
+				if (widthParams.isFocused) {
+					return [-widthParams.width * (s - 1), 0];
+				} else {
+					return [-widthParams.width * (s - 1) - C.PANMARGIN - C.EVENTWIDTH, C.PANMARGIN];
+				}
 			}
 		};
 		// class methods
@@ -362,6 +369,41 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 				this.headerEl = headerEl;
 
 				var that = this;
+
+				// scale = s, translate = t, width = w, x = point in middle of screen
+				// f(x) = x * s + t
+				// x | f(x) = w/2
+				// => x * s + t = w/2 => x = (w/2 - t) / s
+				// f'(x) = w/2
+				// x * s' + t' = w/2
+				// (w/2 - t) / s * s' + t' = w/2
+				// t' = w/2 - (w/2 - t) / s * s'
+				$('a#zoom-in-link', headerEl).click(function (e) {
+					var s = that.zoom.scale();
+					var ns = Math.min(that.zoom.scale() * 1.5, that.zoom.scaleExtent()[1]);
+					that.zoom.scale(ns);
+					var t = that.zoom.translate()[0]; var w = widthParams.width;
+					var newTranslate = w/2 - (w/2 - t) / s * ns;
+					that.zoom.translate([newTranslate, 0]);
+					that.doRender();
+					return false;
+				});
+
+				$('a#zoom-out-link', headerEl).click(function (e) {
+					var s = that.zoom.scale();
+					var ns = Math.max(that.zoom.scale() / 1.5, that.zoom.scaleExtent()[0]);
+					that.zoom.scale(ns);
+					var t = that.zoom.translate()[0]; var w = widthParams.width;
+					var newTranslate = w/2 - (w/2 - t) / s * ns;
+
+					var translateBounds = widthParams.getTranslateBounds(s);
+					newTranslate = Math.min(translateBounds[1], Math.max(translateBounds[0], newTranslate));
+
+					that.zoom.translate([newTranslate, 0]);
+					that.doRender();
+					return false;
+				});
+
 				$('a#remove-link', headerEl).click(function (e) {
 					// TODO: need to deal with allTimelines, allFirstDate, allLastDate
 					that.baseEl.remove();
@@ -377,6 +419,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					if (that.resizeFn) {
 						$(window).off('resize', that.resizeFn);
 					}
+					return false;
 				})
 
 				$('a#set-focus-link #active', headerEl).addClass('hidden');
@@ -395,6 +438,7 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					}
 
 					widthParams.setWidth(true);
+					return false;
 				})
 			},
 			resetFocus: function (isactive) {
@@ -585,15 +629,8 @@ define(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/consts'], funct
 					t = d3.event.translate;
 					s = d3.event.scale;
 
-					if (widthParams.isFocused) {
-						var upperBound = 0;
-						var lowerBound = -widthParams.width * (s - 1);
-						// lowerBound 
-					} else {
-						var upperBound = C.PANMARGIN;
-						var lowerBound = -widthParams.width * (s - 1) - C.PANMARGIN - C.EVENTWIDTH;
-					}
-					t[0] = Math.min(upperBound, Math.max(lowerBound, t[0]));
+					var translateBounds = widthParams.getTranslateBounds(s);
+					t[0] = Math.min(translateBounds[1], Math.max(translateBounds[0], t[0]));
 
 					this.zoom.translate(t);
 
