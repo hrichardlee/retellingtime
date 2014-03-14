@@ -46,6 +46,12 @@ class TimelineAdmin(admin.ModelAdmin):
 	def populate_from_title_search_view(self, request):
 		return admin_populate_from_title_search(request, self)
 
+	def resave_all_view(self, request):
+		for t in Timeline.objects.all():
+			t.save()
+		self.message_user(request, 'Resaved all timelines')
+		return self.changelist_view(request)
+
 	def refresh_all_view(self, request):
 		for t in Timeline.objects.all():
 			timelinedata.tasks.refreshTimeline.delay(t)
@@ -63,6 +69,7 @@ class TimelineAdmin(admin.ModelAdmin):
 		add_urls = patterns('',
 			url(r'^populate_from_list/$', self.populate_from_list_view, name='timelineadmin_populate_from_list'),
 			url(r'^populate_from_title_search/$', self.populate_from_title_search_view, name='timelineadmin_populate_from_title_search'),
+			url(r'^resave_all/$', self.resave_all_view, name='timelineadmin_resave_all'),
 			url(r'^refresh_all/$', self.refresh_all_view, name='timelineadmin_refresh_all'),
 			url(r'^cancel_all/$', self.cancel_all_view, name='timelineadmin_cancel_all'),
 			)

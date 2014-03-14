@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.html import format_html, escape
+from django.db.models.signals import pre_save
 import logging
 import json
 from bs4 import BeautifulSoup
@@ -20,6 +21,9 @@ _event_threshold = 4
 class Timeline(models.Model):
 	# metadata
 	title = models.CharField(max_length = 500)
+	short_title = models.CharField(max_length = 500)
+	sort_order_title = models.CharField(max_length = 500)
+
 	url = models.CharField(max_length = 500)
 	timestamp = models.DateTimeField(auto_now = True)
 	highlighted = models.BooleanField(default = False)
@@ -30,6 +34,7 @@ class Timeline(models.Model):
 	events = models.CharField(max_length = 1000000, blank = True)
 	banned = models.BooleanField(default = False)
 	fewer_than_threshold = models.BooleanField()
+	is_valid = models.BooleanField(default = True)
 
 	# error and diagnostic info
 	first_and_last = models.CharField(max_length = 1000, blank = True)
@@ -115,33 +120,9 @@ class Timeline(models.Model):
 	errors_formatted.allow_tags = True
 	errors_formatted.short_description = 'errors'
 
-	# presenting data
-	def short_title(self):
-		prefixes = ['timeline of ', 'chronology of ']
-		suffixes = [' timeline']
-
-		t = self.title.lower()
-
-		for p in prefixes:
-			if t.startswith(p):
-				temp = self.title[len(p):].strip()
-				return temp[0].upper() + temp[1:]
-		for s in suffixes:
-			if t.endswith(s):
-				return self.title[:-len(s)].strip()
-		return self.title
-
-	def sort_order_title(self):
-		t = self.short_title().lower()
-		if t.startswith('the '):
-			return t[4:].strip()
-		else:
-			return t
-
 	def summary(self):
 		return { 'title': self.title,
-				'short_title': self.short_title(),
-				'tags': 'TODO add tags',
+				'short_title': self.short_title,
 				'id': self.id }
 
 	def details_json(self):
@@ -150,7 +131,7 @@ class Timeline(models.Model):
 		return json.dumps({
 				'metadata': {
 					'title': self.title,
-					'short_title': self.short_title(),
+					'short_title': self.short_title,
 					'url': self.url
 				},
 				'events': 3021621274449386
@@ -161,9 +142,6 @@ class Timeline(models.Model):
 			% (self.id or -1, self.title, self.separate, self.events[:30])
 			
 	# processing data
-	def is_valid(self):
-		return not self.banned and not self.fewer_than_threshold
-
 	def get_events(self):
 		if self.orig_titles:
 			titles = json.loads(self.orig_titles)
@@ -205,7 +183,7 @@ class Timeline(models.Model):
 			timeline.set_params(htmlprocess.param_defaults(p or {}))
 			timeline.get_events()
 		
-		if timeline.is_valid():
+		if timeline.is_valid:
 			return timeline
 		else:
 			return None
@@ -230,3 +208,37 @@ class Timeline(models.Model):
 		combination.set_params(htmlprocess.param_defaults({}))
 		combination.fewer_than_threshold = all(t.fewer_than_threshold for t in timelines)
 		combination.save()
+
+
+def timeline_created(sender, **kwargs):
+	# presenting data
+	def short_title(title):
+		prefixes = ['timeline of ', 'chronology of ']
+		suffixes = [' timeline']
+
+		t = title.lower()
+
+		for p in prefixes:
+			if t.startswith(p):
+				temp = title[len(p):].strip()
+				return temp[0].upper() + temp[1:]
+		for s in suffixes:
+			if t.endswith(s):
+				return title[:-len(s)].strip()
+		return title
+
+	def sort_order_title(short_title):
+		t = short_title.lower()
+		if t.startswith('the '):
+			return t[4:].strip()
+		else:
+			return t
+
+	inst = kwargs['instance']
+
+	inst.short_title = short_title(inst.title)
+	inst.sort_order_title = sort_order_title(inst.short_title)
+	inst.is_valid = not inst.banned and not inst.fewer_than_threshold
+
+
+pre_save.connect(timeline_created, sender = Timeline)
