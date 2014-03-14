@@ -16,3 +16,8 @@ def getWikipediaTimeline(page_title):
 @shared_task
 def refreshTimeline(timeline):
 	timeline.get_events()
+
+@shared_task
+def resaveTimelines():
+	for t in Timeline.objects.all():
+		t.save()

@@ -52,14 +52,6 @@
 		</div>
 	</div>
 
-	<div id="apology-message" class="hidden">
-		<p>We're really sorry, but this just isn't going to work.</p>
-
-		<p class="details">You could try <a href="http://www.mozilla.org/en-US/firefox/new/">Firefox</a> or <a href="http://google.com/chrome/">Chrome</a>.</p>
-
-		<p class="details">What's going on here?</p>
-	</div>
-
 	<script type="text/javascript"
 		data-main="{% static 'timelineviewer/js/viewer.js' %}"
 		src="{% static 'timelineviewer/js/require.js' %}"></script>
@@ -74,6 +66,10 @@
 			<a href="<%= url %>">(original page)</a>
 		</div>
 		<div class="right">
+			<a href="#" id="zoom-in-link">zoom in</a>
+			|
+			<a href="#" id="zoom-out-link">zoom out</a>
+			|
 			<a href="#" id="set-focus-link"><span id="inactive">set focus</span><span id="active">remove focus</span></a>
 			|
 			<a href="#" id="remove-link">remove</a>

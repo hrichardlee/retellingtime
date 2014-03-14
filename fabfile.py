@@ -109,14 +109,20 @@ def code_setup():
 
 
 ## Needs to happen once after code has been uploaded
-def data_setup():
-	"""This must be run after the code has been set up on the machine."""
+def initial_data_setup():
+	"""This will destroy any existing data. This must be run after the code
+	has been set up on the machine."""
 	ve_run('python -m nltk.downloader punkt')
 	run('rm -f %s/db.sqlite3' % source_dir)
 	ve_run('python manage.py syncdb --noinput', base_dir=source_dir)
 	# fixtures include data for creating a superuser called hrichardlee and
 	# loading initial test data
 	ve_run('python manage.py loaddata deployment/fixtures/*.json', base_dir=source_dir)
+
+
+def data_migrate():
+	"""Does all necessary data migrations"""
+	ve_run('python manage.py migrate timelinedata', base_dir = source_dir)
 
 
 ## Initial machine setup
