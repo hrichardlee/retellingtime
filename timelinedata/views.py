@@ -16,15 +16,6 @@ def detail(request, id):
 	return HttpResponse(t.details_json(), content_type = 'application/json')
 
 def search(request, page_title):
-	try:
-		wikipediaprocess.get_wp_page(page_title)
-	except wikipedia.PageError:
-		# this is a quick hack. should be symmetric with Timeline.short_title
-		page_title = 'Timeline of ' + page_title
-	try:
-		wikipediaprocess.get_wp_page(page_title)
-	except wikipedia.PageError:
-		raise Http404
 	# note: these parameters can only be used if the timeline has never been
 	# processed yet. if the timeline has been processed, the existing
 	# parameters will be used. if we did not use this policy, anyone with
