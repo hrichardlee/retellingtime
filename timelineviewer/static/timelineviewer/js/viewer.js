@@ -31,7 +31,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 		// load timelines based on url hash
 		if (window.location.hash) {
 			_.each(window.location.hash.substring(1).split('&'), function (title) {
-				addTimeline('/timelinedata/search/' + title);
+				addTimeline('/timelinedata/search/' + title + '/');
 			});
 		}
 
@@ -91,7 +91,7 @@ requirejs(['jquery', 'underscore', 'd3', 'viewer/tlevents', 'viewer/tl'], functi
 			// there would be some way to use the {% url %} template tag, but
 			// it's really not worth the trouble here. There isn't a great way
 			// of solving either of these problems.
-			addTimeline('/timelinedata/' + this.id.substring(2));
+			addTimeline('/timelinedata/' + this.id.substring(2) + '/');
 		})
 
 		var prevQuery = [];

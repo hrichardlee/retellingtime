@@ -22,11 +22,11 @@ class Timeline(models.Model):
 	# metadata
 	title = models.CharField(max_length = 500)
 	short_title = models.CharField(max_length = 500)
-	sort_order_title = models.CharField(db_index = True, max_length = 500)
+	sort_order_title = models.CharField(max_length = 500)
 
 	url = models.CharField(max_length = 500)
 	timestamp = models.DateTimeField(auto_now = True)
-	highlighted = models.BooleanField(db_index = True, default = False)
+	highlighted = models.BooleanField(default = False)
 
 	orig_titles = models.CharField(max_length = 2000, default = '', blank = True)
 
@@ -34,7 +34,13 @@ class Timeline(models.Model):
 	events = models.CharField(max_length = 1000000, blank = True)
 	banned = models.BooleanField(default = False)
 	fewer_than_threshold = models.BooleanField()
-	is_valid = models.BooleanField(db_index = True, default = True)
+	is_valid = models.BooleanField(default = True)
+
+	class Meta:
+		index_together = [
+			["is_valid", "sort_order_title"],
+			["is_valid", "highlighted", "sort_order_title"]
+		]
 
 	# error and diagnostic info
 	first_and_last = models.CharField(max_length = 1000, blank = True)
