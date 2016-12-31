@@ -1,0 +1,41 @@
+# install some things on the machine
+sudo apt-get install nginx
+sudo apt-get install git  # just for the wikipedia reference in $projdir/requirements.txt
+sudo apt-get install python-pip
+sudo apt-get install virtualenvwrapper
+sudo apt-get install python-dev
+
+
+# upload the files
+rsync -avrzh retellingtime/ hrichardlee@$server:/var/sites/retellingtime/
+sudo chown -R hrichardlee:hrichardlee /var/sites/retellingtime
+
+
+# make the virtualenv
+mkvirtualenv rtenv
+pip install -r requirements.txt
+
+
+# collect static files
+python $projdir/manage.py collectstatic
+
+
+# download punkt dataset
+python
+import nltk; nltk.download('punkt')
+
+
+# configure upstart
+sudo cp /var/sites/retellingtime/deployment/upstart-retellingtime /etc/init/retellingtime.conf
+sudo start retellingtime
+
+
+# setup self-signed SSL keys
+sudo mkdir /etc/nginx/ssl
+sudo openssl req -new -newkey rsa:2048 -days 36500 -nodes -x509 -keyout server.key -out server.crt
+
+
+# configure nginx
+sudo cp /var/sites/retellingtime/deployment/nginx-retellingtime /etc/nginx/sites-available/retellingtime
+sudo ln -s /etc/nginx/sites-available/retellingtime /etc/nginx/sites-enabled/retellingtime
+sudo service nginx reload

@@ -2,11 +2,6 @@ from __future__ import absolute_import
 
 from django.contrib import admin
 from timelinedata.models import Timeline
-from timelineprocessor import wikipediaprocess
-from timelinedata.views import admin_populate_from_list, admin_populate_from_title_search
-import timelinedata.tasks
-from django.conf.urls import patterns, url
-from celery.task.control import discard_all
 
 
 class ErrorsNonEmptyFilter(admin.SimpleListFilter):
@@ -40,47 +35,9 @@ class CombinationsFilter(admin.SimpleListFilter):
 			return queryset.filter(orig_titles__exact='')
 
 class TimelineAdmin(admin.ModelAdmin):
-	def populate_from_list_view(self, request):
-		return admin_populate_from_list(request, self)
-
-	def populate_from_title_search_view(self, request):
-		return admin_populate_from_title_search(request, self)
-
-	def resave_all_view(self, request):
-		timelinedata.tasks.resaveTimelines.delay()
-		self.message_user(request, 'Queued resaving all timelines')
-		return self.changelist_view(request)
-
-	def refresh_all_view(self, request):
-		for t in Timeline.objects.all():
-			timelinedata.tasks.refreshTimeline.delay(t)
-		self.message_user(request, 'Queued refresh for all')
-		return self.changelist_view(request)
-
-	def cancel_all_view(self, request):
-		n = discard_all()
-		self.message_user(request, 'Discarded %d tasks' % n)
-		return self.changelist_view(request)
-
-	def get_urls(self):
-		# pretty much taken wholesale from http://www.slideshare.net/lincolnloop/customizing-the-django-admin
-		urls = super(TimelineAdmin, self).get_urls()
-		add_urls = patterns('',
-			url(r'^populate_from_list/$', self.populate_from_list_view, name='timelineadmin_populate_from_list'),
-			url(r'^populate_from_title_search/$', self.populate_from_title_search_view, name='timelineadmin_populate_from_title_search'),
-			url(r'^resave_all/$', self.resave_all_view, name='timelineadmin_resave_all'),
-			url(r'^refresh_all/$', self.refresh_all_view, name='timelineadmin_refresh_all'),
-			url(r'^cancel_all/$', self.cancel_all_view, name='timelineadmin_cancel_all'),
-			)
-		return add_urls + urls
-
 	def refresh(modeladmin, request, queryset):
 		for timeline in queryset:
 			timeline.get_events()
-
-	def asyncRefresh(modeladmin, request, queryset):
-		for timeline in queryset:
-			timelinedata.tasks.refreshTimeline.delay(timeline)
 
 	def ban(modeladmin, request, queryset):
 		for p in queryset:
@@ -106,7 +63,7 @@ class TimelineAdmin(admin.ModelAdmin):
 	list_filter = ('highlighted', 'banned', 'fewer_than_threshold', ErrorsNonEmptyFilter, CombinationsFilter)
 	search_fields = ('title',)
 
-	actions = ['refresh', 'ban', 'unban', 'highlight', 'unhighlight', 'combine', 'asyncRefresh']
+	actions = ['refresh', 'ban', 'unban', 'highlight', 'unhighlight', 'combine']
 
 	readonly_fields = ('timestamp', 'first_and_last_formatted', 'errors_formatted', 'pretty_events')
 

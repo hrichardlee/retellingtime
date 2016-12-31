@@ -54,3 +54,7 @@ docs/_build/
 
 #sass files
 .sass-cache
+
+
+# PyCharm
+.idea

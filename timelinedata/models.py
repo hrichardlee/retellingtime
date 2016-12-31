@@ -6,7 +6,7 @@ import json
 from bs4 import BeautifulSoup
 import operator
 
-import pdb
+import wikipedia
 
 import timelineprocessor.wikipediaprocess as wikipediaprocess
 import timelineprocessor.htmlprocess as htmlprocess
@@ -214,6 +214,18 @@ class Timeline(models.Model):
 		combination.set_params(htmlprocess.param_defaults({}))
 		combination.fewer_than_threshold = all(t.fewer_than_threshold for t in timelines)
 		combination.save()
+
+	@classmethod
+	def populate_from_list_of_timelines_page(cls):
+		timeline_titles = wikipediaprocess.wikipedia_timeline_page_titles()
+		for title in timeline_titles:
+			cls.process_wikipedia_page(title)
+
+	@classmethod
+	def populate_from_search(cls):
+		timeline_titles = wikipedia.search_all('intitle:"timeline of"')
+		for title in timeline_titles:
+			cls.process_wikipedia_page(title)
 
 
 def timeline_created(sender, **kwargs):

@@ -1,6 +1,6 @@
 server {
     listen 80 default_server;
-    #server_name gregale.cloudapp.com;
+    server_name retellingtime.com;
 
     location /admin/ {
         # redirect to https
@@ -8,7 +8,7 @@ server {
     }
 
     location /static/ {
-        alias /home/hrichardlee/staticfiles/;
+        alias /var/sites/retellingtime/staticfiles/;
     }
 
     location / {
@@ -29,7 +29,7 @@ server {
     }
 
     location /static {
-        alias /home/hrichardlee/staticfiles/;
+        alias /var/sites/retellingtime/staticfiles/;
     }
 
     location / {
