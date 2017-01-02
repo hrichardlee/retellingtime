@@ -1,12 +1,9 @@
 # -*- coding: UTF-8 -*-
 
-
-from bs4 import BeautifulSoup
-from parsedate import parse_date_html, TimelineDate, TimePoint
-import parsedate
+from timelineprocessor.parsedate import parse_date_html, TimelineDate, TimePoint
+import timelineprocessor.parsedate
 import warnings
 import unittest
-import pdb
 from pprint import pprint
 
 
@@ -19,11 +16,11 @@ class TestCombine(unittest.TestCase):
 
 class TestPossibleTexts(unittest.TestCase):
 	def test_one(self):
-		pprint(list(parsedate._possible_texts(u'1845 a.d. century ago')))
-		pprint(list(parsedate._possible_texts(u'1845 march blah')))
-		pprint(list(parsedate._possible_texts(u'1845 ma: march')))
-		pprint(list(parsedate._possible_texts(u'2nd century b.c.')))
-		pprint(list(parsedate._possible_texts(u'1967 - 12th street massacre')))
+		pprint(list(timelineprocessor.parsedate._possible_texts(u'1845 a.d. century ago')))
+		pprint(list(timelineprocessor.parsedate._possible_texts(u'1845 march blah')))
+		pprint(list(timelineprocessor.parsedate._possible_texts(u'1845 ma: march')))
+		pprint(list(timelineprocessor.parsedate._possible_texts(u'2nd century b.c.')))
+		pprint(list(timelineprocessor.parsedate._possible_texts(u'1967 - 12th street massacre')))
 
 
 class TestParseDate(unittest.TestCase):

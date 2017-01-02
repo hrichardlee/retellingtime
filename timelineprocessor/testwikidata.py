@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-from wikipediaprocess import LineTypes
+from timelineprocessor.htmlprocess import LineTypes
 from bs4 import BeautifulSoup
 
 htmlone = """<h2><span class="mw-headline" id="Progressive_Era_.281890.E2.80.931919.29"><a href="/wiki/Progressive_Era" title="Progressive Era">Progressive Era</a> (1890–1919)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Timeline_of_United_States_inventions_(1890%E2%80%931945)&amp;action=edit&amp;section=1" title="Edit section: Progressive Era (1890–1919)">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
